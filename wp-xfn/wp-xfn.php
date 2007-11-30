@@ -51,14 +51,14 @@ $data['first']
 $data['last']
 $data['uri']
 */
-function get_user_by_uri_and_name ($data) {
+function get_user_by_uri ($uri) {
   global $wpdb;
   
 	//print "<pre>LOOKING FOR:";
 	//print_r ($data);
 	//print "</pre>";
 
-  $uri      = normalize_uri($data['uri']);
+  $uri      = normalize_uri($uri);
   $sql      = "SELECT id FROM ". $wpdb->users ." WHERE user_url LIKE '%$uri%'";
   $results  = $wpdb->get_results($sql);
   
@@ -81,17 +81,7 @@ function get_user_by_uri_and_name ($data) {
 	}
   
   foreach ($results as $row) {
-    //print_r($row);
-    //print_r(get_usermeta($row->id)); exit;
-    $usermeta = get_usermeta($row->id);
-    
-    //print "<pre>FOUND:";
-		//print_r ($usermeta);
-		//print "</pre>";
-
-	  if ($data['first_name']==get_usermeta($row->id,'first_name') && $data['last_name']==get_usermeta($row->id,'last_name')) {
-      return get_userdata($row->id);
-    }
+    return get_userdata($row->id);
   }
 }
 
@@ -120,14 +110,7 @@ function xfn_page_callback($matches) {
 		$contact_blog_name  = $row->link_description;
 		$contact_notes      = $row->link_notes;
 		
-		// get user
-		$data               = array();
-		$nb                 = split(' ',$row->link_name);
-		$data['first_name'] = $nb[0];
-		$data['last_name']  = $nb[1];
-		$data['uri']        = $row->link_url;
-		
-		$a_user             = get_user_by_uri_and_name($data);
+		$a_user             = get_user_by_uri($the_link);
 		
 		if (DEBUG) print "<pre>A USER:" . print_r ($a_user, true) . "</pre>";
 		
@@ -164,11 +147,11 @@ function xfn_page_callback($matches) {
   		if ($has_openid) {
   			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
       } else {
-  			$output .= "\t\t<a class='url fn' rel='$contact_rel' href='$the_link'>$contact_fn</a>";
+  			$output .= "\t\t<span class='url fn' rel='$contact_rel'>$contact_fn</span>";
       }
       
       if (!empty($contact_blog_name)) {
-			  $output .= "&mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
+			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
 			}
 			
 		  $output .= "\r\n";
