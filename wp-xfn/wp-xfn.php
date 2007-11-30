@@ -1,0 +1,231 @@
+<?php
+/*
+Plugin Name: WP Microformatted Blogroll
+Plugin URI: http://factorycity.net/projects/wp-microformatted-blogroll/
+Description:  Output microformatted blogroll links on a static page.
+Version: 0.2
+Author: Chris Messina
+Author URI: http://factoryjoe.com/
+*/
+?>
+<?php
+/*
+
+INSTRUCTIONS
+------------
+1. Upload this file into your wp-content/plugins directory.
+2. Activate the WP Microformatted Blogroll plugin in your WordPress admin panel.
+3. Create a new static page.
+4. Add <!--xfnpage--> to the static page content where you want the links
+to appear.
+
+Enjoy!
+
+*/
+?>
+<?php
+
+/*
+function get_openid ($link_id) {
+	$link = get_link ($link_id);
+	
+	$uri = $link->link_url;
+	
+	// fetch uri
+	$ch = curl_init($uri);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$page = curl_exec($ch);
+	curl_close($ch);
+	
+	//print $page;  exit;
+	
+	// link href=".host.tld" rel="openid.delegate" or rel="openid.provider"
+	$rre = "/\<link.*?(openid\.delegate|openid2\.provider).*?\>/";
+	$hre = "/href[\s]*=[\s]*[\s*][\'\"](.*?)[\'\"]/";
+	$openid_links=array();
+	preg_match($rre, $page, $openid_links);
+	
+	//print_r ($openid_links); exit;
+	
+	if(count($openid_links)) {
+		$link->link_notes .= " openid:$uri";
+	}	
+}
+*/
+
+function normalize_uri ($uri) {
+	//print "<pre>$uri</pre>";
+	if (substr($uri,0,7)=='http://')
+		$uri = substr($uri,7);
+	if (substr($uri,-1)=='/')
+    $uri = substr($uri,0,-1);
+	//print "<pre>$uri</pre>";
+  return $uri;
+}
+
+/*
+$data['first']
+$data['last']
+$data['uri']
+*/
+function get_user_by_uri_and_name ($data) {
+  global $wpdb;
+  
+	//print "<pre>LOOKING FOR:";
+	//print_r ($data);
+	//print "</pre>";
+
+  $uri = normalize_uri($data['uri']);
+  
+  $sql = "SELECT id FROM ". $wpdb->users .
+		" WHERE user_url LIKE '%$uri%'";
+
+  $results = $wpdb->get_results($sql);
+  
+	//print "<pre>RESULTS:";
+	//print_r ($sql);
+	//print_r ($results);
+	//print "</pre>";
+	
+
+	if (!$results) {
+		if (strpos($uri,'/')) {
+			$uri = substr($uri,0,(strpos($uri,'/'))); // chop any path and try just the domain next
+			//print "<pre>$uri</pre>";
+			$sql = "SELECT id FROM ". $wpdb->users .
+				" WHERE user_url LIKE '%$uri%'";
+
+	  	$results = $wpdb->get_results($sql);
+		}
+		if (!$results) {
+			return;
+  	}
+	}
+  
+  foreach ($results as $row) {
+    //print_r($row);
+    //print_r(get_usermeta($row->id)); exit;
+    $usermeta = get_usermeta($row->id);
+    
+    //print "<pre>FOUND:";
+		//print_r ($usermeta);
+		//print "</pre>";
+
+	if ($data['first_name']==get_usermeta($row->id,'first_name') &&
+      $data['last_name']==get_usermeta($row->id,'last_name')) {
+          return get_userdata($row->id);
+      }
+  }
+  
+}
+
+function xfn_page_callback($matches) {
+	global $wpdb;
+	$output = '';
+	
+	global $wpdb;
+	$sql = "SELECT link_url, link_name, link_rel, link_description, link_notes
+		FROM $wpdb->links
+		WHERE link_visible = 'Y'
+		ORDER BY link_name" ;
+
+	$results = $wpdb->get_results($sql);
+	if (!$results) {
+		return;
+	}
+	
+	$output .= "\n <ul class=\"xoxo\">";
+
+	foreach ($results as $row) {
+			
+		$the_link = wp_specialchars($row->link_url);
+		
+		$rel =  $row->link_rel;
+		$blog_name = $row->link_description;
+		$note = $row->link_notes;
+		
+		// get user
+		$data=array();
+		$nb = split(' ',$row->link_name);
+		$data['first_name'] = $nb[0];
+		$data['last_name'] = $nb[1];
+		$data['uri'] = $row->link_url;
+		
+		$a_user = get_user_by_uri_and_name($data);
+		
+		//print "<pre>A USER:";
+		//print_r ($a_user);
+		//print "</pre>";
+		
+		$has_openid = false;
+		if (null !== $a_user && get_usermeta($a_user->ID, 'registered_with_openid'))
+		  $has_openid = true;
+		
+		$openid_uri='';
+		
+		$wpo_installed = false;
+		$current_plugins = get_option('active_plugins');
+		//print_r($current_plugins); exit; 
+		if (in_array('openid/core.php', $current_plugins)) {
+			$wpo_installed = true;
+		}
+		
+		if($has_openid && $wpo_installed) {
+			// get openid url
+			// this only works if wpopenid is installed, but i don't know yet 
+			//    how to check for the plugin
+			$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix.
+				"openid_identities WHERE user_id = '$a_user->ID'";
+		
+			//print "<pre>";
+			//print_r ($sql);
+			//print "</pre>";
+		
+			$oid_results = $wpdb->get_results($sql);
+			if ($oid_results) {
+				
+			}
+		
+			//print "<pre>";
+			//print_r ($oid_results);
+			//print "</pre>";
+			
+			$openid_uri = $oid_results[0]->url;
+		}
+		
+		$contact_name = wp_specialchars($row->link_name, ENT_QUOTES) ;
+				
+		if (empty($rel) or empty($the_link) or empty($contact_name)) {
+			continue; // skip ahead to next record
+		} else {
+			// if note contains an openid, use it for the person's name and use the 
+			$output .= "\t<li class='vcard'>\r\n";
+			if ($has_openid)
+				$output .= "\t\t<a class='xfnRelationship fn url openid' rel='$rel'  href='$openid_uri'>$contact_name</a>";
+			else
+				$output .= "<span class='xfnRelationship fn' rel='$rel'>$contact_name</span>";
+			$output .= " &mdash <a title='$blog_name ($rel)' class='url' href='$the_link'>\r\n";
+			$output .= "$blog_name</a></li>\r\n";
+		}
+
+		$output .= "\n";
+
+	}
+	
+	$output .= "\n</ul>\n";
+
+	return $output;
+}
+
+function xfn_page($content)
+{
+	$content = preg_replace_callback('|<!--xfnpage-->|i', 'xfn_page_callback', $content);
+	return $content;
+}
+
+//add_filter( 'add_link', 'get_openid' );
+//add_filter( 'pre_link_url', 'test' );
+//add_filter( 'edit_link', 'get_openid' );
+add_filter('the_content', 'xfn_page');
+
+?>
