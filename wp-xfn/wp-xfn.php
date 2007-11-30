@@ -25,6 +25,12 @@ Enjoy!
 ?>
 <?php
 
+function wp_xfn_styles() {
+  $wp_xfn_stylesheet = '<link rel="stylesheet" type="text/css" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-xfn/styles/xfn.css" />' . "\n";
+	
+	echo($wp_xfn_stylesheet);
+}
+
 define('DEBUG',false);
 
 if  ( class_exists('WordpressOpenIDLogic') ) {
@@ -100,7 +106,7 @@ function xfn_page_callback($matches) {
 		return;
 	}
 	
-	$output .= "\n <ul class=\"xoxo\">";
+	$output .= "\n <ul class=\"xoxo blogroll\">\n";
 
 	foreach ($results as $row) {
 			
@@ -138,7 +144,7 @@ function xfn_page_callback($matches) {
 			$openid_uri = $oid_results[0]->url;
 		}
 		
-		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES) ;    
+		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES);    
 
 		if (empty($contact_rel) or empty($contact_fn)) {
 			continue; // skip ahead to next record
@@ -147,11 +153,12 @@ function xfn_page_callback($matches) {
   		if ($has_openid) {
   			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
       } else {
-  			$output .= "\t\t<span class='url fn' rel='$contact_rel'>$contact_fn</span>";
+  			$output .= "\t\t<span class='fn'>$contact_fn</span>";
       }
-      
-      if (!empty($contact_blog_name)) {
+      if (!empty($contact_blog_name) and ($has_openid)) {
 			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
+			} else {
+			  $output .= " &mdash; <a class='url' href='$the_link' rel='$contact_rel'>$contact_blog_name</a>";
 			}
 			
 		  $output .= "\r\n";
@@ -173,6 +180,7 @@ function xfn_page($content)
 	return $content;
 }
 
+add_action('wp_head', 'wp_xfn_styles');
 add_filter('the_content', 'xfn_page');
 
 ?>
