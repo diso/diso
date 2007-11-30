@@ -25,7 +25,9 @@ Enjoy!
 ?>
 <?php
 
-if  ( !class_exists('WordpressOpenIDLogic') ) {
+define('DEBUG',false);
+
+if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = true;
 } else {
 	$has_wp_openid = false;
@@ -94,7 +96,7 @@ function get_user_by_uri_and_name ($data) {
 }
 
 function xfn_page_callback($matches) {
-	global $wpdb;
+	global $wpdb, $has_wp_openid;
 	$output = '';
 	
 	global $wpdb;
@@ -127,9 +129,7 @@ function xfn_page_callback($matches) {
 		
 		$a_user             = get_user_by_uri_and_name($data);
 		
-		//print "<pre>A USER:";
-		//print_r ($a_user);
-		//print "</pre>";
+		if (DEBUG) print "<pre>A USER:" . print_r ($a_user, true) . "</pre>";
 		
 		$has_openid = false;
 		if (null !== $a_user && get_usermeta($a_user->ID, 'registered_with_openid'))
@@ -137,32 +137,20 @@ function xfn_page_callback($matches) {
 		
 		$openid_uri='';
 		
-		/*
-		$wpo_installed = false;
-		$current_plugins = get_option('active_plugins');
-		//print_r($current_plugins); exit; 
-		if (in_array('openid/core.php', $current_plugins)) {
-			$wpo_installed = true;
-		}*/
-		
 		if($has_openid && $has_wp_openid) {
 			// get openid url
 			// this only works if wpopenid is installed, but i don't know yet 
 			//    how to check for the plugin
 			$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
 		
-			//print "<pre>";
-			//print_r ($sql);
-			//print "</pre>";
+			if (DEBUG) print "<pre>" . print_r ($sql, true) . "</pre>";
 		
 			$oid_results = $wpdb->get_results($sql);
 			if ($oid_results) {
 				
 			}
 		
-			//print "<pre>";
-			//print_r ($oid_results);
-			//print "</pre>";
+			if (DEBUG) "<pre>" . print_r ($oid_results, true) . "</pre>";
 			
 			$openid_uri = $oid_results[0]->url;
 		}
@@ -176,7 +164,7 @@ function xfn_page_callback($matches) {
   		if ($has_openid) {
   			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
       } else {
-  			$output .= "\t\t<a class='url fn' rel='$contact_rel'  href='$the_link'>$contact_fn</a>";
+  			$output .= "\t\t<a class='url fn' rel='$contact_rel' href='$the_link'>$contact_fn</a>";
       }
       
       if (!empty($contact_blog_name)) {
