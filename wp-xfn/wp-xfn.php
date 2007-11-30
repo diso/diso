@@ -3,8 +3,8 @@
 Plugin Name: WP Microformatted Blogroll
 Plugin URI: http://factorycity.net/projects/wp-microformatted-blogroll/
 Description:  Output microformatted blogroll links on a static page.
-Version: 0.2
-Author: Chris Messina
+Version: 0.5
+Author: Chris Messina and Steve Ivy
 Author URI: http://factoryjoe.com/
 */
 ?>
@@ -53,6 +53,13 @@ function get_openid ($link_id) {
 }
 */
 
+if  ( !class_exists('WordpressOpenIDLogic') ) {
+	$has_wp_openid = true;
+} else {
+	$has_wp_openid = false;
+}
+
+
 function normalize_uri ($uri) {
 	//print "<pre>$uri</pre>";
 	if (substr($uri,0,7)=='http://')
@@ -75,12 +82,9 @@ function get_user_by_uri_and_name ($data) {
 	//print_r ($data);
 	//print "</pre>";
 
-  $uri = normalize_uri($data['uri']);
-  
-  $sql = "SELECT id FROM ". $wpdb->users .
-		" WHERE user_url LIKE '%$uri%'";
-
-  $results = $wpdb->get_results($sql);
+  $uri      = normalize_uri($data['uri']);
+  $sql      = "SELECT id FROM ". $wpdb->users ." WHERE user_url LIKE '%$uri%'";
+  $results  = $wpdb->get_results($sql);
   
 	//print "<pre>RESULTS:";
 	//print_r ($sql);
@@ -92,8 +96,7 @@ function get_user_by_uri_and_name ($data) {
 		if (strpos($uri,'/')) {
 			$uri = substr($uri,0,(strpos($uri,'/'))); // chop any path and try just the domain next
 			//print "<pre>$uri</pre>";
-			$sql = "SELECT id FROM ". $wpdb->users .
-				" WHERE user_url LIKE '%$uri%'";
+			$sql = "SELECT id FROM ". $wpdb->users . " WHERE user_url LIKE '%$uri%'";
 
 	  	$results = $wpdb->get_results($sql);
 		}
@@ -111,12 +114,10 @@ function get_user_by_uri_and_name ($data) {
 		//print_r ($usermeta);
 		//print "</pre>";
 
-	if ($data['first_name']==get_usermeta($row->id,'first_name') &&
-      $data['last_name']==get_usermeta($row->id,'last_name')) {
-          return get_userdata($row->id);
-      }
+	  if ($data['first_name']==get_usermeta($row->id,'first_name') && $data['last_name']==get_usermeta($row->id,'last_name')) {
+      return get_userdata($row->id);
+    }
   }
-  
 }
 
 function xfn_page_callback($matches) {
@@ -138,20 +139,20 @@ function xfn_page_callback($matches) {
 
 	foreach ($results as $row) {
 			
-		$the_link = wp_specialchars($row->link_url);
+		$the_link           = wp_specialchars($row->link_url);
 		
-		$rel =  $row->link_rel;
-		$blog_name = $row->link_description;
-		$note = $row->link_notes;
+		$contact_rel        = $row->link_rel;
+		$contact_blog_name  = $row->link_description;
+		$contact_notes      = $row->link_notes;
 		
 		// get user
-		$data=array();
-		$nb = split(' ',$row->link_name);
+		$data               = array();
+		$nb                 = split(' ',$row->link_name);
 		$data['first_name'] = $nb[0];
-		$data['last_name'] = $nb[1];
-		$data['uri'] = $row->link_url;
+		$data['last_name']  = $nb[1];
+		$data['uri']        = $row->link_url;
 		
-		$a_user = get_user_by_uri_and_name($data);
+		$a_user             = get_user_by_uri_and_name($data);
 		
 		//print "<pre>A USER:";
 		//print_r ($a_user);
@@ -163,19 +164,19 @@ function xfn_page_callback($matches) {
 		
 		$openid_uri='';
 		
+		/*
 		$wpo_installed = false;
 		$current_plugins = get_option('active_plugins');
 		//print_r($current_plugins); exit; 
 		if (in_array('openid/core.php', $current_plugins)) {
 			$wpo_installed = true;
-		}
+		}*/
 		
-		if($has_openid && $wpo_installed) {
+		if($has_openid && $has_wp_openid) {
 			// get openid url
 			// this only works if wpopenid is installed, but i don't know yet 
 			//    how to check for the plugin
-			$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix.
-				"openid_identities WHERE user_id = '$a_user->ID'";
+			$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
 		
 			//print "<pre>";
 			//print_r ($sql);
@@ -193,20 +194,25 @@ function xfn_page_callback($matches) {
 			$openid_uri = $oid_results[0]->url;
 		}
 		
-		$contact_name = wp_specialchars($row->link_name, ENT_QUOTES) ;
-				
-		if (empty($rel) or empty($the_link) or empty($contact_name)) {
+		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES) ;    
+
+		if (empty($contact_rel) or empty($contact_fn)) {
 			continue; // skip ahead to next record
-		} else {
-			// if note contains an openid, use it for the person's name and use the 
+	  } else {
 			$output .= "\t<li class='vcard'>\r\n";
-			if ($has_openid)
-				$output .= "\t\t<a class='xfnRelationship fn url openid' rel='$rel'  href='$openid_uri'>$contact_name</a>";
-			else
-				$output .= "<span class='xfnRelationship fn' rel='$rel'>$contact_name</span>";
-			$output .= " &mdash <a title='$blog_name ($rel)' class='url' href='$the_link'>\r\n";
-			$output .= "$blog_name</a></li>\r\n";
-		}
+  		if ($has_openid) {
+  			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
+      } else {
+  			$output .= "\t\t<a class='url fn' rel='$contact_rel'  href='$the_link'>$contact_fn</a>";
+      }
+      /*
+      if (!empty($contact_blog_name)) {
+			  $output .= "&mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
+			}
+			*/
+		  $output .= "\r\n";
+			$output .= "\t</li>\r\n";
+	  }
 
 		$output .= "\n";
 
