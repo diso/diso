@@ -25,52 +25,26 @@ Enjoy!
 ?>
 <?php
 
-/*
-function get_openid ($link_id) {
-	$link = get_link ($link_id);
-	
-	$uri = $link->link_url;
-	
-	// fetch uri
-	$ch = curl_init($uri);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$page = curl_exec($ch);
-	curl_close($ch);
-	
-	//print $page;  exit;
-	
-	// link href=".host.tld" rel="openid.delegate" or rel="openid.provider"
-	$rre = "/\<link.*?(openid\.delegate|openid2\.provider).*?\>/";
-	$hre = "/href[\s]*=[\s]*[\s*][\'\"](.*?)[\'\"]/";
-	$openid_links=array();
-	preg_match($rre, $page, $openid_links);
-	
-	//print_r ($openid_links); exit;
-	
-	if(count($openid_links)) {
-		$link->link_notes .= " openid:$uri";
-	}	
-}
-*/
-
 if  ( !class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = true;
 } else {
 	$has_wp_openid = false;
 }
 
-
+/*
+  For comparing URLs
+*/
 function normalize_uri ($uri) {
-	//print "<pre>$uri</pre>";
 	if (substr($uri,0,7)=='http://')
 		$uri = substr($uri,7);
 	if (substr($uri,-1)=='/')
     $uri = substr($uri,0,-1);
-	//print "<pre>$uri</pre>";
-  return $uri;
+	return $uri;
 }
 
 /*
+Try to match a user in the DB with a blogroll user
+
 $data['first']
 $data['last']
 $data['uri']
@@ -90,7 +64,6 @@ function get_user_by_uri_and_name ($data) {
 	//print_r ($sql);
 	//print_r ($results);
 	//print "</pre>";
-	
 
 	if (!$results) {
 		if (strpos($uri,'/')) {
@@ -205,11 +178,11 @@ function xfn_page_callback($matches) {
       } else {
   			$output .= "\t\t<a class='url fn' rel='$contact_rel'  href='$the_link'>$contact_fn</a>";
       }
-      /*
+      
       if (!empty($contact_blog_name)) {
 			  $output .= "&mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
 			}
-			*/
+			
 		  $output .= "\r\n";
 			$output .= "\t</li>\r\n";
 	  }
@@ -229,9 +202,6 @@ function xfn_page($content)
 	return $content;
 }
 
-//add_filter( 'add_link', 'get_openid' );
-//add_filter( 'pre_link_url', 'test' );
-//add_filter( 'edit_link', 'get_openid' );
 add_filter('the_content', 'xfn_page');
 
 ?>
