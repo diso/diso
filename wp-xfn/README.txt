@@ -1,80 +1,21 @@
-## STYLES
+## Intro
 
-ul.xoxo li {
-	margin-bottom: 6px;
-}
+Simply outputs a page of links on your blog marked up with XOXO, hCard and XFN. In addition, the plugin will check to see if any of your blogroll links match registered users (where link URL matches the user's url). If any of those users registered via [OpenID](http://openid.net)  (using [WP-OpenID](http://willnorris.com/projects/wp-openid)), the user's name in the blogroll will be linked to their OpenID URI.
 
-.xfnRelationship
-{
-	/*
-		padding-right: 13px;
-	background: url(images/friends.png) no-repeat right;
-	padding-right: 26px;
-	background: url(images/xfnicons/xfn-small.png) no-repeat right;
-	*/
-	
-}
+To install:
 
-.xfnRelationship[rel~="colleague"],
-.xfnRelationship[rel~="co-worker"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-colleague.png) no-repeat right;
-}
+	1. Upload this file into your wp-content/plugins directory.
+	2. Activate the WP Microformatted Blogroll plugin in your WordPress admin panel.
 
-.xfnRelationship[rel~="colleague"][rel~="met"],
-.xfnRelationship[rel~="co-worker"][rel~="met"]
-{
-	padding-right: 26px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-colleague-met.png) no-repeat right;
-}
+## Page
+	1. Create a new static page.
+	2. &lt;!--xfnpage-->
 
-.xfnRelationship[rel~="friend"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-friend.png) no-repeat right;
-}
+## Widget
 
-.xfnRelationship[rel~="friend"][rel~="met"]
-{
-	padding-right: 26px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-friend-met.png) no-repeat right;
-}
+Add "Microformatted Blogroll" to your sidebar.
 
-.xfnRelationship[rel~="sweetheart"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-sweetheart.png) no-repeat right;
-}
+## Template Tag
 
-.xfnRelationship[rel~="sweetheart"][rel~="met"]
-{
-	padding-right: 26px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-sweetheart-met.png) no-repeat right;
-}
+<code>&lt;%php xfn\_blogroll(); %>
 
-.xfnRelationship[rel~="child"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-child.png) no-repeat right;
-}
-
-.xfnRelationship[rel~="parent"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-parent.png) no-repeat right;
-}
-
-.xfnRelationship[rel~="spouse"]
-{
-	padding-right: 21px;
-	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-spouse.png) no-repeat right;
-}
-
-/*
-a.openid, span.openid
-{
-	padding-left: 21px;
-	background: url(../../plugins/wpopenid/images/openid.gif) no-repeat left;
-}
-*/
