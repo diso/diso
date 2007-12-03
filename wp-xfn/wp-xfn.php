@@ -91,7 +91,7 @@ function get_user_by_uri ($uri) {
   }
 }
 
-function xfn_page_callback($matches) {
+function xfn_generateblogroll() {
 	global $wpdb, $has_wp_openid;
 	$output = '';
 	
@@ -174,6 +174,10 @@ function xfn_page_callback($matches) {
 	return $output;
 }
 
+function xfn_page_callback($matches) {
+	return xfn_generateblogroll();
+}
+
 function xfn_page($content)
 {
 	$content = preg_replace_callback('|<!--xfnpage-->|i', 'xfn_page_callback', $content);
@@ -183,4 +187,41 @@ function xfn_page($content)
 add_action('wp_head', 'wp_xfn_styles');
 add_filter('the_content', 'xfn_page');
 
-?>
+/* ============== widget ============== */
+function widget_xfnblogroll_init() {
+	
+	// Check for the required API functions
+	if ( !function_exists('register_sidebar_widget') || !function_exists('register_widget_control') )
+		return;
+		
+	function widget_xfnblogroll($args) {
+		extract($args);
+		$defaults = array();
+		$options = (array) get_option('widget_xfnblogroll');
+		$m=array();
+		//print "<!--" . print_r($args, true) . "-->";
+		if (empty($before_widget))
+			$before_widget='<div class="widget widget_xfnblogroll">';
+		
+		if (empty($after_widget))
+			$after_widget='</div>';
+		
+		foreach ( $defaults as $key => $value )
+			if ( !isset($options[$key]) )
+				$options[$key] = $defaults[$key];
+
+		echo $before_widget;
+		echo $before_title;
+		echo (!empty($options['title'])) ? $options['title'] : "Blogroll";
+		echo $after_title;
+			
+		echo xfn_generateblogroll();
+		echo $after_widget;
+		
+	}
+	
+	register_sidebar_widget(array('Microformatted Blogroll', 'widgets'), 'widget_xfnblogroll');
+	
+}
+
+add_action('widgets_init', 'widget_xfnblogroll_init');
