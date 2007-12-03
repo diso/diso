@@ -39,6 +39,71 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
+$check_openid = get_option("xfnblogroll_check_openid") == 'Y';
+
+/* ========= admin ========= */
+function xfnblogroll_add_pages() {
+	// Add a new submenu under Options:
+	add_options_page('Microformated Blogroll Options', 'Microformated Blogroll', 8, __FILE__, 'xfnblogroll_options_page');
+}
+
+function xfnblogroll_options_page () {
+	// variables for the field and option names 
+  $opt_name = 'xfnblogroll_check_openid';
+  $hidden_field_name = 'xfnblogroll_submit_hidden';
+  $data_field_name = 'xfnblogroll_check_openid';
+	
+	// Read in existing option value from database
+  $opt_val = get_option( $opt_name );
+	
+	if( $_POST[ $hidden_field_name ] == 'Y' ) {
+      // Read their posted value
+      $opt_val = $_POST[ $data_field_name ];
+
+      // Save the posted value in the database
+      update_option( $opt_name, $opt_val );
+
+      // Put an options updated message on the screen
+			?>
+<div class="updated"><p><strong>Options saved.</strong></p></div>
+			<?php
+  }
+	
+	// Now display the options editing screen
+  echo '<div class="wrap">';
+	
+	// header
+  echo "<h2>Microformatted Blogroll Plugin Options</h2>";
+	
+	// options form
+  
+  ?>
+
+<form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
+	<input type="hidden" name="<?php echo $hidden_field_name; ?>" value="Y">
+
+	<p>
+		Lookup Users with OpenID:
+		<select name="<?php echo $data_field_name; ?>">
+			<option value="Y"<?php if ($opt_val=='Y') echo " selected" ?>>Yes</option>
+			<option value="N"<?php if ($opt_val=='N') echo " selected" ?>>No</option>
+		</select>
+  </p>
+	<hr />
+
+	<p class="submit">
+	<input type="submit" name="Submit" value="Update Options" />
+  </p>
+
+</form>
+</div>
+
+	<?php
+}
+
+// Hook for adding admin menus
+add_action('admin_menu', 'xfnblogroll_add_pages');
+
 /*
   For comparing URLs
 */
@@ -91,8 +156,10 @@ function get_user_by_uri ($uri) {
   }
 }
 
+/* ========== the main work ========== */
+
 function xfn_generateblogroll() {
-	global $wpdb, $has_wp_openid;
+	global $wpdb, $has_wp_openid, $check_openid;
 	$output = '';
 	
 	global $wpdb;
@@ -126,7 +193,7 @@ function xfn_generateblogroll() {
 		
 		$openid_uri='';
 		
-		if($has_openid && $has_wp_openid) {
+		if($check_openid && $has_openid && $has_wp_openid) {
 			// get openid url
 			// this only works if wpopenid is installed, but i don't know yet 
 			//    how to check for the plugin
@@ -135,9 +202,6 @@ function xfn_generateblogroll() {
 			if (DEBUG) print "<pre>" . print_r ($sql, true) . "</pre>";
 		
 			$oid_results = $wpdb->get_results($sql);
-			if ($oid_results) {
-				
-			}
 		
 			if (DEBUG) "<pre>" . print_r ($oid_results, true) . "</pre>";
 			
@@ -150,12 +214,12 @@ function xfn_generateblogroll() {
 			continue; // skip ahead to next record
 	  } else {
 			$output .= "\t<li class='vcard'>\r\n";
-  		if ($has_openid) {
+  		if ($has_openid && $check_openid) {
   			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
       } else {
   			$output .= "\t\t<span class='fn'>$contact_fn</span>";
       }
-      if (!empty($contact_blog_name) and ($has_openid)) {
+      if (!empty($contact_blog_name) and ($has_openid && $check_openid)) {
 			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
 			} else {
 			  $output .= " &mdash; <a class='url' href='$the_link' rel='$contact_rel'>$contact_blog_name</a>";
@@ -178,14 +242,20 @@ function xfn_page_callback($matches) {
 	return xfn_generateblogroll();
 }
 
-function xfn_page($content)
-{
+function xfn_page_filter($content) {
 	$content = preg_replace_callback('|<!--xfnpage-->|i', 'xfn_page_callback', $content);
 	return $content;
 }
 
 add_action('wp_head', 'wp_xfn_styles');
-add_filter('the_content', 'xfn_page');
+add_filter('the_content', 'xfn_page_filter');
+
+/*
+	Template Tag 
+*/
+function xfn_blogroll () {
+	echo xfn_generateblogroll();
+}
 
 /* ============== widget ============== */
 function widget_xfnblogroll_init() {
