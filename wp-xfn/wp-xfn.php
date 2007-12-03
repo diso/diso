@@ -39,7 +39,7 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
-$check_openid = get_option("xfnblogroll_check_openid") == 'Y';
+$check_openid = get_option("xfnblogroll_check_openid");
 
 /* ========= admin ========= */
 function xfnblogroll_add_pages() {
@@ -65,7 +65,7 @@ function xfnblogroll_options_page () {
 
       // Put an options updated message on the screen
 			?>
-<div class="updated"><p><strong>Options saved.</strong></p></div>
+			<div class="updated"><p><strong>Options saved.</strong></p></div>
 			<?php
   }
 	
@@ -79,7 +79,7 @@ function xfnblogroll_options_page () {
   
   ?>
 
-<form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
+	<form name="form1" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 	<input type="hidden" name="<?php echo $hidden_field_name; ?>" value="Y">
 
 	<p>
@@ -95,8 +95,8 @@ function xfnblogroll_options_page () {
 	<input type="submit" name="Submit" value="Update Options" />
   </p>
 
-</form>
-</div>
+	</form>
+	</div>
 
 	<?php
 }
@@ -172,6 +172,7 @@ function xfn_generateblogroll() {
 	if (!$results) {
 		return;
 	}
+	if (DEBUG) print "<pre>CHECK_OPENID? ".get_option("xfnblogroll_check_openid")."</pre>";
 	
 	$output .= "\n <ul class=\"xoxo blogroll\">\n";
 
@@ -193,7 +194,7 @@ function xfn_generateblogroll() {
 		
 		$openid_uri='';
 		
-		if($check_openid && $has_openid && $has_wp_openid) {
+		if($check_openid=='Y' && $has_openid && $has_wp_openid) {
 			// get openid url
 			// this only works if wpopenid is installed, but i don't know yet 
 			//    how to check for the plugin
@@ -212,14 +213,16 @@ function xfn_generateblogroll() {
 
 		if (empty($contact_rel) or empty($contact_fn)) {
 			continue; // skip ahead to next record
-	  } else {
+	  } elseif (!($check_openid=='Y')) {
+			$output .= "\t\t<li class='vcard'><a class='url fn' rel='$contact_rel'  href='$the_link'>$contact_fn</a></li>";
+		} else {
 			$output .= "\t<li class='vcard'>\r\n";
-  		if ($has_openid && $check_openid) {
+  		if ($has_openid) {
   			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
       } else {
   			$output .= "\t\t<span class='fn'>$contact_fn</span>";
       }
-      if (!empty($contact_blog_name) and ($has_openid && $check_openid)) {
+      if (!empty($contact_blog_name) and ($has_openid)) {
 			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
 			} else {
 			  $output .= " &mdash; <a class='url' href='$the_link' rel='$contact_rel'>$contact_blog_name</a>";
