@@ -1,6 +1,6 @@
 ## Intro
 
-Simply outputs a page of links on your blog marked up with XOXO, hCard and XFN. In addition, the plugin will check to see if any of your blogroll links match registered users (where link URL matches the user's url). If any of those users registered via [OpenID](http://openid.net)  (using [WP-OpenID](http://willnorris.com/projects/wp-openid)), the user's name in the blogroll will be linked to their OpenID URI.
+Simply outputs a page of links on your blog marked up with XOXO, hCard and XFN. If the "Lookup users with OpenID" option is set, the plugin will check to see if any of your blogroll links match registered blog users (link URL matches the user's url). If any of those users registered via [OpenID](http://openid.net)  (using [WP-OpenID](http://willnorris.com/projects/wp-openid)), the user's name in the blogroll will be linked to their OpenID URI.
 
 To install:
 
@@ -17,5 +17,5 @@ Add "Microformatted Blogroll" to your sidebar.
 
 ## Template Tag
 
-<code>&lt;%php xfn\_blogroll(); %>
+<code>&lt;?php xfn\_blogroll(); ?>
 
