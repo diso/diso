@@ -1,0 +1,7 @@
+#summary Enhancement ideas for wp-xfn.
+#labels Phase-Requirements
+
+= XFN Enhancements =
+
+  * offer admin a list of openid-enabled users to add to blogroll
+    * clicking link opens pre-populated "Add Link" page in admin
