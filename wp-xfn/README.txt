@@ -11,6 +11,12 @@ To install:
 
 You must have the [WP-OpenID plugin](http://willnorris.com/projects/wp-openid) installed and active for OpenID integration to work.
 
+For the user matching to work, the code assumes:
+
+* Link Name -> person’s name (First-space-Last)
+* Link Description -> blog name
+* Link URI -> blog link, must match the "url" entered in the user's account. First the whole URI (minus http:// and any trailing /) is checked, if there's no match, it will remove any trailing path and try matching against just the domain.
+
 ## In-Page Blogroll
 
 The WP Microformatted Blogroll plugin can generate the blogroll in a static page:
