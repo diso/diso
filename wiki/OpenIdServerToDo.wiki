@@ -1,0 +1,9 @@
+#summary TODO tasks for wp-openid-server
+#labels Phase-Requirements
+
+= OpenID Server TODO =
+
+  * reorg as plugin
+  * authenticate against WP user database
+  * allow for administration of users
+  * provide hCard on user's profile page
