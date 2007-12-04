@@ -2,4 +2,3 @@
 
 * determine correct architecture
 	* web entry-point for the OpenID endpoint
-*
