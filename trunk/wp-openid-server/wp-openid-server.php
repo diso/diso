@@ -370,6 +370,7 @@ function check_authentication_mode () {
  * @global array $known
  * @global array $profile
  * @global array $sreg
+ * @TODO: hook this to the wordpress user account system
  */
 function checkid ( $wait ) {
 	debug("checkid: wait? $wait");
@@ -707,7 +708,7 @@ function test_mode () {
 
 
 // Support functions
-
+// @TODO: Reuse as much of this from wpopenid -- http://willnorris.com/projects/wpopenid
 /**
  * Prefix the keys of an array with  'openid.'
  * @param array $array
