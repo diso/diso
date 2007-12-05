@@ -36,8 +36,6 @@ Author URI: http://redmonk.net/
 ?>
 <?php
 
-
-
 /**
  * Set a constant to indicate that phpMyID is running
  */
@@ -737,7 +735,7 @@ function test_mode () {
 
 
 // Support functions
-// @TODO: Reuse as much of this from wpopenid -- http://willnorris.com/projects/wpopenid
+
 /**
  * Prefix the keys of an array with  'openid.'
  * @param array $array
@@ -753,6 +751,7 @@ function append_openid ($array) {
 	return $r;
 }
 
+// TODO: Reuse as much of the bigmath stuff as possible from wpopenid -- http://willnorris.com/projects/wpopenid
 /**
  * Create a big math addition function
  * @param string $l
