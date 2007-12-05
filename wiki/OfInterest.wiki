@@ -1,3 +1,5 @@
-#summary One-sentence summary of this page.
+#summary Notes on stuff to keep an eye on
 
-[http://groups.google.com/group/apml-public APML]
+APML:
+  * [http://apml.org APML]
+  * [http://groups.google.com/group/apml-public APML Google Group]
