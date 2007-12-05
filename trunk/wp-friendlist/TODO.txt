@@ -1,3 +1,0 @@
-# TODO
-
-* group contacts by category (optional)
