@@ -1,0 +1,13 @@
+#summary Wordpress plugin ideas
+#labels Phase-Design
+
+== WordPress ==
+
+The majority of these plugins are concepts that could be built as plugins for the wp-openid plugin.
+
+    * wp-openid-profiles - profile-subscription extension for wp-openid.
+    * wp-openid-avatars - takes the logo/photo propery of hcard and pushes it around your blog -- into your comments and so on and adds support for uploading your own custom avatars for users, importing them from Gravatar, Flickr, MyBlogLog and elsewhere.
+    * wp-openid-delegation - Besides doing the standard XRDS/YADIS delegation, this plugin would also handle rel-me linking throughout a site, including on people's profiles (see wp-openid-profiles) - http://willnorris.com/projects/wp-yadis
+    * wp-openid-contactform - http://factoryjoe.pbwiki.com/wp-openid-contactform
+
+(adapted/trimmed from http://factoryjoe.pbwiki.com/DecentralizedSocialNetwork)
