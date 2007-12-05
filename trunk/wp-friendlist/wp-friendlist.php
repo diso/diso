@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: WP Microformatted Blogroll
-Plugin URI: http://factorycity.net/projects/wp-microformatted-blogroll/
+Plugin Name: Friends List
+Plugin URI: http://diso.googlecode.com/
 Description:  Output microformatted blogroll links on a static page.
 Version: 0.5
 Author: Chris Messina and Steve Ivy
-Author URI: http://factoryjoe.com/
+Author URI: http://diso.googlecode.com/
 */
 ?>
 <?php
