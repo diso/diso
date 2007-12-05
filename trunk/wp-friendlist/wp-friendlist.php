@@ -16,7 +16,7 @@ INSTRUCTIONS
 1. Upload this file into your wp-content/plugins directory.
 2. Activate the WP Microformatted Blogroll plugin in your WordPress admin panel.
 3. Create a new static page.
-4. Add <!--xfnpage--> to the static page content where you want the links
+4. Add <!--friendpage--> to the static page content where you want the links
 to appear.
 
 Enjoy!
@@ -25,10 +25,10 @@ Enjoy!
 ?>
 <?php
 
-function wp_xfn_styles() {
-  $wp_xfn_stylesheet = '<link rel="stylesheet" type="text/css" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-xfn/styles/xfn.css" />' . "\n";
+function wp_fl_styles() {
+  $wp_fl_stylesheet = '<link rel="stylesheet" type="text/css" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-friendlist/styles/friendlist.css" />' . "\n";
 	
-	echo($wp_xfn_stylesheet);
+	echo($wp_fl_stylesheet);
 }
 
 define('DEBUG',false);
@@ -39,19 +39,19 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
-$check_openid = get_option("xfnblogroll_check_openid");
+$check_openid = get_option("friendlist_check_openid");
 
 /* ========= admin ========= */
-function xfnblogroll_add_pages() {
+function fl_add_pages() {
 	// Add a new submenu under Options:
-	add_options_page('Microformated Blogroll Options', 'Microformated Blogroll', 8, __FILE__, 'xfnblogroll_options_page');
+	add_options_page('Friends List Options', 'Friends List', 8, __FILE__, 'fl_options_page');
 }
 
-function xfnblogroll_options_page () {
+function fl_options_page () {
 	// variables for the field and option names 
-  $opt_name = 'xfnblogroll_check_openid';
-  $hidden_field_name = 'xfnblogroll_submit_hidden';
-  $data_field_name = 'xfnblogroll_check_openid';
+  $opt_name = 'fl_check_openid';
+  $hidden_field_name = 'fl_submit_hidden';
+  $data_field_name = 'fl_check_openid';
 	
 	// Read in existing option value from database
   $opt_val = get_option( $opt_name );
@@ -102,7 +102,7 @@ function xfnblogroll_options_page () {
 }
 
 // Hook for adding admin menus
-add_action('admin_menu', 'xfnblogroll_add_pages');
+add_action('admin_menu', 'fl_add_pages');
 
 /*
   For comparing URLs
@@ -158,7 +158,7 @@ function get_user_by_uri ($uri) {
 
 /* ========== the main work ========== */
 
-function xfn_generateblogroll() {
+function fl_generateblogroll() {
 	global $wpdb, $has_wp_openid, $check_openid;
 	$output = '';
 	
@@ -172,7 +172,7 @@ function xfn_generateblogroll() {
 	if (!$results) {
 		return;
 	}
-	if (DEBUG) print "<pre>CHECK_OPENID? ".get_option("xfnblogroll_check_openid")."</pre>";
+	if (DEBUG) print "<pre>CHECK_OPENID? ".get_option("fl_check_openid")."</pre>";
 	
 	$output .= "\n <ul class=\"xoxo blogroll\">\n";
 
@@ -241,40 +241,40 @@ function xfn_generateblogroll() {
 	return $output;
 }
 
-function xfn_page_callback($matches) {
-	return xfn_generateblogroll();
+function fl_page_callback($matches) {
+	return fl_generateblogroll();
 }
 
-function xfn_page_filter($content) {
-	$content = preg_replace_callback('|<!--xfnpage-->|i', 'xfn_page_callback', $content);
+function fl_page_filter($content) {
+	$content = preg_replace_callback('|<!--friendspage-->|i', 'fl_page_callback', $content);
 	return $content;
 }
 
-add_action('wp_head', 'wp_xfn_styles');
-add_filter('the_content', 'xfn_page_filter');
+add_action('wp_head', 'wp_fl_styles');
+add_filter('the_content', 'fl_page_filter');
 
 /*
 	Template Tag 
 */
-function xfn_blogroll () {
-	echo xfn_generateblogroll();
+function fl_blogroll () {
+	echo fl_generateblogroll();
 }
 
 /* ============== widget ============== */
-function widget_xfnblogroll_init() {
+function widget_fl_init() {
 	
 	// Check for the required API functions
 	if ( !function_exists('register_sidebar_widget') || !function_exists('register_widget_control') )
 		return;
 		
-	function widget_xfnblogroll($args) {
+	function widget_fl($args) {
 		extract($args);
 		$defaults = array();
-		$options = (array) get_option('widget_xfnblogroll');
+		$options = (array) get_option('widget_fl');
 		$m=array();
 		//print "<!--" . print_r($args, true) . "-->";
 		if (empty($before_widget))
-			$before_widget='<div class="widget widget_xfnblogroll">';
+			$before_widget='<div class="widget widget_fl">';
 		
 		if (empty($after_widget))
 			$after_widget='</div>';
@@ -288,13 +288,13 @@ function widget_xfnblogroll_init() {
 		echo (!empty($options['title'])) ? $options['title'] : "Blogroll";
 		echo $after_title;
 			
-		echo xfn_generateblogroll();
+		echo fl_generateblogroll();
 		echo $after_widget;
 		
 	}
 	
-	register_sidebar_widget(array('Microformatted Blogroll', 'widgets'), 'widget_xfnblogroll');
+	register_sidebar_widget(array('Microformatted Blogroll', 'widgets'), 'widget_fl');
 	
 }
 
-add_action('widgets_init', 'widget_xfnblogroll_init');
+add_action('widgets_init', 'widget_fl_init');
