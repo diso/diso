@@ -224,7 +224,7 @@ function cl_generateblogroll() {
       }
       if (!empty($contact_blog_name) and ($has_openid)) {
 			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
-			} else {
+			} elseif (!empty($contact_blog_name)) {
 			  $output .= " &mdash; <a class='url' href='$the_link' rel='$contact_rel'>$contact_blog_name</a>";
 			}
 			
