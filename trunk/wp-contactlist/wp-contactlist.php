@@ -32,6 +32,17 @@ function wp_cl_styles() {
 }
 
 define('DEBUG',false);
+sprintf
+define('LINK_STYLES', array (
+  1=>array(
+    'label'=>"Username links to OpenID, blogname links to blog",
+    'format'=>"<a class='url fn openid' rel='%s'  href='%s'>%s</a> &mdash; <a class='url' href='%s'>%s</a>"
+  ),
+  2=>array(
+    'label'=>"Username links to OpenID or blog",
+    'format'=>"<a class='url fn openid' rel='%s'  href='%s'>%s</a> &mdash; <a class='url' href='%s'>%s</a>"
+  )
+));
 
 if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = true;
