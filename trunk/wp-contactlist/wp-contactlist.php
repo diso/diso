@@ -39,7 +39,7 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
-$check_openid = get_option("contactlist_check_openid");
+$check_openid = get_option("cl_check_openid");
 
 /* ========= admin ========= */
 function cl_add_pages() {
