@@ -32,17 +32,27 @@ function wp_cl_styles() {
 }
 
 define('DEBUG',false);
-sprintf
-define('LINK_STYLES', array (
-  1=>array(
-    'label'=>"Username links to OpenID, blogname links to blog",
-    'format'=>"<a class='url fn openid' rel='%s'  href='%s'>%s</a> &mdash; <a class='url' href='%s'>%s</a>"
+$link_formats = array (
+  'default'=>array(
+    'label'=>"Username links to blog (No OpenID)",
+		// sprintf args: $contact_rel, $contact_blog_link, $contact_fn 
+    'format'=>"<li class='vcard'><a class='url fn' rel='%s'  href='%s'>%s</a></li>",
+		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn' rel='aquaintance'  href='http://example.com/blog' title='Example Blog'>Example Username&lt;/a>&lt;/li>"
   ),
-  2=>array(
-    'label'=>"Username links to OpenID or blog",
-    'format'=>"<a class='url fn openid' rel='%s'  href='%s'>%s</a> &mdash; <a class='url' href='%s'>%s</a>"
-  )
-));
+	'username_link_only'=>array(
+    'label'=>"Username links to blog or openid (if user registered via OpenID)",
+		// sprintf args: $openid_class, $contact_rel, $openid_uri_or_blog_link, $contact_fn   
+    'format'=>"<li class='vcard'><a class='url fn %s' rel='%s' href='%s '>%s</a></li>",
+		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn openid' rel='aquaintance'  href='http://username.example.com' title='Example OpenID'>Example Username&lt;/a>&lt;/li>"
+  ),
+	'username_openid_blogname_bloglink'=>array(
+    'label'=>"Username links to openid if user registered via OpenID, blogname links to their blog",
+		// sprintf args: $openid_class, $contact_rel, $openid_uri, $contact_fn, $blog_link, $contact_rel,  $blog_name
+    'format'=>"<li class='vcard'>|<a class='url fn %s' rel='%s' href='%s'>%s</a>" . 
+						  "|<a class='url' href='%s' rel='%s'>%s</a>|</li>",
+		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn openid' rel='aquaintance'  href='http://username.example.com' title='Example OpenID'>Example Username&lt;/a> &mdash &lt;a class='url' href='http://example.com/blog' rel='aqcuaintance'>Example Blog&lt;/a>&lt;/li>"
+  ),
+);
 
 if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = true;
@@ -50,7 +60,9 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
-$check_openid = get_option("cl_check_openid");
+$check_openid = get_option("cl_check_openid") || 'Y';
+$link_format = get_option("cl_link_format");
+$link_format = $link_format=='' ? 'default' : $link_format;
 
 /* ========= admin ========= */
 function cl_add_pages() {
@@ -59,20 +71,24 @@ function cl_add_pages() {
 }
 
 function cl_options_page () {
+	global $link_formats, $check_openid, $link_format;
 	// variables for the field and option names 
-  $opt_name = 'cl_check_openid';
-  $hidden_field_name = 'cl_submit_hidden';
-  $data_field_name = 'cl_check_openid';
-	
-	// Read in existing option value from database
-  $opt_val = get_option( $opt_name );
+  // Read in existing option value from database
+	$hidden_field_name = 'cl_submit_hidden';
+
+  $opt_check_openid_val 	= get_option( 'cl_check_openid' );
+	$field_check_openid = 'cl_check_openid';
+	$opt_link_format_val  	= get_option( 'cl_link_format' );
+	$field_link_format 	= 'cl_link_format';
 	
 	if( $_POST[ $hidden_field_name ] == 'Y' ) {
       // Read their posted value
-      $opt_val = $_POST[ $data_field_name ];
+      $check_openid = $_POST[ $field_check_openid ];
+			$link_format = $_POST[ $field_link_format ];
 
       // Save the posted value in the database
-      update_option( $opt_name, $opt_val );
+      update_option( 'cl_check_openid', $check_openid );
+      update_option( 'cl_link_format', $link_format );
 
       // Put an options updated message on the screen
 			?>
@@ -84,7 +100,7 @@ function cl_options_page () {
   echo '<div class="wrap">';
 	
 	// header
-  echo "<h2>Microformatted Blogroll Plugin Options</h2>";
+  echo "<h2>Contacts List Plugin Options</h2>";
 	
 	// options form
   
@@ -95,11 +111,30 @@ function cl_options_page () {
 
 	<p>
 		Lookup Users with OpenID:
-		<select name="<?php echo $data_field_name; ?>">
+		<select name="cl_check_openid">
 			<option value="Y"<?php if ($opt_val=='Y') echo " selected" ?>>Yes</option>
 			<option value="N"<?php if ($opt_val=='N') echo " selected" ?>>No</option>
 		</select>
   </p>
+	<p>
+		Contact Link Format:
+		<table id="contact-list-formats">
+		<?php
+		foreach ($link_formats as $fid=>$format_ary) {
+			?>
+				<tr>
+					<td width="3" valign="top"><input<?php if($link_format==$fid) echo ' checked=\'checked\'' ?> type='radio' id='<?php echo $fid ?>' 
+															 				name="cl_link_format" value='<?php echo $fid ?>' /></td>
+					<td valign="top">
+						<label  for="<?php echo $fid ?>"><?php echo $format_ary['label']?></label>
+						<p><code><?php echo $format_ary['preview'] ?></code></p>
+					</td>
+				</tr>
+			<?php
+		}
+		?>
+		</table>
+	</p>
 	<hr />
 
 	<p class="submit">
@@ -170,7 +205,9 @@ function get_user_by_uri ($uri) {
 /* ========== the main work ========== */
 
 function cl_generateblogroll() {
-	global $wpdb, $has_wp_openid, $check_openid;
+	global $wpdb, $has_wp_openid, $check_openid, $link_formats, $link_format;
+	if (DEBUG) print "<pre>link_format: $link_format</pre>";
+	
 	$output = '';
 	
 	global $wpdb;
@@ -204,6 +241,7 @@ function cl_generateblogroll() {
 		  $has_openid = true;
 		
 		$openid_uri='';
+		if (DEBUG) print "<pre>check_openid: $check_openid, has_openid: $has_openid, has_wp_openid: $has_wp_openid</pre>";
 		
 		if($check_openid=='Y' && $has_openid && $has_wp_openid) {
 			// get openid url
@@ -221,7 +259,58 @@ function cl_generateblogroll() {
 		}
 		
 		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES);    
+		
+		// render the link
+		if (DEBUG) "<pre>contact_rel: $contact_rel, contact_fn: $contact_fn</pre>";
+		if (empty($contact_rel) or empty($contact_fn)) {
+			continue; // skip ahead to next record
+	  }	elseif (!($check_openid=='Y') or ($link_format=='default')) {
+				$output .= "\t\t" . sprintf($link_formats[$link_format]['format'], $contact_rel, $contact_blog_link, $contact_fn);
+		} else {
+			$openid_class = $has_openid ? 'openid' : '';
+			$openid_uri_or_blog_link = $has_openid ? $openid_uri : $the_link;
+			if (DEBUG) {
+				print "<pre>has_openid: $has_openid; openid_class: $openid_class; openid_uri_or_blog_link: $openid_uri_or_blog_link; </pre>";
+			}
+			switch ($link_format) {
+				case 'username_link_only':
+					// Username links to blog or openid (if user registered via OpenID)
+					
+					// sprintf args: $openid_class, $contact_fn, $openid_uri_or_blog_link, $contact_rel
+					$link = "\t\t" . sprintf($link_formats[$link_format]['format'], 
+							$openid_class, $contact_rel, $openid_uri_or_blog_link, $contact_fn);
+					$output .= $link;
+					break;
+				case 'username_openid_blogname_bloglink':
+					// Username links to openid if user registered via OpenID, blogname links to their blog
+					// sprintf args: $openid_class, $contact_rel, $openid_uri, $contact_fn, $blog_link, $contact_rel, $blog_name 
+					$fmtary = split("\|",$link_formats[$link_format]['format']);
+					/*
+					0 - <li>
+					1 - openid <a>
+					2 - blog <a>
+					3 - </li>
+					*/
+					if ($has_openid) {
+						$name = sprintf($fmtary[1], $openid_class, $contact_rel, $openid_uri, $contact_fn);
+					} else {
+						$name = $contact_fn;
+					}
+					if ($contact_blog_name != '') {
+						$fmt = $fmtary[0] . $name . " &mdash; " . $fmtary[2] . $fmtary[3];
+						$link = "\t\t" . sprintf($fmt, $the_link, $contact_rel, $contact_blog_name);
+						$output .= $link;
 
+					} else {
+						$output .= $name;
+						
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		/*
 		if (empty($contact_rel) or empty($contact_fn)) {
 			continue; // skip ahead to next record
 	  } elseif (!($check_openid=='Y')) {
@@ -242,7 +331,8 @@ function cl_generateblogroll() {
 		  $output .= "\r\n";
 			$output .= "\t</li>\r\n";
 	  }
-
+		*/
+		
 		$output .= "\n";
 
 	}
@@ -278,14 +368,14 @@ function widget_cl_init() {
 	if ( !function_exists('register_sidebar_widget') || !function_exists('register_widget_control') )
 		return;
 		
-	function widget_fl($args) {
+	function widget_cl($args) {
 		extract($args);
 		$defaults = array();
-		$options = (array) get_option('widget_fl');
+		$options = (array) get_option('widget_cl');
 		$m=array();
 		//print "<!--" . print_r($args, true) . "-->";
 		if (empty($before_widget))
-			$before_widget='<div class="widget widget_fl">';
+			$before_widget='<div class="widget widget_cl">';
 		
 		if (empty($after_widget))
 			$after_widget='</div>';
@@ -304,7 +394,7 @@ function widget_cl_init() {
 		
 	}
 	
-	register_sidebar_widget(array('Microformatted Blogroll', 'widgets'), 'widget_fl');
+	register_sidebar_widget(array('Microformatted Blogroll', 'widgets'), 'widget_cl');
 	
 }
 
