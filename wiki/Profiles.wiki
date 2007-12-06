@@ -1,0 +1,12 @@
+#labels Phase-Design
+Here are related plugins:
+
+  * http://dev.wp-plugins.org/wiki/Userextra
+  * http://geekgrl.net/2007/01/02/profile-pics-plugin-release/
+  * http://www.semiologic.com/software/publishing/author-image/
+  * http://guff.szub.net/2005/01/31/get-author-profile/
+
+And a related docs:
+
+  * http://wordpress.org/support/topic/143984
+  * http://codex.wordpress.org/Author_Templates#Custom_Author_Information
