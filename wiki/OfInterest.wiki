@@ -8,3 +8,5 @@ APML:
 http://openidr.mekov.com/
 
 http://esw.w3.org/topic/FoafOpenid
+
+http://awnist.com/wiki/SingleAuth_Development
