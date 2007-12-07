@@ -1,4 +1,4 @@
-#summary DiSo: Distrubuted Social Networking applications.
+#summary DiSo: Distributed Social Networking applications.
 #labels Phase-Design
 
 = Introduction =
