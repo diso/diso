@@ -1,5 +1,10 @@
 #summary Notes on stuff to keep an eye on
+#labels Phase-Design
 
 APML:
   * [http://apml.org APML]
   * [http://groups.google.com/group/apml-public APML Google Group]
+
+http://openidr.mekov.com/
+
+http://esw.w3.org/topic/FoafOpenid
