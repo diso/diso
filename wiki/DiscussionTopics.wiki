@@ -1,0 +1,6 @@
+#summary Things to consider/discuss
+#labels Phase-Design
+
+== Naming schemes: ==
+
+  * `wp-pluginname` or `wp-diso-pluginname`?
