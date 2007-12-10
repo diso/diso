@@ -11,3 +11,7 @@ The majority of these plugins are concepts that could be built as plugins for th
     * wp-openid-contactform - http://factoryjoe.pbwiki.com/wp-openid-contactform
 
 (adapted/trimmed from http://factoryjoe.pbwiki.com/DecentralizedSocialNetwork)
+
+More:
+
+    * wp-openid-whitelist - use XFN rel values linked with openids to whitelist commenters.
