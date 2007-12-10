@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: DiSo Contacts List
+Plugin Name: Contacts List
 Plugin URI: http://diso.googlecode.com/
 Description:  Output microformatted blogroll links on a static page.
 Version: 0.5
@@ -14,7 +14,7 @@ Author URI: http://diso.googlecode.com/
 INSTRUCTIONS
 ------------
 1. Upload this file into your wp-content/plugins directory.
-2. Activate the DiSo Contacts List plugin in your WordPress admin panel.
+2. Activate the Contacts List plugin in your WordPress admin panel.
 3. Create a new static page.
 4. Add <!--contactspage--> to the static page content where you want the links
 to appear.
@@ -67,7 +67,7 @@ $link_format = $link_format=='' ? 'default' : $link_format;
 /* ========= admin ========= */
 function cl_add_pages() {
 	// Add a new submenu under Options:
-	add_options_page('DiSo Contacts List Options', 'DiSo Contacts List', 8, __FILE__, 'cl_options_page');
+	add_options_page('Contacts List Options', 'Contacts List', 8, __FILE__, 'cl_options_page');
 }
 
 function cl_options_page () {
@@ -100,7 +100,7 @@ function cl_options_page () {
   echo '<div class="wrap">';
 	
 	// header
-  echo "<h2>DiSo Contacts List Plugin Options</h2>";
+  echo "<h2>Contacts List Plugin Options</h2>";
 	
 	// options form
   
