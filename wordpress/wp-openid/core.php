@@ -10,7 +10,7 @@ License: Dual GPL (http://www.fsf.org/licensing/licenses/info/GPLv2.html) and Mo
 */
 
 define ( 'WPOPENID_PLUGIN_REVISION', preg_replace( '/\$Rev: (.+) \$/', 'svn-\\1', 
-	'$Rev: 24720 $') ); // this needs to be on a separate line so that svn:keywords can work its magic
+	'$Rev$') ); // this needs to be on a separate line so that svn:keywords can work its magic
 
 define ( 'WPOPENID_DB_REVISION', 24426);      // last plugin revision that required database schema changes
 
