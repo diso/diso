@@ -22,7 +22,7 @@ For the user matching to work, the code assumes:
 The WP Contacts List plugin can generate the blogroll in a static page:
 
 1. Create a new static page.
-2. Add <!--xfnpage--> to the page content where you want the blogroll to appear.
+2. Add <!--contactspage--> to the page content where you want the blogroll to appear.
 
 ## Contacts List Widget
 
