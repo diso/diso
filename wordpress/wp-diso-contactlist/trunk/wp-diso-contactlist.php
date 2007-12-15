@@ -60,7 +60,10 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 	$has_wp_openid = false;
 }
 
-$check_openid = get_option("cl_check_openid") || 'Y';
+
+$check_openid = get_option("cl_check_openid");
+$check_openid = ($check_openid==''||$check_openid=='N') ? 'N' : 'Y';
+
 $link_format = get_option("cl_link_format");
 $link_format = $link_format=='' ? 'default' : $link_format;
 
@@ -237,25 +240,14 @@ function cl_generateblogroll() {
 		if (DEBUG) print "<pre>A USER:" . print_r ($a_user, true) . "</pre>";
 		
 		$has_openid = false;
-		if (null !== $a_user && get_usermeta($a_user->ID, 'registered_with_openid'))
+		if (null !== $a_user && get_usermeta($a_user->ID, 'has_openid'))
 		  $has_openid = true;
 		
 		$openid_uri='';
 		if (DEBUG) print "<pre>check_openid: $check_openid, has_openid: $has_openid, has_wp_openid: $has_wp_openid</pre>";
 		
 		if($check_openid=='Y' && $has_openid && $has_wp_openid) {
-			// get openid url
-			// this only works if wpopenid is installed, but i don't know yet 
-			//    how to check for the plugin
-			$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
-		
-			if (DEBUG) print "<pre>" . print_r ($sql, true) . "</pre>";
-		
-			$oid_results = $wpdb->get_results($sql);
-		
-			if (DEBUG) "<pre>" . print_r ($oid_results, true) . "</pre>";
-			
-			$openid_uri = $oid_results[0]->url;
+			$openid_uri = openid_for_user($a_user->ID);
 		}
 		
 		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES);    
@@ -340,6 +332,25 @@ function cl_generateblogroll() {
 	$output .= "\n</ul>\n";
 
 	return $output;
+}
+
+function openid_for_user($user_id) {
+  if (!$has_wp_openid) return null;
+  
+  // get openid url
+	// this only works if wpopenid is installed, but i don't know yet 
+	//    how to check for the plugin
+	$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
+
+	if (DEBUG) print "<pre>" . print_r ($sql, true) . "</pre>";
+
+	$oid_results = $wpdb->get_results($sql);
+
+	if (DEBUG) "<pre>" . print_r ($oid_results, true) . "</pre>";
+	
+	$openid_uri = $oid_results[0]->url;
+	
+	return $openid_uri == '' ? null : $openid_uri;
 }
 
 function cl_page_callback($matches) {
