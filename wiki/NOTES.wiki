@@ -1,0 +1,6 @@
+#summary WIKI ACTIVITY SHOULD TAKE PLACE ON http://diso-project.org/wiki
+#labels Featured
+
+= New Wiki =
+
+Please note that the wiki activity should take place on the mediawiki -- http://diso-project.org/wiki
