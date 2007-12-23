@@ -1,0 +1,77 @@
+ul.xoxo li {
+	margin-bottom: 6px;
+}
+
+.blogroll a.url
+{
+	/*
+		padding-right: 13px;
+	background: url(images/friends.png) no-repeat right;
+	padding-right: 26px;
+	background: url(images/xfnicons/xfn-small.png) no-repeat right;
+	*/
+	
+}
+
+.blogroll a.url[rel~="colleague"],
+.blogroll a.url[rel~="co-worker"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-colleague.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="colleague"][rel~="met"],
+.blogroll a.url[rel~="co-worker"][rel~="met"]
+{
+	padding-right: 26px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-colleague-met.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="friend"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-friend.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="friend"][rel~="met"]
+{
+	padding-right: 26px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-friend-met.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="sweetheart"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-sweetheart.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="sweetheart"][rel~="met"]
+{
+	padding-right: 26px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-sweetheart-met.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="child"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-child.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="parent"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-parent.png) no-repeat right;
+}
+
+.blogroll a.url[rel~="spouse"]
+{
+	padding-right: 21px;
+	background: url(../../plugins/wp-xfn/images/xfnicons/xfn-spouse.png) no-repeat right;
+}
+
+/*
+a.openid, span.openid
+{
+	padding-left: 21px;
+	background: url(../../plugins/wpopenid/images/openid.gif) no-repeat left;
+}
