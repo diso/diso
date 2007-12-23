@@ -7,8 +7,7 @@ Version: 0.5
 Author: Chris Messina and Steve Ivy
 Author URI: http://diso.googlecode.com/
 */
-?>
-<?php
+
 /*
 
 INSTRUCTIONS
@@ -22,11 +21,9 @@ to appear.
 Enjoy!
 
 */
-?>
-<?php
 
 function wp_cl_styles() {
-  $wp_cl_stylesheet = '<link rel="stylesheet" type="text/css" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-contactlist/styles/contactlist.css" />' . "\n";
+  $wp_cl_stylesheet = '<link rel="stylesheet" type="text/css" href="' . get_bloginfo('wpurl') . '/wp-content/plugins/wp-diso-contactlist/styles/contactlist.css" />' . "\n";
 	
 	echo($wp_cl_stylesheet);
 }
@@ -34,24 +31,30 @@ function wp_cl_styles() {
 define('DEBUG',false);
 $link_formats = array (
   'default'=>array(
-    'label'=>"Username links to blog (No OpenID)",
+	 'label'=>"Username links to blog (No OpenID)",
 		// sprintf args: $contact_rel, $contact_blog_link, $contact_fn 
-    'format'=>"<li class='vcard'><a class='url fn' rel='%s'  href='%s'>%s</a></li>",
-		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn' rel='aquaintance'  href='http://example.com/blog' title='Example Blog'>Example Username&lt;/a>&lt;/li>"
+	 'format'=>'<li class="vcard"><a class="url fn" rel="%s"  href="%s">%s</a></li>',
+		'preview'=> '&lt;li class="vcard"&gt;&lt;a class="url fn" rel="aquaintance"  href="http://example.com/blog" title="Example Blog"&gt;Example Username&lt;/a&gt;&lt;/li&gt;'
   ),
-	'username_link_only'=>array(
-    'label'=>"Username links to blog or openid (if user registered via OpenID)",
-		// sprintf args: $openid_class, $contact_rel, $openid_uri_or_blog_link, $contact_fn   
-    'format'=>"<li class='vcard'><a class='url fn %s' rel='%s' href='%s '>%s</a></li>",
-		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn openid' rel='aquaintance'  href='http://username.example.com' title='Example OpenID'>Example Username&lt;/a>&lt;/li>"
+	'username_link_only' => array(
+	 	'label' => 'Username links to blog or openid (if user registered via OpenID)',
+		// sprintf args: $openid_class, $contact_rel, $openid_uri_or_blog_link, $contact_fn	
+		'format'=> '<li class="vcard"><a class="url fn %s" rel="%s" href="%s">%s</a></li>',
+		'preview'=> '&lt;li class="vcard"&gt;&lt;a class="url fn openid" rel="aquaintance"  href="http://username.example.com" title="Example OpenID"&gt;Example Username&lt;/a&gt;&lt;/li&gt;'
   ),
-	'username_openid_blogname_bloglink'=>array(
-    'label'=>"Username links to openid if user registered via OpenID, blogname links to their blog",
+	'username_openid_blogname_bloglink' => array(
+		'label' => 'Username links to openid if user registered via OpenID, blogname links to their blog',
 		// sprintf args: $openid_class, $contact_rel, $openid_uri, $contact_fn, $blog_link, $contact_rel,  $blog_name
-    'format'=>"<li class='vcard'>|<a class='url fn %s' rel='%s' href='%s'>%s</a>" . 
-						  "|<a class='url' href='%s' rel='%s'>%s</a>|</li>",
-		'preview'=> "&lt;li class='vcard'>&lt;a class='url fn openid' rel='aquaintance'  href='http://username.example.com' title='Example OpenID'>Example Username&lt;/a> &mdash &lt;a class='url' href='http://example.com/blog' rel='aqcuaintance'>Example Blog&lt;/a>&lt;/li>"
+		'format' => '<li class="vcard">|<a class="url fn %s" rel="%s" href="%s">%s</a>' . 
+						  '|<a class="url" href="%s" rel="%s">%s</a>|</li>',
+		'preview' => '&lt;li class="vcard"&gt;&lt;a class="url fn openid" rel="aquaintance"  href="http://username.example.com" title="Example OpenID"&gt;Example Username&lt;/a&gt; &mdash &lt;a class="url" href="http://example.com/blog" rel="aqcuaintance"&gt;Example Blog&lt;/a&gt;&lt;/li&gt;'
   ),
+	'nested_links' => array(
+		'label' => 'Username links to blog.  OpenID class output.  Multiple links for the same user nested.',
+		// sprintf args: $openid_class, $contact_rel, $contact_blog_link, $contact_fn 
+		'format' => '<a class="url %s" rel="%s"  href="%s">%s</a>',
+		'preview' => '&lt;li class="vcard"&gt; &lt;span class="fn"&gt;Example Name&lt;/span&gt; &lt;ul&gt; &lt;li class="vcard">&lt;a class="url openid" rel="aquaintance" href="http://example.com/blog"&gt;domain.com&lt;/a&gt;  &lt;/li&gt; &lt/ul;&gt; &lt;/li&gt;'
+	),
 );
 
 if  ( class_exists('WordpressOpenIDLogic') ) {
@@ -59,7 +62,6 @@ if  ( class_exists('WordpressOpenIDLogic') ) {
 } else {
 	$has_wp_openid = false;
 }
-
 
 $check_openid = get_option("cl_check_openid");
 $check_openid = ($check_openid==''||$check_openid=='N') ? 'N' : 'Y';
@@ -85,15 +87,15 @@ function cl_options_page () {
 	$field_link_format 	= 'cl_link_format';
 	
 	if( $_POST[ $hidden_field_name ] == 'Y' ) {
-      // Read their posted value
-      $check_openid = $_POST[ $field_check_openid ];
-			$link_format = $_POST[ $field_link_format ];
+		// Read their posted value
+		$check_openid = $_POST[ $field_check_openid ];
+		$link_format = $_POST[ $field_link_format ];
 
-      // Save the posted value in the database
-      update_option( 'cl_check_openid', $check_openid );
-      update_option( 'cl_link_format', $link_format );
+		// Save the posted value in the database
+		update_option( 'cl_check_openid', $check_openid );
+		update_option( 'cl_link_format', $link_format );
 
-      // Put an options updated message on the screen
+		// Put an options updated message on the screen
 			?>
 			<div class="updated"><p><strong>Options saved.</strong></p></div>
 			<?php
@@ -123,7 +125,7 @@ function cl_options_page () {
 		Contact Link Format:
 		<table id="contact-list-formats">
 		<?php
-		foreach ($link_formats as $fid=>$format_ary) {
+		foreach ($link_formats as $fid => $format_ary) {
 			?>
 				<tr>
 					<td width="3" valign="top"><input<?php if($link_format==$fid) echo ' checked=\'checked\'' ?> type='radio' id='<?php echo $fid ?>' 
@@ -160,7 +162,7 @@ function normalize_uri ($uri) {
 	if (substr($uri,0,7)=='http://')
 		$uri = substr($uri,7);
 	if (substr($uri,-1)=='/')
-    $uri = substr($uri,0,-1);
+	 $uri = substr($uri,0,-1);
 	return $uri;
 }
 
@@ -178,8 +180,8 @@ function get_user_by_uri ($uri) {
 	//print_r ($data);
 	//print "</pre>";
 
-  $uri      = normalize_uri($uri);
-  $sql      = "SELECT id FROM ". $wpdb->users ." WHERE user_url LIKE '%$uri%'";
+  $uri		= normalize_uri($uri);
+  $sql		= "SELECT id FROM ". $wpdb->users ." WHERE user_url LIKE '%$uri%'";
   $results  = $wpdb->get_results($sql);
   
 	//print "<pre>RESULTS:";
@@ -201,7 +203,7 @@ function get_user_by_uri ($uri) {
 	}
   
   foreach ($results as $row) {
-    return get_userdata($row->id);
+	 return get_userdata($row->id);
   }
 }
 
@@ -229,13 +231,14 @@ function cl_generateblogroll() {
 
 	foreach ($results as $row) {
 			
-		$the_link           = wp_specialchars($row->link_url);
+		$the_link			  = wp_specialchars($row->link_url);
+		$contact_blog_link  = wp_specialchars($row->link_url);
 		
-		$contact_rel        = $row->link_rel;
+		$contact_rel		  = $row->link_rel;
 		$contact_blog_name  = $row->link_description;
-		$contact_notes      = $row->link_notes;
+		$contact_notes		= $row->link_notes;
 		
-		$a_user             = get_user_by_uri($the_link);
+		$a_user				 = get_user_by_uri($the_link);
 		
 		if (DEBUG) print "<pre>A USER:" . print_r ($a_user, true) . "</pre>";
 		
@@ -250,11 +253,11 @@ function cl_generateblogroll() {
 			$openid_uri = openid_for_user($a_user->ID);
 		}
 		
-		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES);    
+		$contact_fn = wp_specialchars($row->link_name, ENT_QUOTES);	 
 		
 		// render the link
 		if (DEBUG) "<pre>contact_rel: $contact_rel, contact_fn: $contact_fn</pre>";
-		if (empty($contact_rel) or empty($contact_fn)) {
+		if (empty($contact_rel) or empty($contact_fn) or $contact_rel == 'me') {
 			continue; // skip ahead to next record
 	  }	elseif (!($check_openid=='Y') or ($link_format=='default')) {
 				$output .= "\t\t" . sprintf($link_formats[$link_format]['format'], $contact_rel, $contact_blog_link, $contact_fn);
@@ -292,42 +295,52 @@ function cl_generateblogroll() {
 						$fmt = $fmtary[0] . $name . " &mdash; " . $fmtary[2] . $fmtary[3];
 						$link = "\t\t" . sprintf($fmt, $the_link, $contact_rel, $contact_blog_name);
 						$output .= $link;
-
 					} else {
 						$output .= $name;
-						
 					}
+					break;
+				case 'nested_links':
+					if(!$contacts) $contacts = array();
+					if(!$contacts[$contact_fn]) $contacts[$contact_fn] = array();
+					$tmp = array();
+					$tmp['fn'] = $contact_fn;
+					$tmp['rel'] = $contact_rel;
+					$tmp['url'] = $the_link;
+					$tmp['openid_class'] = $openid_class;
+					$contacts[$contact_fn][] = $tmp;
 					break;
 				default:
 					break;
 			}
 		}
-		/*
-		if (empty($contact_rel) or empty($contact_fn)) {
-			continue; // skip ahead to next record
-	  } elseif (!($check_openid=='Y')) {
-			$output .= "\t\t<li class='vcard'><a class='url fn' rel='$contact_rel'  href='$the_link'>$contact_fn</a></li>";
-		} else {
-			$output .= "\t<li class='vcard'>\r\n";
-  		if ($has_openid) {
-  			$output .= "\t\t<a class='url fn openid' rel='$contact_rel'  href='$openid_uri'>$contact_fn</a>";
-      } else {
-  			$output .= "\t\t<span class='fn'>$contact_fn</span>";
-      }
-      if (!empty($contact_blog_name) and ($has_openid)) {
-			  $output .= " &mdash; <a class='url' href='$the_link'>$contact_blog_name</a>";
-			} elseif (!empty($contact_blog_name)) {
-			  $output .= " &mdash; <a class='url' href='$the_link' rel='$contact_rel'>$contact_blog_name</a>";
-			}
-			
-		  $output .= "\r\n";
-			$output .= "\t</li>\r\n";
-	  }
-		*/
 		
-		$output .= "\n";
+		if(!$link_format == 'nested_links') $output .= "\n";
 
 	}
+
+	if($link_format == 'nested_links') {
+		foreach($contacts as $fn => $contact) {
+		  	$output .= '<li class="vcard">';
+			if(count($contact) > 1) {
+				$output .= '<span class="fn">'.wp_specialchars($fn).'</span>';
+				$output .= "\n".'	<ul>';
+				foreach($contact as $link) {
+					$domain = explode('/',$link['url']);
+					$domain = str_replace('www.','',$domain[2]);
+					$output .= '<li>'.sprintf($link_formats[$link_format]['format'], 
+								$link['openid_class'], $link['rel'], $link['url'], wp_specialchars($domain, ENT_QUOTES)).'</li>';
+			  }//end foreach contact
+			  $output .= '</ul>';
+			} else {
+				$contact[0]['openid_class'] .= ' fn';
+				$output .= sprintf($link_formats[$link_format]['format'], 
+								$contact[0]['openid_class'], $contact[0]['rel'], $contact[0]['url'], $fn);
+			}//end if-else > 1
+			$output .= '</li>';
+			$output .= "\n";
+		}//end foreach contacts
+	}//end if nested_links
+
 	
 	$output .= "\n</ul>\n";
 
@@ -339,8 +352,8 @@ function openid_for_user($user_id) {
   
   // get openid url
 	// this only works if wpopenid is installed, but i don't know yet 
-	//    how to check for the plugin
-	$sql = "SELECT uurl_id, url	FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
+	//	 how to check for the plugin
+	$sql = "SELECT uurl_id, url FROM ".$wpdb->prefix."openid_identities WHERE user_id = '$a_user->ID'";
 
 	if (DEBUG) print "<pre>" . print_r ($sql, true) . "</pre>";
 
