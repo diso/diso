@@ -158,53 +158,39 @@ add_action('admin_menu', 'cl_add_pages');
 /*
   For comparing URLs
 */
-function normalize_uri ($uri) {
-	if (substr($uri,0,7)=='http://')
-		$uri = substr($uri,7);
-	if (substr($uri,-1)=='/')
-	 $uri = substr($uri,0,-1);
-	return $uri;
-}
+if( !function_exists( 'normalize_uri' ) ) {
+  function normalize_uri ($url) {
+        $url = trim( $url );
+        
+        $parts = parse_url( $url );
+        $scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : null;
+
+        if( !$scheme )
+        {
+            $url = 'http://' . $url;
+            $parts = parse_url( $url );
+        }
+
+        $path = isset( $parts['path'] ) ? $parts['path'] : null;
+        
+        if( !$path )
+            $url .= '/';
+        
+        return $url;
+  }
+}//end if
 
 /*
 Try to match a user in the DB with a blogroll user
-
-$data['first']
-$data['last']
-$data['uri']
 */
 function get_user_by_uri ($uri) {
   global $wpdb;
   
-	//print "<pre>LOOKING FOR:";
-	//print_r ($data);
-	//print "</pre>";
-
   $uri		= normalize_uri($uri);
-  $sql		= "SELECT id FROM ". $wpdb->users ." WHERE user_url LIKE '%$uri%'";
+  $sql      = "SELECT user_id FROM ".$wpdb->prefix."openid_identities WHERE url='$uri' LIMIT 1";
   $results  = $wpdb->get_results($sql);
-  
-	//print "<pre>RESULTS:";
-	//print_r ($sql);
-	//print_r ($results);
-	//print "</pre>";
-
-	if (!$results) {
-		if (strpos($uri,'/')) {
-			$uri = substr($uri,0,(strpos($uri,'/'))); // chop any path and try just the domain next
-			//print "<pre>$uri</pre>";
-			$sql = "SELECT id FROM ". $wpdb->users . " WHERE user_url LIKE '%$uri%'";
-
-	  	$results = $wpdb->get_results($sql);
-		}
-		if (!$results) {
-			return;
-  	}
-	}
-  
-  foreach ($results as $row) {
-	 return get_userdata($row->id);
-  }
+  $row      = array_shift($results);
+  return get_userdata($row->user_id);
 }
 
 /* ========== the main work ========== */
