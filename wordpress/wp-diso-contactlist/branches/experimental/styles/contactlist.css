@@ -71,6 +71,6 @@ ul.xoxo li {
 
 a.openid, span.openid
 {
-	padding-left: 21px;
-	background: url(../images/openid.gif) no-repeat left;
+	padding-right: 21px;
+	background: url(../images/openid.gif) no-repeat right;
 }
