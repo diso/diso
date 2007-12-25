@@ -94,6 +94,7 @@ function cl_options_page () {
 		// Save the posted value in the database
 		update_option( 'cl_check_openid', $check_openid );
 		update_option( 'cl_link_format', $link_format );
+		update_option( 'cl_by_category', isset($_POST['by_category'])?true:false );
 
 		// Put an options updated message on the screen
 			?>
@@ -121,6 +122,10 @@ function cl_options_page () {
 			<option value="N"<?php if ($opt_val=='N') echo " selected" ?>>No</option>
 		</select>
   </p>
+	<p>
+		Display by category?
+		<input type="checkbox" name="by_category"<?php if(get_option('cl_by_category')) echo ' checked="checked"';  ?> />
+	</p>
 	<p>
 		Contact Link Format:
 		<table id="contact-list-formats">
@@ -195,19 +200,23 @@ function get_user_by_uri ($uri) {
 
 /* ========== the main work ========== */
 
-function cl_generateblogroll() {
-	global $wpdb, $has_wp_openid, $check_openid, $link_formats, $link_format;
+function cl_generateblogroll($category='') {
+	global $has_wp_openid, $check_openid, $link_formats, $link_format;
 	if (DEBUG) print "<pre>link_format: $link_format</pre>";
 	
 	$output = '';
-	
-	global $wpdb;
-	$sql = "SELECT link_url, link_name, link_rel, link_description, link_notes
-		FROM $wpdb->links
-		WHERE link_visible = 'Y'
-		ORDER BY link_name" ;
 
-	$results = $wpdb->get_results($sql);
+	if(!$category && get_option('cl_by_category')) {//display by category
+		$terms = get_terms('link_category');
+		foreach($terms as $term) {
+			$tmp = cl_generateblogroll($term->term_id);
+			if($tmp) $output .= '<h3>'.htmlentities($term->name).'</h3>'."\n".$tmp;
+		}//end foreach terms
+		return $output;
+	}//end if display by category
+
+	$results = get_bookmarks("category=$category");
+
 	if (!$results) {
 		return;
 	}
