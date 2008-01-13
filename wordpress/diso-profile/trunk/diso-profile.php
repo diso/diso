@@ -46,7 +46,7 @@ function diso_profile_hcard_import($userid,$override=false) {
 
 	//GET HCARD
 	$data = diso_profile_hcard_from_url($userdata->user_url);
-	if(!$data['hcard'] || !count($data['hcard'])) {//if no hcard, follow rel=me
+	if((!$data['hcard'] || !count($data['hcard'])) && $data['xml']) {//if no hcard, follow rel=me
 		$relme = $data['xml']->xpath("//*[contains(concat(' ',normalize-space(@rel),' '),' me ')]");
 		foreach($relme as $tag) {
 			if(substr($tag['href'],0,4) != 'http') {
