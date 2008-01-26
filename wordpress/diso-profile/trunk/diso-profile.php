@@ -250,7 +250,7 @@ function diso_profile($userid='', $echo=true) {
 	$template .= '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
 	if( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
 		if($userdata->user_url)
-			$template .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->userl_url).'">';
+			$template .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
 		else
 			$template .= '<span class="n">';
 		if($userdata->last_name && is_($userdata->profile_permissions['family-name'])) $template .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";

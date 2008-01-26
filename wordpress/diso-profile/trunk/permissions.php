@@ -22,9 +22,9 @@ if( !function_exists( 'normalize_uri' ) ) {
   }
 }//end if
 
-function is_($xfn) {//is the current user associated with the given XFN values on the contact list?
-	if(!$xfn || (is_array($xfn) && (!count($xfn) || !$xfn[0]))) return true;
-	if(is_string($xfn)) $xfn = array($xfn);
+function is_($taxonomies) {//is the current user associated with the given XFN values on the contact list?
+	if(!$taxonomies || (is_array($taxonomies) && (!count($taxonomies) || !$taxonomies[0]))) return true;
+	if(is_string($taxonomies)) $taxonomies = array($taxonomies);
 	if(function_exists('is_user_openid') && is_user_openid()) {
 		global $wpdb,$userdata;//this really should go in wp-openid
 		get_currentuserinfo();
@@ -40,10 +40,13 @@ function is_($xfn) {//is the current user associated with the given XFN values o
 		foreach($bookmarks as $bookmark) {
 			if(normalize_uri($bookmark->link_url) == normalize_uri($id)) {
 				$rels = explode(' ',$bookmark->link_rel);
-				foreach($xfn as $val)
+				foreach($taxonomies as $val)
 					if(in_array($val,$rels))
 						return true;
-				return false;
+				$cats = wp_get_object_terms($bookmark->link_id, 'link_category');
+				foreach($taxonomies as $val)
+					if(in_array($val->name,$cats))
+						return true;
 			}//end if link matches	
 		}//end foreach bookmarks
 	}//end foreach
@@ -57,7 +60,7 @@ function diso_permissions_page() {
 	if(count($_POST['permissions'])) {//if saving
 		$permissions = $userdata->profile_permissions;
 		foreach($_POST['permissions'] as $key => $val)
-			$permissions[$key] = explode(',',$val);
+			$permissions[$key] = array_keys($val);
 		update_usermeta($userdata->ID, 'profile_permissions', $permissions);
 		$userdata->profile_permissions = $permissions;
 	}//end if saving
@@ -82,23 +85,54 @@ function diso_permissions_page() {
 		'Country' => 'country-name',
 		'Telephone Number' => 'tel',
 	);
+	$taxonomies = array(
+		'Yourself' => 'me',
+		'Friends' => 'friend',
+		'Contacts' => 'contact',
+		'Acquaintances' => 'acquaintance',
+		'People You\'ve Met' => 'met',
+		'Co-workers' => 'co-worker',
+		'Colleagues' => 'colleague',
+		'Co-residents' => 'co-resident',
+		'Neighbors' => 'neighbor',
+		'Your Children' => 'child',
+		'Your Parents' => 'parent',
+		'Your Siblings' => 'sibling',
+		'Your Spouse' => 'spouse',
+		'Your Family' => 'kin',
+		'Muses' => 'muse',
+		'Crushes' => 'crush',
+		'Dates' => 'date',
+		'Sweetheart' => 'sweetheart'
+	);
+	$terms = get_terms('link_category');
+	foreach($terms as $term)
+		$taxonomies[$term->name] = $term->name;
 	echo '<div class="wrap">';
 	echo '<h2>Change Profile Permissions</h2>';
-	echo '<b>Field &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; XFN Values that can see (blank for public)</b>';
+	echo '<b>Field &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; People who can view (none for public)</b>';
 	echo '<form method="post" action="">';
 	foreach($fields as $label => $field) {
-		echo '<div>';
+		echo '<div style="margin-bottom:1em;clear:both;">';
 		echo ' <label style="float:left;width:10em;" for="'.$field.'">'.$label.':</label> ';
-		echo ' <input type="text" name="permissions['.$field.']" value="'.@implode(',',$userdata->profile_permissions[$field]).'" /> ';
+		$c = 0;
+		foreach($taxonomies as $ilabel => $term) {
+			echo '<div style="float:left;width:11em;"><input type="checkbox" name="permissions['.htmlentities($field).']['.htmlentities($term).']"'.(@in_array($term, $userdata->profile_permissions[$field]) ? ' checked="checked"' : '').' />&nbsp;'.$ilabel.'</div>';
+			$c++;
+			if($c > 4) {
+				$c = 0;
+				echo '<div style="float:left;clear:left;width:10em;">&nbsp;</div>';
+			}
+		}//end
 		echo '</div>';
 	}//end foreach fields
-	echo ' <input type="submit" value="Save &raquo;" /> ';
+	echo ' <input style="clear:both;margin-top:1em;" type="submit" value="Save &raquo;" /> ';
 	echo '</form>';
 	echo '</div>';
 }//end function diso_permissions_page
 
 function diso_permissions_tab($s) {
-	add_submenu_page('profile.php', 'Permissions', 'Permissions', 1, __FILE__, 'diso_permissions_page');
+	add_submenu_page('profile.php', 'Permissions', 'Permissions', 'read', __FILE__, 'diso_permissions_page');
 	return $s;
 }//end function
 add_action('admin_menu', 'diso_permissions_tab');
