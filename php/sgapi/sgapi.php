@@ -6,7 +6,7 @@ $JSON = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 
 class SocialGraphApi {
 	function SocialGraphApi($params) {
-		// q  	Comma-separated list of URIs.  	Which node(s) in the social graph to query. -> uris
+		
 		// edo 	boolean 	Return edges out from returned nodes. -> edgesout
 		// edi 	boolean 	Return edges in to returned nodes. -> edgesin
 		// fme 	boolean 	Follow me links, also returning reachable nodes. -> followme
@@ -17,7 +17,6 @@ class SocialGraphApi {
 		$this->followme = isset($params['followme']) ? $params['followme'] : '0';
 		$this->sgn = isset($params['sgn']) ? $params['sgn'] : '0';
 	}
-	
 	
 	function get($uris) {
 		global $JSON;
