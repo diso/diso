@@ -1,9 +1,6 @@
 <?php
 
 require 'JSON.php';
-
-$qs = $_SERVER['QUERY_STRING'];
-
 define ('APIURL','http://socialgraph.apis.google.com/lookup');
 $JSON = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 
@@ -51,9 +48,3 @@ class SocialGraphApi {
 		return $this->data;
 	}
 }
-
-$sga = new SocialGraphApi(Array('edgesout'=>0,'edgesin'=>0,'followme'=>'1'));
-
-$mydata = $sga->get('http://redmonk.net');
-
-echo "<pre>" . print_r($mydata,true) . "</pre>";
