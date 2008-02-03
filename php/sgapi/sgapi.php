@@ -34,12 +34,10 @@ class SocialGraphApi {
 			   '&fme=' . $this->followme .
 			   '&sgn=' . $this->sgn;
 		
-		$f = fopen (APIURL."?$qs",'r');
-		$result = '';
-		while (!feof($f)) {
-		  $result .= fread($f, 8192);
-		}
-		fclose($f);
+		$ch = curl_init(APIURL."?$qs");
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		$result = curl_exec($ch);
+		curl_close($ch);
 		
 		if (empty($result)) return null;
 		
