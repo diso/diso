@@ -22,21 +22,35 @@ if( !function_exists( 'normalize_uri' ) ) {
   }
 }//end if
 
-function is_($taxonomies) {//is the current user associated with the given XFN values on the contact list?
+function user_is($taxonomies) {//is the current user associated with the given XFN values on the contact list?
+	static $ids, $bookmarks;
 	if(!$taxonomies || (is_array($taxonomies) && (!count($taxonomies) || !$taxonomies[0]))) return true;
 	if(is_string($taxonomies)) $taxonomies = array($taxonomies);
-	if(function_exists('is_user_openid') && is_user_openid()) {
-		global $wpdb,$userdata;//this really should go in wp-openid
-		get_currentuserinfo();
-		$ids = $wpdb->get_results("SELECT url FROM {$wpdb->prefix}openid_identities WHERE user_id=".$userdata->ID);
-	} else if(function_exists('is_user_facebook') && is_user_facebook()) {
-		if(function_exists('facebook_from_user'))
-			$ids = array(facebook_from_user());
-	}//end if-elses
+	if(!$ids) {
+		if(function_exists('is_user_openid') && is_user_openid()) {
+			global $wpdb, $userdata;//this really should go in wp-openid
+			get_currentuserinfo();
+			$ids = $wpdb->get_results("SELECT url FROM {$wpdb->prefix}openid_identities WHERE user_id=".$userdata->ID);
+		} else if(function_exists('is_user_facebook') && is_user_facebook()) {
+			if(function_exists('facebook_from_user'))
+				$ids = array(facebook_from_user());
+		}//end if-elses
+		if(!$ids || !count($ids)) return false;
+		require_once dirname(__FILE__).'/sgapi.php';
+		$sga = new SocialGraphApi(array('edgesout'=>0,'edgesin'=>0,'followme'=>1,'sgn'=>0));
+		$ids2 = array();
+		foreach($ids as $id) {//sgapi
+			if(is_object($id)) $id = $id->url;
+			if(!$id) continue;
+			$data = $sga->get($id);
+			if(!$data || !count($data)) continue;
+			$ids2 = array_merge($ids2, array_keys($data['nodes']));
+		}//end foreach
+		$ids = $ids2; unset($ids2);
+		$bookmarks = get_bookmarks();
+	}//end if ! ids
 	if(!$ids || !count($ids)) return false;
-	$bookmarks = get_bookmarks();
 	foreach($ids as $id) {
-		if(is_object($id)) $id = $id->url;
 		foreach($bookmarks as $bookmark) {
 			if(normalize_uri($bookmark->link_url) == normalize_uri($id)) {
 				$rels = explode(' ',$bookmark->link_rel);
@@ -51,7 +65,7 @@ function is_($taxonomies) {//is the current user associated with the given XFN v
 		}//end foreach bookmarks
 	}//end foreach
 	return false;
-}//end function is_
+}//end function user_is
 
 function diso_permissions_page() {
 	global $userdata;
@@ -86,7 +100,7 @@ function diso_permissions_page() {
 		$permissions = array();
 		foreach($_POST['permissions_level'] as $field => $level) {
 			if($level == 'custom') {
-				foreach($_POST['permissions'][$field] as $key => $val)
+				foreach($_POST['permissions'] as $key => $val)
 					$permissions[$key] = array_keys($val);
 			} else {
 				switch($level) {
@@ -94,10 +108,10 @@ function diso_permissions_page() {
 						$permissions[$field] = array_values($taxonomies);
 						break;
 					case 'family':
-						$permissions[$field] = array('kin', 'child', 'parent', 'sibling', 'spouse');
+						$permissions[$field] = array('me', 'kin', 'child', 'parent', 'sibling', 'spouse');
 						break;
 					case 'family,friends':
-						$permissions[$field] = array('kin', 'child', 'parent', 'sibling', 'spouse', 'friend', 'muse', 'date', 'sweetheart');
+						$permissions[$field] = array('me', 'kin', 'child', 'parent', 'sibling', 'spouse', 'friend', 'muse', 'date', 'sweetheart');
 						break;
 					case 'public':
 						$permissions[$field] = array();

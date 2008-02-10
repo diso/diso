@@ -46,8 +46,11 @@ function recent_visitors($echo=true) {
 		$userdata = get_userdata($id);
 		$output .= '	<li id="visitor-'.$id.'" class="vcard visitor" style="padding:0px;list-style-type:none;display:inline;">';
 		if($userdata->user_url) $output .= '<a class="url" rel="visitor" href="'.htmlentities($userdata->user_url).'">';
-		if(function_exists('show_allavatars')) $output .= '<img src="'.htmlentities(show_allavatars($userdata->user_email, $userdata->user_url, $id, false)).'" '.(!$options['names'] ? 'class="photo fn" alt="'.htmlentities($userdata->display_name).'"' : 'class="photo" alt=""').' style="width:35px;" />';
-			else $options['names'] = true;
+		$avatar = $userdata->photo;
+		if(!$avatar && function_exists('show_allavatars'))
+			$avatar = show_allavatars($userdata->user_email, $userdata->user_url, $id, false);
+		if($avatar)
+			$output .= '<img src="'.htmlentities($avatar).'" '.(!$options['names'] ? 'class="photo fn" alt="'.htmlentities($userdata->display_name).'"' : 'class="photo" alt=""').' style="width:35px;" />';
 		if($options['names']) $output .= '<span class="fn">'.htmlentities($userdata->display_name).'</span>';
 		if($userdata->user_url) $output .= '</a>';
 		$output .= "</li>\n";
