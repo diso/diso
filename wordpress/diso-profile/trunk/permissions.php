@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__FILE__).'/../../../wp-includes/pluggable.php';
+
 if( !function_exists( 'normalize_uri' ) ) {
   function normalize_uri ($url) {
 		  $url = trim( $url );
@@ -23,13 +25,15 @@ if( !function_exists( 'normalize_uri' ) ) {
 }//end if
 
 function user_is($taxonomies) {//is the current user associated with the given XFN values on the contact list?
+	global $userdata;
 	static $ids, $bookmarks;
 	if(!$taxonomies || (is_array($taxonomies) && (!count($taxonomies) || !$taxonomies[0]))) return true;
+	get_currentuserinfo();
+	if($user_level > 9) return true;
 	if(is_string($taxonomies)) $taxonomies = array($taxonomies);
 	if(!$ids) {
 		if(function_exists('is_user_openid') && is_user_openid()) {
 			global $wpdb, $userdata;//this really should go in wp-openid
-			get_currentuserinfo();
 			$ids = $wpdb->get_results("SELECT url FROM {$wpdb->prefix}openid_identities WHERE user_id=".$userdata->ID);
 		} else if(function_exists('is_user_facebook') && is_user_facebook()) {
 			if(function_exists('facebook_from_user'))
@@ -101,7 +105,7 @@ function diso_permissions_page() {
 		foreach($_POST['permissions_level'] as $field => $level) {
 			if($level == 'custom') {
 				foreach($_POST['permissions'] as $key => $val)
-					$permissions[$key] = array_keys($val);
+					$permissions[$key] = array_unique(array_merge(array_keys($val), array('me')));
 			} else {
 				switch($level) {
 					case 'any':
@@ -177,6 +181,7 @@ function diso_permissions_page() {
 	}//end foreach fields
 	echo ' <input style="clear:both;margin-top:1em;" type="submit" value="Save &raquo;" /> ';
 	echo '</form>';
+
 	echo '</div>';
 }//end function diso_permissions_page
 
@@ -184,6 +189,9 @@ function diso_permissions_tab($s) {
 	add_submenu_page('profile.php', 'Permissions', 'Permissions', 'read', __FILE__, 'diso_permissions_page');
 	return $s;
 }//end function
-add_action('admin_menu', 'diso_permissions_tab');
+
+get_currentuserinfo();
+if($user_level > 9)
+	add_action('admin_menu', 'diso_permissions_tab');
 
 ?>
