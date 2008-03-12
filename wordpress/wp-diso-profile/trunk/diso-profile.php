@@ -8,8 +8,6 @@ Author: Stephen Paul Weber
 Author URI: http://singpolyma.net/
 */
 
-//Licensed under the GPL
-
 require_once dirname(__FILE__).'/recent-visitors.php';
 require_once dirname(__FILE__).'/permissions.php';
 
