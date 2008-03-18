@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Actionstream
-Version: 0.11
+Version: 0.20
 Plugin URI: http://singpolyma.net/plugins/actionstream/
 Description: Shows updates from activities across the web.
 Author: Stephen Paul Weber (inspired by http://www.movabletype.org/2008/01/building_action_streams.html)
@@ -9,11 +9,20 @@ Author URI: http://singpolyma.net/
 */
 
 //Copyright 2008 Stephen Paul Weber
-//Released under the terms of an MIT-style or BSD license
+//Released under the terms of an MIT-style
 
-require_once dirname(__FILE__).'/sgapi.php';
-require_once dirname(__FILE__).'/spyc.php5';
-$actionstream_yaml = Spyc::YAMLLoad(dirname(__FILE__).'/config.yaml');//file straight from MT plugin - yay sharing!
+function get_actionstream_config() {
+	require_once dirname(__FILE__).'/spyc.php5';
+	static $yaml;
+	if(!$yaml) {
+		$yaml = Spyc::YAMLLoad(dirname(__FILE__).'/config.yaml');//file straight from MT plugin - yay sharing!
+		$streams = get_option('actionstream_streams');
+		$yaml['action_streams'] = array_merge($yaml['action_streams'], $streams ? $streams : array());
+		$services = get_option('actionstream_services');
+		$yaml['profile_services'] = array_merge($yaml['profile_services'], $services ? $services : array());
+	}
+	return $yaml;
+}//end function get_actionstream_config
 
 /* wordpress */
 $actionstream_config = array(
@@ -44,16 +53,17 @@ function get_raw_actionstream($url) {
 
 function actionstream_styles() {
 	$url = get_bloginfo('wpurl');
-	$url = $url . '/wp-content/plugins/diso-actionstream/css/action-streams.css';
+	$url = $url . '/wp-content/plugins/wp-diso-actionstream/css/action-streams.css';
 	echo '<link rel="stylesheet" type="text/css" href="' . $url . '" />';
 }//end function actionstream_styles
 add_action('wp_head', 'actionstream_styles');
 add_action('admin_head', 'actionstream_styles');
 
 function actionstream_page() {
-	global $userdata, $actionstream_yaml;
+	global $userdata;
 	require_once dirname(__FILE__).'/../../../wp-includes/pluggable.php';
 	get_currentuserinfo();
+	$actionstream_yaml = get_actionstream_config();
 
 	$streams = get_option('actionstreams');
 	if(!$streams) $streams = array();
@@ -73,9 +83,10 @@ function actionstream_page() {
 	}//end if ident
 
 	if($_POST['sgapi_import']) {
+		require_once dirname(__FILE__).'/sgapi.php';
 		$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
 		$xfn = $sga->get($_POST['sgapi_import']);
-		array_merge($userdata->actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
+		$userdata->actionstream = array_merge($userdata->actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
 		unset($userdata->actionstream['website']);
 		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
 	}//end if sgapi_import
@@ -122,7 +133,35 @@ function actionstream_tab($s) {
 }//end function actionstream_tab
 add_action('admin_menu', 'actionstream_tab');
 
-function actionstream_render($userid=false, $num=10, $echo=true) {
+function actionstream_wordpress_post($post_id) {
+	$post = get_post($post_id);
+	$item = array();
+	$item['title'] = $post->post_title;
+	$item['url'] = get_permalink($post->ID);
+	$item['identifier'] = $item['url'];
+	$item['description'] = $post->post_excerpt;
+	if(!$item['description']) $item['description'] = substr(html_entity_decode(strip_tags($post->post_content)),0,200);
+	$item['created_on'] = strtotime($post->post_date_gmt);
+	$item['ident'] = get_userdata($post->post_author);
+	$item['ident'] = $item['ident']->display_name;
+	$obj = new ActionStreamItem($item, 'website', 'posted', $post->post_author);
+	$obj->save();
+}//end function actionstream_wordpress_post
+add_action('publish_post', 'actionstream_wordpress_post');
+
+function actionstream_service_register($name, $profile_definition, $stream_definition) {
+	$services = get_option('actionstream_streams');
+	if(!is_array($services)) $services = array();
+	$services[$name] = $stream_definition;
+	update_option('actionstream_streams', $services);
+
+	$services = get_option('actionstream_services');
+	if(!is_array($services)) $services = array();
+	$services[$name] = $profile_definition;
+	update_option('actionstream_services', $services);
+}//end function actionstream_service_register
+
+function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=true) {
    if(!$userid) {//get administrator
       global $wpdb;
       $userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
@@ -132,7 +171,7 @@ function actionstream_render($userid=false, $num=10, $echo=true) {
    else
       $userdata = get_userdatabylogin($userid);
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->__toString($num);
+	$rtrn = $rtrn->__toString($num, $hide_user);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }//end function actionstream_render
@@ -144,8 +183,7 @@ class ActionStreamItem {
 	protected $data, $service, $setup_idx, $config, $user_id;
 
 	function __construct($data, $service, $setup_idx, $user_id=0) {
-		global $actionstream_yaml;
-		$this->config = $actionstream_yaml;
+		$this->config = get_actionstream_config();
 		$this->service = $service;
 		$this->setup_idx = $setup_idx;
 		$this->user_id = $user_id;
@@ -180,7 +218,8 @@ class ActionStreamItem {
 		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} (identifier_hash, user_id, created_on, service, setup_idx, data) VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') ON DUPLICATE KEY UPDATE data='$data'");
 	}//end function save
 
-	function __toString() {
+	function __toString($hide_user=false) {
+		if($hide_user) $this->data['ident'] = '';
 		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form']);
 	}//end function toString
 
@@ -200,8 +239,7 @@ class ActionStream {
 	protected $config, $ident, $user_id;
 
 	function __construct($ident, $user_id=0) {
-		global $actionstream_yaml;
-		$this->config = $actionstream_yaml;
+		$this->config = get_actionstream_config();
 		$this->ident = $ident;
 		$this->user_id = $user_id;
 	}//end constructor
@@ -274,8 +312,8 @@ class ActionStream {
 							$value = $value[0].'';
 							if($service == 'twitter') {
 								$value = preg_replace('/^'.$id.'\: /','',$value);
-								$value = preg_replace('/@([a-zA-z0-9]+)/','@<a href="http://twitter.com/$1">$1</a>',$value);
-								$value = preg_replace('/#([a-zA-z0-9]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
+								$value = preg_replace('/@([a-zA-z0-9_]+)/','@<a href="http://twitter.com/$1">$1</a>',$value);
+								$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
 							}//end if twitter
 							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
 							$update->set($k, $value);
@@ -289,14 +327,17 @@ class ActionStream {
 
 	}//end function update
 
-	function __toString($num=10) {
+	function __toString($num=10, $hide_user=false) {
 		global $actionstream_config;
 		$items = $actionstream_config['db']->get_results("SELECT created_on,service,setup_idx,data,user_id FROM {$actionstream_config['item_table']} ".($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')."ORDER BY created_on DESC", ARRAY_A);
+		if(!$items || !count($items))
+			return 'No items to display in actionstream.';
 		$previous_service = false;
 		$during_service = '';
 		$after_service = array();
 		$previous_day = 0;
 		$c = 0;
+		if(count($items) <= $num) $num = count($items);
 		foreach($items as $item) {
 
 			if($item['service'] == $previous_service && date('Y-m-d',$item['created_on']) == $previous_day) {
@@ -308,7 +349,7 @@ class ActionStream {
 				$c++;
 
 				if($during_service) {
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.'">'.$during_service;
+					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.'">'.$during_service->__toString($hide_user);
 					if(count($after_service)) $rtrn .= ' (and '.count($after_service).' more...)';
 					$rtrn .= '</li>';
 				}//end if during service
@@ -335,7 +376,7 @@ class ActionStream {
 	}//end function toString
 
 	static function from_urls($url, $urls) {
-		global $actionstream_yaml;
+		$actionstream_yaml = get_actionstream_config();
 		$urls[] = $url;
 		$urls = array_unique($urls);
 		$ident = array();
@@ -343,6 +384,8 @@ class ActionStream {
 			foreach($actionstream_yaml['profile_services'] as $service => $setup)  {
 				$regex = '/'.str_replace('%s', '(.*)', preg_quote($setup['url'],'/')).'?/';
 				if(preg_match($regex, $url, $match)) {
+					$match[1] = explode('/', $match[1]);
+					$match[1] = $match[1][0];
 					$ident[$service] = $match[1];
 					break;
 				}//end if preg_match

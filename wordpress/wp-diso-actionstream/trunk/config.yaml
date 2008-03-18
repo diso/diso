@@ -312,7 +312,7 @@ action_streams:
         links:
             name: Links
             description: Your public links
-            html_form: '[_1] saved the link <a href="[_2]">[_3]</a>'
+            html_form: '[_1] saved the link <span class="xfolkentry"><a rel="bookmark" class="entry-title taggedlink" href="[_2]">[_3]</a></span>'
             html_params:
                 - url
                 - title
@@ -328,7 +328,7 @@ action_streams:
         links:
             name: Dugg
             description: Links you dugg
-            html_form: '[_1] dugg the link <a href="[_2]">[_3]</a>'
+            html_form: '[_1] dugg the link <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                 - title
@@ -345,7 +345,7 @@ action_streams:
         submitted:
             name: Submissions
             description: Links you submitted
-            html_form: '[_1] submitted the link <a href="[_2]">[_3]</a>'
+            html_form: '[_1] submitted the link <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                 - title
@@ -365,7 +365,7 @@ action_streams:
             description: The applications you saved as ones you use
             fields:
                 - favorite
-            html_form: '[_1] started using <a href="[_2]">[_3]</a>[quant,_4, (and loves it),,]'
+            html_form: '[_1] started using <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>[quant,_4, (and loves it),,]'
             html_params:
                 - url
                 - title
@@ -388,7 +388,7 @@ action_streams:
         links:
             name: Links
             description: Your public links
-            html_form: '[_1] saved the link <a href="[_2]">[_3]</a>'
+            html_form: '[_1] saved the link <span class="xfolkentry"><a rel="bookmark" class="entry-title taggedlink" href="[_2]">[_3]</a></span>'
             html_params:
                 - url
                 - title
@@ -402,7 +402,7 @@ action_streams:
             description: Your public tweets
             fields:
                 - tweet
-            html_form: '[_1] <a href="[_2]">tweeted</a>, "[_3]"'
+            html_form: '[_1] <a rel="bookmark" href="[_2]">tweeted</a>, "<span class="entry-title entry-content">[_3]</span>"'
             html_params:
                 - url
                 - tweet
@@ -417,7 +417,7 @@ action_streams:
         posts:
             name: Posts
             description: Your public posts to your Vox
-            html_form: '[_1] posted <a href="[_2]">[_3]</a>'
+            html_form: '[_1] posted <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                 - title
@@ -438,7 +438,7 @@ action_streams:
         icons:
             name: Deliveries
             description: Icon sets you were delivered
-            html_form: '[_1] received the icon set <a href="[_2]">[_3]</a>'
+            html_form: '[_1] received the icon set <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                 - title
@@ -459,7 +459,7 @@ action_streams:
             description: Books on your "to-read" shelf
             fields:
                 - by
-            html_form: '[_1] saved <a href="[_2]"><i>[_3]</i> by [_4]</a> to read'
+            html_form: '[_1] saved <a rel="bookmark" class="entry-title" href="[_2]"><i>[_3]</i> by [_4]</a> to read'
             html_params:
                 - url
                 - title
@@ -479,7 +479,7 @@ action_streams:
             description: Books on your "currently-reading" shelf
             fields:
                 - by
-            html_form: '[_1] started reading <a href="[_2]"><i>[_3]</i> by [_4]</a>'
+            html_form: '[_1] started reading <a rel="bookmark" class="entry-title" href="[_2]"><i>[_3]</i> by [_4]</a>'
             html_params:
                 - url
                 - title
@@ -499,7 +499,7 @@ action_streams:
             description: Books on your "read" shelf
             fields:
                 - by
-            html_form: '[_1] finished reading <a href="[_2]"><i>[_3]</i> by [_4]</a>'
+            html_form: '[_1] finished reading <a rel="bookmark" class="entry-title" href="[_2]"><i>[_3]</i> by [_4]</a>'
             html_params:
                 - url
                 - title
@@ -520,7 +520,7 @@ action_streams:
             description: Events you are watching or attending
             fields:
                 - venue
-            html_form: '[_1] is attending <a href="[_2]">[_3]</a> at [_4]'
+            html_form: '[_1] is attending <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a> at [_4]'
             html_params:
                 - url
                 - title
@@ -545,6 +545,13 @@ action_streams:
             name: Shared
             description: Your shared items
             class: GoogleReader
+            html_form: '[_1] shared <a class="entry-title" rel="bookmark" href="[_2]">[_3]</a>'
+            html_params:
+                - url
+                - title
+            url: 'http://www.google.com/reader/public/atom/user/{{ident}}/state/com.google/broadcast'
+            identifier: url
+            atom: 
     netflix:
         shipped:
             name: Shipped
@@ -559,7 +566,7 @@ action_streams:
         saved:
             name: Saved
             description: Things you saved as favorites
-            html_form: '[_1] saved <a href="[_2]">[_3]</a> on Uncrate'
+            html_form: '[_1] saved <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a> on Uncrate'
             html_params:
                 - url
                 - title
@@ -580,7 +587,7 @@ action_streams:
             description: Your public notes
             fields:
                 - note
-            html_form: '[_1] <a href="[_2]">posted</a>, "[_3]"'
+            html_form: '[_1] <a rel="bookmark" href="[_2]">posted</a>, "<span class="entry-title entry-content">[_3]</span>"'
             html_params:
                 - url
                 - note
@@ -591,7 +598,7 @@ action_streams:
         photos:
             name: Photos
             description: Photos you posted
-            html_form: '[_1] posted a photo <p><a rel="bookmark" title="[_3]" href="[_2]"><img src="[_4]" alt="[_3]" /></a></p>'
+            html_form: '[_1] posted a photo <p><a rel="bookmark" class="entry-title" title="[_3]" href="[_2]"><img src="[_4]" alt="[_3]" /></a></p>'
             html_params:
                 - url
                 - title
@@ -602,7 +609,7 @@ action_streams:
         scrobbles:
             name: Scrobbles
             description: Your recent scrobbles
-            html_form: '[_1] listened to <a rel="bookmark" href="[_2]">[_3]</a> by <a rel="artist" href="http://last.fm/music/[_4]">[_4]</a>'
+            html_form: '[_1] listened to <span class="haudio"><a rel="bookmark" class="entry-title title" href="[_2]">[_3]</a> by <span class="contributor vcard"><a class="fn url" rel="artist" href="http://last.fm/music/[_4]">[_4]</a></span></span>'
             html_params:
                 - url
                 - title
@@ -624,7 +631,7 @@ action_streams:
         posts:
             name: Posts
             description: Your public posts
-            html_form: '[_1] posted, <a rel="bookmark" href="[_2]">[_3]</a>'
+            html_form: '[_1] posted, <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                - title
@@ -642,7 +649,7 @@ action_streams:
             description: Videos you saved as favorites
             fields:
                 - by
-            html_form: '[_1] saved a favorite video <p><a rel="bookmark" href="[_2]" title="[_3]"><img src="[_4]" alt="[_3]" /></a></p>'
+            html_form: '[_1] saved a favorite video <p><a rel="bookmark" class="entry-title" href="[_2]" title="[_3]"><img src="[_4]" alt="[_3]" /></a></p>'
             html_params:
                 - url
                 - title
@@ -657,6 +664,9 @@ action_streams:
     website:
         posted:
             name: Posts
-            description: The posts available from the website's feed
+            description: "The posts available from the website's feed"
+            html_form: '[_1] posted <a class="entry-title" rel="bookmark" href="[_2]">[_3]</a>'
+            html_params:
+                - url
+                - title
             class: Website
-
