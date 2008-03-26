@@ -170,7 +170,7 @@ profile_services:
         name: Google Reader
         url: http://www.google.com/reader/shared/%s
         ident_label: Sharing ID
-        ident_example: http://www.google.com/reader/shared/16793324975410272738
+        ident_example: 16793324975410272738
     hi5:
         name: Hi5
         url: http://hi5.com/friend/profile/displayProfile.do?userid=%s
@@ -267,45 +267,45 @@ profile_services:
    tumblr:
        name: Tumblr
        url: http://%s.tumblr.com/rss/
-    twitter:
-        name: Twitter
-        url: http://twitter.com/%s
-    uncrate:
-        name: Uncrate
-        url: http://uncrate.com/stuff/%s
-    upcoming:
-        name: Upcoming
-        url: http://upcoming.yahoo.com/user/%s
-        ident_label: User ID
-        ident_example: 12345
-    virb:
-        name: Virb
-        url: http://www.virb.com/%s
-    vox:
-        name: Vox
-        url: http://%s.vox.com/
-        ident_label: Vox name
-        ident_suffix: .vox.com
-    website:
-        name: Website
-        url: %s
-        ident_label: URL
-        ident_example: http://www.example.com/
-        ident_exact: 1
-        can_many: 1
-    xboxlive:
-        name: 'Xbox Live'
-        url: http://live.xbox.com/member/%s
-        ident_label: Gamertag
-    yahoo:
-        name: 'Yahoo! Messenger'
-        url: http://edit.yahoo.com/config/send_webmesg?.target=%s
-    youtube:
-        name: YouTube
-        url: http://www.youtube.com/user/%s
-    zooomr:
-        name: Zooomr
-        url: http://www.zooomr.com/photos/%s
+   twitter:
+       name: Twitter
+       url: http://twitter.com/%s
+   uncrate:
+       name: Uncrate
+       url: http://uncrate.com/stuff/%s
+   upcoming:
+       name: Upcoming
+       url: http://upcoming.yahoo.com/user/%s
+       ident_label: User ID
+       ident_example: 12345
+   virb:
+       name: Virb
+       url: http://www.virb.com/%s
+   vox:
+       name: Vox
+       url: http://%s.vox.com/
+       ident_label: Vox name
+       ident_suffix: .vox.com
+   website:
+       name: Website
+       url: %s
+       ident_label: URL
+       ident_example: http://www.example.com/
+       ident_exact: 1
+       can_many: 1
+   xboxlive:
+       name: 'Xbox Live'
+       url: http://live.xbox.com/member/%s
+       ident_label: Gamertag
+   yahoo:
+       name: 'Yahoo! Messenger'
+       url: http://edit.yahoo.com/config/send_webmesg?.target=%s
+   youtube:
+       name: YouTube
+       url: http://www.youtube.com/user/%s
+   zooomr:
+       name: Zooomr
+       url: http://www.zooomr.com/photos/%s
 
 action_streams:
     delicious:
