@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Actionstream
-Version: 0.20
+Version: 0.35
 Plugin URI: http://singpolyma.net/plugins/actionstream/
 Description: Shows updates from activities across the web.
 Author: Stephen Paul Weber (inspired by http://www.movabletype.org/2008/01/building_action_streams.html)
@@ -9,7 +9,7 @@ Author URI: http://singpolyma.net/
 */
 
 //Copyright 2008 Stephen Paul Weber
-//Released under the terms of an MIT-style
+//Released under the terms of an MIT-style license
 
 function get_actionstream_config() {
 	require_once dirname(__FILE__).'/spyc.php5';
@@ -76,6 +76,16 @@ function actionstream_page() {
 		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
 	}//end if ! actionstream
 
+	if(isset($_POST['toggle_local_updates'])) {
+		$userdata->actionstream_local_updates_off = !$userdata->actionstream_local_updates_off;
+		update_usermeta($usermeta->ID, 'actionstream_local_updates_off', $userdata->actionstream_local_updates_off);
+	}//end if toggle_local_updates
+	
+	if(isset($_POST['remove_service'])) {
+		unset($userdata->actionstream[$_POST['remove_service']]);
+		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
+	}//end if ident
+
 	if($_POST['ident']) {
 		$userdata->actionstream[$_POST['service']] = $_POST['ident'];
 		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
@@ -94,26 +104,56 @@ function actionstream_page() {
 	echo '<div class="wrap">';
 
 	echo '	<h2>Action Stream Services</h2>';
-	echo '	<ul>';
-	foreach($userdata->actionstream as $service => $id)
-		echo '<li>'.htmlspecialchars(ucwords($service)).' : '.htmlspecialchars($id).'</li>';
+	echo '	<ul style="padding:0px;">';
+	foreach($userdata->actionstream as $service => $id) {
+		$setup = $actionstream_yaml['profile_services'][$service];
+		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><form method="post" action="" style="display:inline;vertical-align:bottom;"><input type="hidden" name="remove_service" value="'.htmlspecialchars($service).'" /><input type="image" alt="Remove Service" src="'.get_bloginfo('wpurl').'/wp-content/plugins/wp-diso-actionstream/images/delete.gif" /></form> ';
+			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
+			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
+			echo htmlspecialchars($id);
+			if($setup['url']) echo '</a>';
+			echo '</li>';
+	}//end foreach actionstream
 	echo '	</ul>';
 
-	echo '<h3>Add a Service</h3>';
+	echo '<form method="post" action="">';
+	echo '<input type="submit" name="toggle_local_updates" value="'.($userdata->actionstream_local_updates_off ? 'Show updates from this blog' : 'Hide updates from this blog').'" />';
+	echo '</form>';
+
+	echo '<h3>Add/Update a Service</h3>';
 	echo '<form method="post" action=""><div>';
-	echo '<select name="service">';
+	echo '<select id="add-service" name="service" onchange="update_ident_form();">';
 	foreach($actionstream_yaml['action_streams'] as $service => $setup) {
+		if($setup['scraper']) continue;//FIXME: we don't support scraper yet
 		$setup = $actionstream_yaml['profile_services'][$service];
-		echo '<option value="'.htmlspecialchars($service).'">';
+		echo '<option class="service-icon service-'.htmlspecialchars($service).'" value="'.htmlspecialchars($service).'" title="'.htmlspecialchars($setup['url']).'|'.htmlspecialchars($setup['ident_example']).'|'.htmlspecialchars($setup['ident_label']).'">';
 		echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service));
 		echo '</option>';
 	}//end foreach
-	echo '</select> ';
-	echo '<input type="text" name="ident" /> ';
-	echo '<input type="submit" value="Add &raquo;" />';
+	echo '</select> <br />';
+	echo ' <span id="add-ident-pre"></span> ';
+	echo '<input type="text" id="add-ident" name="ident" /> ';
+	echo ' <span id="add-ident-post"></span> <br />';
+	echo '<input style="margin-left:3em;margin-top:5px;" type="submit" value="Add / Update &raquo;" />';
 	echo '</div></form>';
 
-	echo '<h3>Import Services</h3>';
+?>
+<script type="text/javascript">
+	function update_ident_form() {
+		var option = document.getElementById('add-service').options[document.getElementById('add-service').selectedIndex];
+		var data = option.title.split(/\|/);
+		document.getElementById('add-ident-pre').innerHTML = data[0].split(/%s/)[0] ? data[0].split(/%s/)[0] : '';
+		document.getElementById('add-ident-post').innerHTML = data[0].split(/%s/)[1] ? data[0].split(/%s/)[1] : '';
+		if(data[1]) document.getElementById('add-ident-pre').title = 'Example: ' + data[0].replace(/%s/, data[1]);
+			else document.getElementById('add-ident-pre').title = '';
+		document.getElementById('add-ident').title = document.getElementById('add-ident-pre').title;
+		document.getElementById('add-ident').value = data[2];
+	}
+	update_ident_form();
+</script>
+<?php
+
+	echo '<h3 title="For geeks: this is rel=me">Import List from Another Service</h3>';
 	echo '<form method="post" action=""><div>';
 	echo '<input type="text" name="sgapi_import" />';
 	echo '<input type="submit" value="Go &raquo;" />';
@@ -141,8 +181,9 @@ function actionstream_wordpress_post($post_id) {
 	$item['identifier'] = $item['url'];
 	$item['description'] = $post->post_excerpt;
 	if(!$item['description']) $item['description'] = substr(html_entity_decode(strip_tags($post->post_content)),0,200);
-	$item['created_on'] = strtotime($post->post_date_gmt);
+	$item['created_on'] = strtotime($post->post_date_gmt.'Z');
 	$item['ident'] = get_userdata($post->post_author);
+	if($item['ident']->actionstream_local_updates_off) return;
 	$item['ident'] = $item['ident']->display_name;
 	$obj = new ActionStreamItem($item, 'website', 'posted', $post->post_author);
 	$obj->save();
@@ -175,6 +216,71 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
 	if($echo) echo $rtrn;
 	return $rtrn;
 }//end function actionstream_render
+
+function diso_actionstream_parse_page_token($content) {
+	if(preg_match('/<!--actionstream[\(]*(.*?)[\)]*-->/',$content,$matches)) {
+		$parameter1 = $matches[1];
+		$content = preg_replace('/<!--actionstream(.*?)-->/',actionstream_render($parameter1), $content);
+	}//end if match
+	return $content;
+}//end function diso_profile_parse_page_token
+add_filter('the_content', 'diso_actionstream_parse_page_token');
+
+//### Begin Widget ###
+
+function widget_actionstreamwidget_init() {
+
+	if (!function_exists('register_sidebar_widget'))
+		return;
+	
+	function widget_actionstreamwidget($args) {
+		extract($args);
+				
+		$options = get_option('widget_actionstreamwidget');
+		$title = $options['title'];
+
+		echo $before_widget;
+		echo $before_title . $title . $after_title;
+		actionstream_render($options['userid'], $options['num'], $options['hide_user']);
+		echo $after_widget;
+	}
+	
+	function widget_actionstreamwidget_control() {
+		global $wpdb;
+		$options = get_option('widget_actionstreamwidget');
+		if ( !is_array($options) )
+			$options = array('title'=>'ActionStream', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
+		if ( $_POST['actionstreamwidget-submit'] ) {
+			$options['title'] = strip_tags(stripslashes($_POST['actionstreamwidget-title']));
+			$options['userid'] = strip_tags(stripslashes($_POST['actionstreamwidget-userid']));
+			$options['num'] = strip_tags(stripslashes($_POST['actionstreamwidget-num']));
+			$options['hide_user'] = strip_tags(stripslashes($_POST['actionstreamwidget-hide_user']));
+			update_option('widget_actionstreamwidget', $options);
+		}
+
+		$title = htmlspecialchars($options['title'], ENT_QUOTES);
+
+		echo '<p style="text-align:right;"><label for="actionstreamwidget-title">Title:</label><br /> <input style="width: 200px;" id="actionstreamwidget-title" name="actionstreamwidget-title" type="text" value="'.$title.'" /></p>';
+
+		echo '<p style="text-align:right;"><label for="actionstreamwidget-userid">User:</label><br /> ';
+		echo '	<select style="width: 200px;" id="actionstreamwidget-userid" name="actionstreamwidget-userid">';
+		$users = $wpdb->get_results("SELECT display_name,ID FROM $wpdb->users ORDER BY user_registered,ID");
+		foreach($users as $user)
+			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
+		echo '	</select>';
+		echo '</p>';
+		
+		echo '<p style="text-align:right;"><label for="actionstreamwidget-num">Max Items:</label><br /> <input style="width: 200px;" id="actionstreamwidget-num" name="actionstreamwidget-num" type="text" value="'.$options['num'].'" /></p>';
+		echo '<p style="text-align:right;"><label for="actionstreamwidget-hide_user">Hide Usernames?</label> <input id="actionstreamwidget-hide_user" name="actionstreamwidget-hide_user" type="checkbox" '.($options['hide_user'] ? 'checked="checked"' : '').' /></p>';
+
+		echo '<input type="hidden" id="actionstreamwidget-submit" name="actionstreamwidget-submit" value="1" />';
+	}
+	
+			
+	register_sidebar_widget('Actionstream', 'widget_actionstreamwidget');
+	register_widget_control('Actionstream', 'widget_actionstreamwidget_control', 270, 270);
+}
+add_action('plugins_loaded', 'widget_actionstreamwidget_init');
 
 /*end wordpress */
 
@@ -220,13 +326,16 @@ class ActionStreamItem {
 
 	function __toString($hide_user=false) {
 		if($hide_user) $this->data['ident'] = '';
-		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form']);
+		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], $this->config['profile_services'][$this->service]);
 	}//end function toString
 
-	protected static function interpolate($data, $fields, $template) {
+	protected static function interpolate($data, $fields, $template, $service) {
 		array_unshift($fields, 'ident');
+		if($data['ident'] && $service) {
+			$data['ident'] = '<span class="author vcard"><a class="url fn nickname" href="'.htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'.htmlspecialchars($data['ident']).'</a></span>';
+		}//end if ident
 		foreach($fields as $i => $k) {
-			if($data[$k] == strip_tags($data[$k])) $data[$k] = htmlspecialchars($data[$k]);
+			if($data[$k] == html_entity_decode(strip_tags($data[$k]))) $data[$k] = htmlspecialchars($data[$k]);
 			$template = str_replace('[_'.($i+1).']', $data[$k], $template);
 		}//end foreach fields
 		return $template;
@@ -245,10 +354,10 @@ class ActionStream {
 	}//end constructor
 
 	function update() {
-
 		foreach($this->ident as $service => $id) {
 			$setup = $this->config['action_streams'][$service];
-			//TODO: HTML/RSS/Microformats
+			if(!is_array($setup)) continue;
+			//TODO: HTML/Microformats
 			foreach($setup as $setup_idx => $stream) {
 				$url = str_replace('{{ident}}', $id, $stream['url']);
 				if(!$url) {//feed autodetect
@@ -272,7 +381,8 @@ class ActionStream {
 				$raw = get_raw_actionstream($url);
 				if(!$raw) continue;
 
-				if($stream['atom']) {
+				if(isset($stream['atom'])) {
+					if(!$stream['atom']) $stream['atom'] = array();
 					$stream['xpath'] = array(
 							'foreach' => '//entry',
 							'get' => array_merge(array(
@@ -285,7 +395,8 @@ class ActionStream {
 					);
 				}//end if atom
 
-				if($stream['rss2']) {
+				if(isset($stream['rss2'])) {
+					if(!$stream['rss2']) $stream['rss2'] = array();
 					$stream['xpath'] = array(
 							'foreach' => '//item',
 							'get' => array_merge(array(
@@ -298,17 +409,20 @@ class ActionStream {
 				}//end if atom
 
 				if($stream['xpath']) {
-					$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw));
-					@$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
-					@$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
-					@$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
-					@$items = $doc->xpath($stream['xpath']['foreach']);
+					@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw));
+					if($doc && method_exists($doc, 'registerXPathNamespace')) {
+						$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
+						$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
+						$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
+					}
+					if($doc && $stream['xpath']['foreach'])
+						$items = $doc->xpath($stream['xpath']['foreach']);
 					if(!$items) $items = array();
 
 					foreach($items as $item) {
 						$update = new ActionStreamItem(array('ident' => $id), $service, $setup_idx, $this->user_id);
 						foreach($stream['xpath']['get'] as $k => $p) {
-							@$value = $item->xpath($p);
+							$value = $item->xpath($p);//TEMP
 							$value = $value[0].'';
 							if($service == 'twitter') {
 								$value = preg_replace('/^'.$id.'\: /','',$value);
@@ -324,7 +438,6 @@ class ActionStream {
 
 			}//end foreach setup
 		}//end foreach ident
-
 	}//end function update
 
 	function __toString($num=10, $hide_user=false) {
@@ -348,19 +461,22 @@ class ActionStream {
 
 				$c++;
 
+				$group_id = 'actionstream-group-'.md5(microtime(true));
+
 				if($during_service) {
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.'">'.$during_service->__toString($hide_user);
-					if(count($after_service)) $rtrn .= ' (and '.count($after_service).' more...)';
+					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.'">'.$during_service->__toString($hide_user);
+					if(count($after_service)) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
 					$rtrn .= '</li>';
 				}//end if during service
 
 				foreach($after_service as $cnt)
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.'" style="display:none;">'.$cnt.'</li>';
+					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.' actionstream-hidden">'.$cnt.'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script></li>';
 				$after_service = array();
+
+				if($c > $num) {$rtrn .= '</ul>'; break;}
 
 				if(date('Y-m-d',$item['created_on']) != $previous_day) {//new day
 					if($previous_day) $rtrn .= '</ul>';
-					if($c > $num) break;
 					$previous_day = date('Y-m-d',$item['created_on']);
 					$rtrn .= '<h3 class="action-stream-header">On '.$previous_day.'</h3>';
 					$rtrn .= '<ul class="hfeed action-stream-list">';
@@ -372,6 +488,20 @@ class ActionStream {
 
 			$previous_service = $item['service'];
 		}//end foreach
+
+		$rtrn = <<<JS
+<script type="text/javascript">
+	function actionstream_group_toggle(id, display) {
+		var head = document.getElementsByTagName('head')[0];
+		var css = document.createElement('style');
+		css.type = 'text/css';
+		css.innerHTML = '.'+id+'.actionstream-hidden {display:'+display+';}';
+		head.appendChild(css);
+	}
+</script>
+$rtrn
+JS;
+
 		return $rtrn;
 	}//end function toString
 
