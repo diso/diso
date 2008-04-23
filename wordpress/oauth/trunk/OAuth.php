@@ -204,8 +204,8 @@ class OAuthRequest {/*{{{*/
     $total = array();
     foreach ($sorted as $k => $v) {
       if ($k == "oauth_signature") continue;
-      $total[] = $k . "=" . $v;
-      //$total[] = urlencode($k) . "=" . urlencode($v);
+      //$total[] = $k . "=" . $v;
+      $total[] = urlencode($k) . "=" . urlencode($v);
     }
     return implode("&", $total);
   }/*}}}*/
