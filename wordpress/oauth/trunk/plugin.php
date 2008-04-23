@@ -1,58 +1,73 @@
 <?php
 /*
-Plugin Name: OAuth
+Plugin Name: WP-OAuth
 Plugin URI: http://singpolyma.net/plugins/oauth/
 Description: Enables OAuth services on your Wordpress blog.
-Version: 0.12
+Version: 0.13
 Author: Stephen Paul Weber
 Author URI: http://singpolyma.net/
 */
 
 //Licensed under the GPL
 
-require_once dirname(__FILE__).'/common.inc.php';
-require_once dirname(__FILE__).'/../../../wp-includes/pluggable.php';
 
 function oauth_accept() {
 
-	$services = get_option('xrds_services');
-	if(!is_array($services)) $services = array();
-	$services['OAuth Request Token'] = array(
-									'priority' => 10,
-									'Type' => 'http://oauth.net/core/1.0/endpoint/request',
-									'URI' => get_bloginfo('wpurl').'/wp-content/plugins/oauth/request_token.php'
-								);
-	$services['OAuth Authorize Token'] = array(
-									'priority' => 10,
-									'Type' => 'http://oauth.net/core/1.0/endpoint/authorize',
-									'URI' => get_bloginfo('wpurl').'/wp-content/plugins/oauth/authorize_token.php'
-								);
-	$services['OAuth Access Token'] = array(
-									'priority' => 10,
-									'Type' => 'http://oauth.net/core/1.0/endpoint/access',
-									'URI' => get_bloginfo('wpurl').'/wp-content/plugins/oauth/access_token.php'
-								);
-	$services['OAuth Static Token'] = array(
-									'priority' => 5,
-									'Type' => 'http://oauth.net/discovery/1.0/consumer-identity/static',
-									'oauth:ConsumerKey' => 'DUMMYKEY'
-								);
-	$services['OAuth Dynamic Token'] = array(
-									'priority' => 10,
-									'Type' => 'http://oauth.net/discovery/1.0/consumer-identity/dynamic',
-									'URI' => get_bloginfo('wpurl').'/wp-content/plugins/oauth/new_consumer.php',
-									'oauth:HttpMethod' => 'GET',
-									'oauth:CustomParameters' => array('raw' => "\t\t\t".'<oauth:Parameter source="http://oauth.net/example/consumer_identity">description</oauth:Parameter>'."\n")
-								);
-	$services['Wordpress Comment Post'] = array(
-									'priority' => 10,
-									'Type' => 'http://wordpress.org/comment',
-									'URI' => get_bloginfo('wpurl').'/wp-comments-post.php'
-								);
-	update_option('xrds_services', $services);
+	require_once dirname(__FILE__).'/common.inc.php';
+	require_once dirname(__FILE__).'/../../../wp-includes/pluggable.php';
+	@include_once dirname(__FILE__).'/../xrds-simple.php';
+	
+	if(function_exists('register_xrd')) {
+		$xrds = get_option('xrds_simple');
+		if(!$xrds['oauth']) {
+			register_xrd_service('main', 'OAuth Dummy Service', array(
+				'Type' => array( array('content' => 'http://oauth.net/discovery/1.0') ),
+				'URI' => array( array('content' => '#oauth' ) ),
+			) );
+
+			register_xrd('oauth');
+			register_xrd_service('oauth', 'OAuth Request Token', array(
+				'Type' => array( 
+					array('content' => 'http://oauth.net/core/1.0/endpoint/request'),
+					array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
+					array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
+				),
+				'URI' => array( array('content' => get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/request_token.php' ) ),
+			) );
+			register_xrd_service('oauth', 'OAuth Authorize Token', array(
+				'Type' => array( 
+					array('content' => 'http://oauth.net/core/1.0/endpoint/authorize'),
+					array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
+				),
+				'URI' => array( array('content' => get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/authorize_token.php' ) ),
+			) );
+			register_xrd_service('oauth', 'OAuth Access Token', array(
+				'Type' => array( 
+					array('content' => 'http://oauth.net/core/1.0/endpoint/access'),
+					array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
+					array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
+				),
+				'URI' => array( array('content' => get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/access_token.php' ) ),
+			) );
+			register_xrd_service('oauth', 'OAuth Resources', array(
+				'Type' => array( 
+					array('content' => 'http://oauth.net/core/1.0/endpoint/resource'),
+					array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
+					array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
+				),
+			) );
+			register_xrd_service('oauth', 'OAuth Static Token', array(
+				'Type' => array( 
+					array('content' => 'http://oauth.net/discovery/1.0/consumer-identity/static'),
+				),
+				'LocalID' => array( array('content' => 'DUMMYKEY' ) ),
+			) );
+		}//end if ! oauth
+	}//end if register_xrd
 
 	$services = get_option('oauth_services');
 	$services['Post Comments'] = array('wp-comments-post.php');
+	$services['Edit and Create Entries and Categories'] = array('wp-app.php');
 	update_option('oauth_services', $services);
 
 	$store = new OAuthWordpressStore();
@@ -80,17 +95,8 @@ function oauth_accept() {
 		}//end if
 	} catch (OAuthException $e) {/* We may not be doing OAuth at all.  */}
 
-	if(strstr($_SERVER['SCRIPT_URI'],'wp-comments-post.php') && $_POST['url']) {
-		$slug = array_reverse(explode('/',$_POST['url']));
-		if(!$slug[0]) array_shift($slug);
-		$slug = $slug[0];
-		global $wpdb;
-		$_POST['comment_post_ID'] = intval($wpdb->get_var("SELECT id FROM ".$wpdb->posts." WHERE post_name='".$wpdb->escape($slug)."'"));
-		unset($_POST['url']);
-	}//end wp-comments-post.php hack
-
 }//end function oauth_accept
-if(!$NO_oauth)
+//if(!$NO_oauth)
 	oauth_accept();
 
 function oauth_page() {
@@ -124,11 +130,11 @@ function oauth_page() {
 	echo '<h3>Endpoints</h3>';
 	echo '<dl>';
 	echo '	<dt>Request token endpoint</dt>';
-	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/oauth/request_token.php</dd>';
+	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/request_token.php</dd>';
 	echo '	<dt>Authorize token endpoint</dt>';
-	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/oauth/authorize_token.php</dd>';
+	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/authorize_token.php</dd>';
 	echo '	<dt>Access token endpoint</dt>';
-	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/oauth/access_token.php</dd>';
+	echo '		<dd>'.get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/access_token.php</dd>';
 	echo '</dl>';
 	$anid = $wpdb->get_var("SELECT ID FROM {$wpdb->posts} WHERE post_type='post' ORDER BY post_date DESC LIMIT 1");
 	echo '<a href="http://singpolyma.net/oauth/example/wp_auto_client3.php?'
