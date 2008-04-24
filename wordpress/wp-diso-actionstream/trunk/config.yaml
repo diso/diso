@@ -121,6 +121,9 @@ upgrade_functions:
             code: $ActionStreams::ActionStreams::Plugin::upgrade_enable_existing_streams
 
 profile_services:
+    cocomment:
+        name: coComment
+        url: http://www.cocomment.com/comments/%s
     oneup:
         name: 1up.com
         url: http://%s.1up.com/
@@ -143,6 +146,9 @@ profile_services:
     digg:
         name: Digg
         url: http://digg.com/users/%s/
+    disqus:
+        name: Disqus
+        url: http://www.disqus.com/people/%s/
     dodgeball:
         name: Dodgeball
         url: http://www.dodgeball.com/user?uid=%s
@@ -308,6 +314,18 @@ profile_services:
        url: http://www.zooomr.com/photos/%s
 
 action_streams:
+    cocomment:
+        comments:
+            name: Comments
+            description: Comments you've made
+            html_form: '[_1] posted a comment on <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a> <p class="entry-content">[_4]</p>'
+            html_params:
+                - url
+                - title
+                - description
+            url: 'http://www.cocomment.com/myRss/{{ident}}.rss'
+            rss2:
+                description: description/child::text()
     delicious:
         links:
             name: Links
@@ -353,6 +371,22 @@ action_streams:
             identifier: url
             fetch:
                 default_useragent: 1
+            xpath:
+                foreach: //item
+                get:
+                    created_on: pubDate/child::text()
+                    title: title/child::text()
+                    url: link/child::text()
+    disqus:
+        discussed:
+            name: Disqussed
+            description: The blog discussions you participated in
+            html_form: '[_1] disqussed <a rel="bookmark" class="entry-title" href="[_2]" title="[_3]">[_3]</a>'
+            html_params:
+                - url
+                - title
+            url: 'http://disqus.com/people/{{ident}}/comments.rss'
+            identifier: url
             xpath:
                 foreach: //item
                 get:
