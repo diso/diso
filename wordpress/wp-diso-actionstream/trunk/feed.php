@@ -29,6 +29,8 @@ $c = 0;
 
 foreach($stream as $item) {
 
+	if(function_exists('user_is') && !user_is($userdata->profile_permissions[$item['service']])) continue;
+
 	if($item['service'] == $previous_service) {
 
 		$after_service[] = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
