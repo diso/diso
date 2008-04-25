@@ -8,6 +8,8 @@ Author: Stephen Paul Weber
 Author URI: http://singpolyma.net/
 */
 
+//Licensed under an MIT-style licence
+
 require_once dirname(__FILE__).'/recent-visitors.php';
 require_once dirname(__FILE__).'/permissions.php';
 
@@ -167,10 +169,10 @@ function diso_profile_extend() {
 						template += '<li><a class="url" rel="me" href="'+urls[i]+'">'+urls[i]+'</a></li>';
 					template += '</ul> </dd>\n';
 				}//end if urls
-				if(document.getElementById('email').value) template += '<dt>Email:</dt> <dd><a class="email" href="mailto:'+document.getElementById('email').value+'">'+document.getElementById('email').value+'</a></dd>\n';
 				if(document.getElementById('aim').value) template += '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='+document.getElementById('aim').value+'">'+document.getElementById('aim').value+'</a></dd>\n';
 				if(document.getElementById('yim').value) template += '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'+document.getElementById('yim').value+'">'+document.getElementById('yim').value+'</a></dd>\n';
 				if(document.getElementById('jabber').value) template += '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'+document.getElementById('jabber').value+'">'+document.getElementById('jabber').value+'</a></dd>\n';
+				if(document.getElementById('email').value) template += '<dt>Email:</dt> <dd><a class="email" href="mailto:'+document.getElementById('email').value+'">'+document.getElementById('email').value+'</a></dd>\n';
 				if(document.getElementById('tel').value) template += '<dt>Telephone:</dt> <dd class="tel">'+document.getElementById('tel').value+'</dd>\n';
 				if( document.getElementById('streetaddress').value || document.getElementById('locality').value || document.getElementById('region').value || document.getElementById('postalcode').value || document.getElementById('countryname').value ) {
 					template += '<dt>Current Address:</dt> <dd class="adr">';
@@ -192,12 +194,12 @@ function diso_profile_extend() {
 				document.getElementById('last_name').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('nickname').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('display_name').addEventListener('change',preview_hcard,false);
-				document.getElementById('email').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('url').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('aim').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('yim').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('jabber').addEventListener('keyup',preview_hcard,false);
 				document.getElementById('description').addEventListener('keyup',preview_hcard,false);
+				document.getElementById('email').addEventListener('keyup',preview_hcard,false);
 			}//end if addEventListener
 		//]]>
 		</script>
@@ -273,10 +275,10 @@ function diso_profile($userid='', $echo=true) {
 			$template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities($url).'</a></li>';
 		$template .= '</ul> </dd>'."\n";
 	}//end if urls
-	if($userdata->user_email && user_is($userdata->profile_permissions['email'])) $template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
 	if($userdata->aim && user_is($userdata->profile_permissions['aim'])) $template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
 	if($userdata->yim && user_is($userdata->profile_permissions['yim'])) $template .= '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>'."\n";
 	if($userdata->jabber && user_is($userdata->profile_permissions['jabber'])) $template .= '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>'."\n";
+	if($userdata->user_email && user_is($userdata->profile_permissions['email'])) $template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
 	if($userdata->tel && user_is($userdata->profile_permissions['tel'])) $template .= '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>'."\n";
 	if( ($userdata->streetaddress || $userdata->locality || $userdata->region || $userdata->postalcode || $userdata->countryname)  &&
 	 (user_is($userdata->profile_permissions['street-address']) || user_is($userdata->profile_permissions['locality']) || user_is($userdata->profile_permissions['region']) || user_is($userdata->profile_permissions['postal-code']) || user_is($userdata->profile_permissions['country-name']) ) ) {
@@ -295,7 +297,7 @@ function diso_profile($userid='', $echo=true) {
 }//end function diso_profile
 
 function diso_profile_head() {
-	echo '		<link rel="stylesheet" type="text/css" href="'.get_bloginfo('wpurl').'/wp-content/plugins/diso-profile/profile.css" />'."\n";
+	echo '		<link rel="stylesheet" type="text/css" href="'.get_bloginfo('wpurl').'/wp-content/plugins/wp-diso-profile/profile.css" />'."\n";
 }//end function diso_profile_head
 add_action('wp_head', 'diso_profile_head');
 add_action('admin_head', 'diso_profile_head');

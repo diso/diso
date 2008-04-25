@@ -71,6 +71,13 @@ function user_is($taxonomies) {//is the current user associated with the given X
 	return false;
 }//end function user_is
 
+function register_diso_permission_field($label, $field) {
+	$fields = get_option('diso_permission_fields');
+	if(!is_array($fields)) $fields = array();
+	$fields[$label] = $field;
+	update_option('diso_permission_fields', $fields);
+}//end function register_diso_permission_field
+
 function diso_permissions_page() {
 	global $userdata;
 
@@ -134,27 +141,33 @@ function diso_permissions_page() {
 		'Middle Name(s)' => 'additional-name',
 		'Last Name' => 'family-name',
 		'Nickname' => 'nickname',
-		'E-mail Address' => 'email',
+		1 => '----',
 		'Website(s)' => 'urls',
+		'E-mail Address' => 'email',
 		'AIM' => 'aim',
 		'Y!IM' => 'yim',
 		'Jabber' => 'jabber',
+		2 => '----',
 		'About Me' => 'note',
 		'Photo' => 'photo',
 		'Organization' => 'org',
+		3 => '----',
 		'Street Address' => 'street-address',
 		'City' => 'locality',
 		'Province/State' => 'region',
 		'Postal Code' => 'postal-code',
 		'Country' => 'country-name',
 		'Telephone Number' => 'tel',
+		4 => '----',
 	);
+	$fields += get_option('diso_permission_fields') ? get_option('diso_permission_fields') : array();
 
 	echo '<div class="wrap">';
 	echo '<h2>Change Profile Permissions</h2>';
 	echo '<b>Field &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; People who can view</b>';
 	echo '<form method="post" action="">';
 	foreach($fields as $label => $field) {
+		if($field == '----') {echo '<hr style="marign:2em;clear:both;" />'; continue;}
 		echo '<div style="margin-bottom:1em;clear:both;">';
 		echo ' <label style="float:left;width:10em;" for="'.$field.'">'.$label.':</label> ';
 		echo '	<select id="'.$field.'-basic" name="permissions_level['.$field.']" onchange="if(this.value == \'custom\') { document.getElementById(\''.$field.'-custom\').style.display = \'block\';  } else { document.getElementById(\''.$field.'-custom\').style.display = \'none\'; }">';
