@@ -178,7 +178,7 @@ function actionstream_wordpress_post($post_id) {
 }//end function actionstream_wordpress_post
 add_action('publish_post', 'actionstream_wordpress_post');
 
-function actionstream_service_register($name, $profile_definition, $stream_definition) {
+function register_actionstream_service($name, $profile_definition, $stream_definition) {
 	$services = get_option('actionstream_streams');
 	if(!is_array($services)) $services = array();
 	$services[$name] = $stream_definition;
