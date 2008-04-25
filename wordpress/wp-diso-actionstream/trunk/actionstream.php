@@ -94,6 +94,7 @@ function actionstream_page() {
 	echo '	<ul style="padding:0px;">';
 	foreach($userdata->actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
+		if(function_exists('register_diso_permission_field')) register_diso_permission_field($setup['name'] ? $setup['name'] : ucwords($service), $service);
 		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><form method="post" action="" style="display:inline;vertical-align:bottom;"><input type="hidden" name="remove_service" value="'.htmlspecialchars($service).'" /><input type="image" alt="Remove Service" src="'.get_bloginfo('wpurl').'/wp-content/plugins/wp-diso-actionstream/images/delete.gif" /></form> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
 			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
@@ -199,7 +200,7 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
    else
       $userdata = get_userdatabylogin($userid);
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->__toString($num, $hide_user);
+	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }//end function actionstream_render

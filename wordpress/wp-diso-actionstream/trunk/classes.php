@@ -170,7 +170,7 @@ class ActionStream {
 		return $items;
 	}//end function items
 
-	function __toString($num=10, $hide_user=false) {
+	function __toString($num=10, $hide_user=false, $permissions=array()) {
 		$items = $this->items($num);
 		if(!$items || !count($items))
 			return 'No items to display in actionstream.';
@@ -181,6 +181,8 @@ class ActionStream {
 		$c = 0;
 		if(count($items) <= $num) $num = count($items);
 		foreach($items as $item) {
+
+			if(function_exists('user_is') && !user_is($permissions[$item['service']])) continue;
 
 			if($item['service'] == $previous_service && date(get_option('date_format'),$item['created_on']+get_option('gmt_offset')) == $previous_day) {
 
