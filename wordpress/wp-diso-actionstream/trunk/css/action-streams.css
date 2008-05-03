@@ -81,3 +81,4 @@
 .service-youtube { background-image: url(../images/services/youtube.png); }
 .service-zooomr { background-image: url(../images/services/zooomr.png); }
 
+.action-stream-list .hentry abbr.published {display:none;}

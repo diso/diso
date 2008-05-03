@@ -1,6 +1,8 @@
 <?php
 
-require_once dirname(__FILE__).'/../../../wp-config.php';
+global $wpdb;
+if(!$wpdb)
+	require_once dirname(__FILE__).'/../../../wp-config.php';
 
 function get_actionstream_config() {
 	if(!class_exists('Spcy'))
@@ -16,6 +18,7 @@ function get_actionstream_config() {
 	return $yaml;
 }//end function get_actionstream_config
 
+global $actionstream_config;
 $actionstream_config = array(
 		'db' => $wpdb,
 		'item_table' => $wpdb->prefix.'actionstream_items'

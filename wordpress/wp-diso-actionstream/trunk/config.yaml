@@ -649,7 +649,6 @@ action_streams:
                 - title
                 - artist
             url: 'http://ws.audioscrobbler.com/1.0/user/{{ident}}/recenttracks.xml'
-            identifier: url
             xpath:
                 foreach: //track
                 get:

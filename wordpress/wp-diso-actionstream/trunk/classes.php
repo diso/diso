@@ -36,27 +36,27 @@ class ActionStreamItem {
 	function identifier() {
       $identifier_field = $this->config['action_streams'][$this->service][$this->setup_idx]['identifier'];
       if(!$identifier_field) $identifier_field = 'identifier';
+		if(!$this->data[$identifier_field]) return $this->data['created_on'].$this->data['service'];
       return $this->data[$identifier_field];
 	}//end function identifier
 
 	function save() {
 		global $actionstream_config;
-		$identifier_hash = sha1($this->identifier());
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
 		$created_on = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
 		$data = $actionstream_config['db']->escape(serialize($this->data));
+		$identifier_hash = sha1($this->identifier());
 		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} (identifier_hash, user_id, created_on, service, setup_idx, data) VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') ON DUPLICATE KEY UPDATE data='$data'");
 	}//end function save
 
 	function __toString($hide_user=false) {
-		if($hide_user) $this->data['ident'] = '';
-		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], $this->config['profile_services'][$this->service]);
+		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], $this->config['profile_services'][$this->service], $hide_user).' <abbr class="published" title="'.date('c',$this->data['created_on']).'">@ '.date('Y-m-d H:i',$this->data['created_on']).'</abbr>';
 	}//end function toString
 
-	protected static function interpolate($data, $fields, $template, $service) {
+	protected static function interpolate($data, $fields, $template, $service, $hide_user) {
 		array_unshift($fields, 'ident');
 		if($data['ident'] && $service) {
-			$data['ident'] = '<span class="author vcard"><a class="url fn nickname" href="'.htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'.htmlspecialchars($data['ident']).'</a></span>';
+			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '').'><a class="url fn nickname" href="'.htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'.htmlspecialchars($data['ident']).'</a></span>';
 		}//end if ident
 		foreach($fields as $i => $k) {
 			if($data[$k] == html_entity_decode(strip_tags($data[$k]))) $data[$k] = htmlspecialchars($data[$k]);
@@ -244,7 +244,7 @@ class ActionStream {
 $rtrn
 <div style="text-align:right;">
 	<a href="$wpurl/wp-content/plugins/wp-diso-actionstream/feed.php?user={$this->user_id}" rel="alternate" type="application/rss+xml">
-		<img src="$wpurl/wp-content/plugins/wp-diso-actionstream/images/feed.png" alt="RSS 2.0" />
+		<img src="$wpurl/wp-content/plugins/wp-diso-actionstream/images/feed.png" alt="ActionStream Feed" />
 	</a>
 </div>
 JS;

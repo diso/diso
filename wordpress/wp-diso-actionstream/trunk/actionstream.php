@@ -11,6 +11,9 @@ Author URI: http://singpolyma.net/
 //Copyright 2008 Stephen Paul Weber
 //Released under the terms of an MIT-style license
 
+register_activation_hook(__FILE__,'actionstream_plugin_activation');
+add_action( 'actionstream_poll', 'actionstream_poll' );
+
 require_once dirname(__FILE__).'/config.php';
 require_once dirname(__FILE__).'/classes.php';
 
@@ -19,10 +22,17 @@ global $actionstream_config;
 
 function actionstream_plugin_activation() {
 	global $actionstream_config;
-   $actionstream_config['db']->query("CREATE TABLE IF NOT EXISTS {$actionstream_config['item_table']} (identifier_hash CHAR(40) PRIMARY KEY, user_id INT, created_on INT, service CHAR(15), setup_idx CHAR(15), data TEXT)");
-   wp_schedule_event(time(), 'hourly', 'actionstream_poll');
-}//end minifeed_activation
-register_activation_hook(__FILE__,'actionstream_plugin_activation');
+	wp_schedule_event(time(), 'hourly', 'actionstream_poll');
+	$sql = "CREATE TABLE {$actionstream_config['item_table']} (
+				identifier_hash CHAR(40)  PRIMARY KEY,
+				user_id INT, created_on INT,
+				service CHAR(15),
+				setup_idx CHAR(15),
+				data TEXT
+			);";
+	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+	dbDelta($sql);
+}//end actionstream_plugin_activation
 
 function actionstream_poll() {
 	$streams = get_option('actionstreams');
@@ -32,7 +42,6 @@ function actionstream_poll() {
 		$actionstream->update();
 	}//end foreach streams
 }//end actionstream_poll
-add_action( 'actionstream_poll', 'actionstream_poll' );
 
 function get_raw_actionstream($url) {
 	return wp_remote_fopen($url);
