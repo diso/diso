@@ -1,0 +1,229 @@
+<mt:if name="object_type" eq="friend">
+    <$mt:setvar name="page_title" value="<__trans phrase="Edit Friend">"$>
+    <mt:if name="new_object">
+        <$mt:setvar name="page_title" value="<__trans phrase="Create New Friend">"$>
+    </mt:if>
+    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this friend (s)" escape="html">"$>
+    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this friend (x)" escape="html">"$>
+    <$mt:setvar name="position_actions_bottom" value="true"$>   
+</mt:if>
+
+<mt:setvarblock name="html_head" append="1">
+<script type="text/javascript">
+<!--
+    function GetElementsWithClassName(elementName, className) {
+    	var allElements = document.getElementsByTagName(elementName);
+    	var elemColl = new Array();
+    	for (i = 0; i < allElements.length; i++) {
+    		if (allElements[i].className == className) {
+    		  elemColl[elemColl.length] = allElements[i];
+    		}
+    	}
+    	return elemColl;
+    }
+
+    function meChecked() {
+    	var undefined;
+    	var eMe = document.getElementById('me');
+    	if (eMe == undefined) return false;
+    	else return eMe.checked;
+    }
+
+    function upit() {
+    	var isMe = meChecked(); //document.getElementById('me').checked;
+    	var inputColl = GetElementsWithClassName('input', 'valinp');
+    	var results = document.getElementById('rel');
+    	var linkText, linkUrl, inputs = '';
+    	for (i = 0; i < inputColl.length; i++) {
+    		 inputColl[i].disabled = isMe;
+    		 inputColl[i].parentNode.className = isMe ? 'disabled' : '';
+    		 if (!isMe && inputColl[i].checked && inputColl[i].value != '') {
+    			inputs += inputColl[i].value + ' ';
+    				}
+    		 }
+    	inputs = inputs.substr(0,inputs.length - 1);
+    	if (isMe) inputs='me';
+    	results.value = inputs;
+    	}
+
+    function blurry() {
+    	if (!document.getElementById) return;
+
+    	var aInputs = document.getElementsByTagName('input');
+
+    	for (var i = 0; i < aInputs.length; i++) {
+    	     //console.log(aInputs[i]);
+    		 aInputs[i].onclick = aInputs[i].onkeyup = upit;
+    		 //console.log(aInputs[i].onclick);
+             
+    	}
+    }
+
+    TC.attachLoadEvent( blurry );
+    
+-->
+</script>
+</mt:setvarblock>
+
+<mt:setvartemplate name="action_buttons">
+    <button
+        mt:mode="save_friend"
+        type="submit"
+        accesskey="s"
+        title="<mt:var name="submit_button_title">"
+        class="primary-button"
+        ><__trans phrase="Save"></button>
+    <mt:if name="id">
+    <button
+        mt:command="remove_friend"
+        type="submit"
+        accesskey="x"
+        title="<mt:var name="delete_button_title">"
+        ><__trans phrase="Delete"></button>
+    </mt:if>
+    <div id="autosave-notification-<$mt:var name="bar_position" default="top"$>" class="autosave-notification"></div>
+</mt:setvartemplate>
+
+<mt:setvarblock name="system_msg">
+    <div id="msg-block">
+      <mt:if name="saved_added">
+          <mtapp:statusmsg
+              id="saved-added"
+              class="success">
+              <mt:if name="object_type" eq="friend">
+                  <__trans phrase="This friend has been saved.">
+              </mt:if>
+          </mtapp:statusmsg>
+      </mt:if>
+      <mt:if name="saved_changes">
+          <mtapp:statusmsg
+              id="saved-changes"
+              class="success">
+              <__trans phrase="Your changes have been saved.">
+          </mtapp:statusmsg>
+      </mt:if>
+    </div>
+</mt:setvarblock>
+
+<mt:setvarblock name="form_header">
+    <form name="friend_form" id="friend_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
+    <mt:if name="new_object">
+        <input type="hidden" name="author_id" value="<$mt:var name="author_id"$>" />
+    <mt:else>
+        <input type="hidden" name="id" value="<$mt:var name="id"$>" />
+    </mt:if>
+        <input type="hidden" name="__mode" value="save_friend" />
+        <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
+        <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
+        <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
+        <input type="hidden" name="action_name" value="" />
+        <input type="hidden" name="itemset_action_input" value="" />
+</mt:setvarblock>
+
+<mt:setvarblock name="related_content">
+  <div class="xfn_related_content">
+    <mtapp:widget
+        id="friend-info-widget"
+        label="<__trans phrase="More Info">">
+        Read more about <a href="http://gmpg.org/xfn/">XFN</a>.
+    </mtapp:widget>
+    <mtapp:widget
+        id="friend-info2-widget"
+        label="<__trans phrase="Next Steps">">
+        <ul>
+            <li>Bulk editing...</li>
+            <li>Page to find and import friends from the <a href="http://code.google.com/apis/socialgraph/">Google Social Graph API</a>.</li>
+        </ul>
+    </mtapp:widget>
+  </div>
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl" id="header_include">
+
+<mtapp:setting
+     id="name"
+     label="<__trans phrase="Name">">
+     <div class="textarea-wrapper">
+       <input name="name" id="name" class="full-width" value="<mt:var name="name">" />
+     </div>
+</mtapp:setting>
+
+<mtapp:setting
+    id="visible"
+    label="<__trans phrase="Public?">">
+    <input type="checkbox" name="visible" value="1" <mt:if name="visible" eq="1">checked="checked"</mt:if>/>    
+</mtapp:setting>
+
+<mt:if name="new_object">
+    <mtapp:setting
+        id="uri"
+        label="<__trans phrase="URL">">
+        <div class="textarea-wrapper">
+            <input type="text" name="uri" rows="3" id="uri" class="full-width" value="<mt:var name="uri">" />
+        </div>
+    </mtapp:setting>
+    
+    <mtapp:setting
+        id="description"
+        label="<__trans phrase="Description">">
+        <textarea name="description" rows="3" id="description" class="full-width" value="<mt:var name="description">"></textarea>
+    </mtapp:setting>
+
+    <mtapp:setting
+        id="target"
+        label="<__trans phrase="Target">">
+        <select name="target" id="target">
+            <option value="_top"<mt:if name="target" eq="_top"> selected="selected"</mt:if>>Main Window</option>
+            <option value="_top"<mt:if name="target" eq="_blank"> selected="selected"</mt:if>>New Window</option>
+        </select>
+    </mtapp:setting>
+<mt:else>
+    <div class="inner pkg"><div class="listing" id="uri-listing">
+    <p id="create-uri"><a href="javascript:void(0)" 
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add URI"></a></p>
+    
+    <mt:if name="uris">
+    <table class="compact">
+    <mt:loop name="uris">
+        <mt:if __first__>
+          <thead>
+            <tr>
+              <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
+              <th>Label</th>
+              <th>URI</th>
+              <th>View</th>
+            </tr>
+          </thead>
+        </mt:if>
+        <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+            <td class="cb">
+                <input type="checkbox" name="id" value="<mt:var name="id">" class="select" />
+            </td>
+            <td class="description">
+                <a href="javascript:void(0)" 
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="description" escape="html"$></a>
+                        <a href="<$mt:var name="script_url"$>"></a></td>
+            <td class="uri">
+                <a href="javascript:void(0)" 
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri" escape="html"$></a>
+            </td>
+            <td class="view si status-view">
+                <a href="<mt:var name="uri" escape="html">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
+            </td>
+        </tr>
+    </mt:loop>
+    </table>
+    <mt:else>
+        <__trans phrase="No URLs could be found.">
+    </mt:if>
+        </div></div>
+</mt:if>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
+    
+<mt:setvarblock name="form_footer">
+    </form>
+</mt:setvarblock>
+
+<mt:include name="include/footer.tmpl" id="footer_include">
+    
