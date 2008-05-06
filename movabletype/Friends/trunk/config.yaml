@@ -16,9 +16,10 @@ applications:
 			list_friends:       		$Friends::Friends::App::CMS::list_friends
 			edit_friend:        		$Friends::Friends::App::CMS::edit_friend
 			save_friend:        		$Friends::Friends::App::CMS::save_friend
-			discover_friends:   		$Friends::Friends::App::CMS::discover_friends
 			save_uri:                   $Friends::Friends::App::CMS::save_uri
 			edit_uri:                   $Friends::Friends::App::CMS::edit_uri
+			delete_uri:                 $Friends::Friends::App::CMS::delete_uri
+			discover_friends:   		$Friends::Friends::App::CMS::discover_friends
 			claimed_uris:               $Friends::Friends::App::CMS::claimed_uris
 			itemset_show_friends:		$Friends::Friends::App::CMS::itemset_show_friends
 			itemset_hide_friends:		$Friends::Friends::App::CMS::itemset_hide_friends
