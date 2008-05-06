@@ -843,12 +843,15 @@ sub tag_friends_block {
     if ( my $blog = $ctx->stash('blog') ) {
         require Friends::Friend;
         my @friends = Friends::Friend->search( \%terms );
+        
         # MT->log( "friends: " . Dumper(@friends) );
-
+	
       FRIEND: for my $friend (@friends) {
             require Friends::URI;
             my @uris = Friends::URI->load( { friend_id => $friend->id } );
-            next FRIEND if ( !@uris || !$friend->rel );
+            #my $friendlinkscount = @uris;
+	    	#local $ctx->{__stash}{friendlinkscount} = $friendlinkscount;
+            next FRIEND if ( !@uris );
             local $ctx->{__stash}{friend} = $friend;
 
             defined( my $out = $builder->build( $ctx, $tokens, $cond ) )
