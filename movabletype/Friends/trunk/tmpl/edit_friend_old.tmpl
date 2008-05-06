@@ -72,14 +72,14 @@
         accesskey="s"
         title="<mt:var name="submit_button_title">"
         class="primary-button"
-        ><__trans phrase="Save"></button>
+        ><__trans phrase="Save Friend"></button>
     <mt:if name="id">
     <button
         mt:command="remove_friend"
         type="submit"
         accesskey="x"
         title="<mt:var name="delete_button_title">"
-        ><__trans phrase="Delete"></button>
+        ><__trans phrase="Delete Friend"></button>
     </mt:if>
     <div id="autosave-notification-<$mt:var name="bar_position" default="top"$>" class="autosave-notification"></div>
 </mt:setvartemplate>
@@ -121,18 +121,12 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="related_content">
-  <div class="xfn_related_content">
+  <div class="related_content">
     <mtapp:widget
-        id="friend-info-widget"
-        label="<__trans phrase="More Info">">
-        Read more about <a href="http://gmpg.org/xfn/">XFN</a>.
-    </mtapp:widget>
-    <mtapp:widget
-        id="friend-info2-widget"
-        label="<__trans phrase="Next Steps">">
+        id="friend-links-widget"
+        label="<__trans phrase="Related Links">">
         <ul>
-            <li>Bulk editing...</li>
-            <li>Page to find and import friends from the <a href="http://code.google.com/apis/socialgraph/">Google Social Graph API</a>.</li>
+            <li><a href="<$mt:var name="script_url"$>?__mode=list_friends&id=<$mt:var name="author_id"$>">Friends List</a></li>
         </ul>
     </mtapp:widget>
   </div>
@@ -180,7 +174,7 @@
 <mt:else>
     <div class="inner pkg"><div class="listing" id="uri-listing">
     <p id="create-uri"><a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add URI"></a></p>
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add URI"></a></p>
     
     <mt:if name="uris">
     <table class="compact">
@@ -188,7 +182,6 @@
         <mt:if __first__>
           <thead>
             <tr>
-              <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
               <th>Label</th>
               <th>URI</th>
               <th>View</th>
@@ -196,9 +189,6 @@
           </thead>
         </mt:if>
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-            <td class="cb">
-                <input type="checkbox" name="id" value="<mt:var name="id">" class="select" />
-            </td>
             <td class="description">
                 <a href="javascript:void(0)" 
                     onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="description" escape="html"$></a>
