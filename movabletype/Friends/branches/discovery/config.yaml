@@ -1,0 +1,60 @@
+name: Friends
+id: friends
+key: Friends
+author_link: http://diso-project.org/
+author_name: Steve Ivy
+description: Provides a blogroll-like means of managing and displaying a friends list on your site
+schema_version: 0.8
+version: 0.7
+plugin_link: http://diso-project.org/
+object_types:
+	friend: Friends::Friend
+	uri:    Friends::URI
+applications:
+	cms:
+		methods:
+			list_friends:       		$Friends::Friends::App::CMS::list_friends
+			edit_friend:        		$Friends::Friends::App::CMS::edit_friend
+			save_friend:        		$Friends::Friends::App::CMS::save_friend
+			save_uri:                   $Friends::Friends::App::CMS::save_uri
+			edit_uri:                   $Friends::Friends::App::CMS::edit_uri
+			delete_uri:                 $Friends::Friends::App::CMS::delete_uri
+			discover_friends:   		$Friends::Friends::App::CMS::discover_friends
+			claimed_uris:               $Friends::Friends::App::CMS::claimed_uris
+			itemset_show_friends:		$Friends::Friends::App::CMS::itemset_show_friends
+			itemset_hide_friends:		$Friends::Friends::App::CMS::itemset_hide_friends
+			itemset_show_all_friends:	$Friends::Friends::App::CMS::itemset_show_all_friends
+			itemset_hide_all_friends:	$Friends::Friends::App::CMS::itemset_hide_all_friends
+callbacks:
+	MT::App::CMS::template_source.users_content_nav: $Friends::Friends::App::CMS::users_content_nav
+tags:
+	function:
+		FriendName:             $Friends::Friends::App::CMS::tag_friend_name
+		FriendRel:              $Friends::Friends::App::CMS::tag_friend_rel
+		FriendLinkName:         $Friends::Friends::App::CMS::tag_friend_link_name
+		FriendLinkUri:          $Friends::Friends::App::CMS::tag_friend_link_uri
+		FriendLinkNotes:        $Friends::Friends::App::CMS::tag_friend_link_notes
+		FriendLinkLabel:        $Friends::Friends::App::CMS::tag_friend_link_label
+	block:
+		BlogRoll:               $Friends::Friends::App::CMS::tag_blog_roll_block
+		Friends:                $Friends::Friends::App::CMS::tag_friends_block
+		FriendLinks:            $Friends::Friends::App::CMS::tag_friend_links_block
+list_actions:
+    friend:
+        hide_all:
+            label:              "Hide All"
+            order:              100
+            js:                 "finishPluginActionAll"
+            code:               $Friends::Friends::App::CMS::itemset_hide_all_friends
+            continue_prompt:    "Are you sure you want to hide EVERY friend?"
+        show_all:
+            label:              "Show All"
+            order:              200
+            js:                 "finishPluginActionAll"
+            code:               $Friends::Friends::App::CMS::itemset_show_all_friends
+            continue_prompt:    "Are you sure you want to show EVERY friend?"
+        delete:
+            label:              "Delete"
+            order:              300
+            code:               $core::MT::App::CMS::delete
+            continue_prompt:    "Are you sure you want to delete the selected friend(s)?"
