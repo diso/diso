@@ -1,0 +1,38 @@
+TEST
+<mtapp:listing>
+    <mt:if name="__first__">
+    <thead>
+        <tr>
+            <th class="cb" id="delete-col-head"><input type="checkbox" name="id-head" value="all" class="select" /></th>
+            <th id="uri-desc"><__trans phrase="Description"></th>
+            <th id="uri-url"><__trans phrase="URL"></th>
+        </tr>
+    </thead>
+    <tbody>
+    </mt:if>
+        <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+            <td class="cb" id="delete-<mt:var name="id">"><input type="checkbox" name="id" value="<mt:var name="id">" class="select" /></td>
+            <td><span id="uri-url-desc-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;"><a href="javascript:void(0)" title="<__trans phrase="Click to edit contact">"><mt:var name="url" escape="html"></a><mt:if name="url">&nbsp;<a href="<mt:var name="url">">&raquo;</a></mt:if></span>
+                <span id="uri-url-field-<mt:var name="id">" style="display: none">
+                    <input type="text" name="uri-url-<mt:var name="id">" id="uri-url-<mt:var name="id">" value="<mt:var name="description" escape="html">" />
+                    <span class="buttons">
+                        <a href="javascript:void(0)"
+                            onclick="submit_edit(<mt:var name="id">); return false;"
+                            title="<__trans phrase="Save changes">"
+                            ><__trans phrase="Save"></a>
+                        <a href="javascript:void(0)"
+                            onclick="cancel_edit(<mt:var name="id">); return false;"
+                            ><__trans phrase="Cancel"></a>
+                    </span>
+                </span>
+            </td>
+            <td><a href="javascript:void(0)" title="<__trans phrase="Click to edit address">" class="edit-desc" id="uri-uri-desc-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;"><mt:var name="uri" escape="html"></a>
+                <span id="uri-uri-field-<mt:var name="id">" style="display: none">
+                    <input type="text" name="uri-uri-<mt:var name="id">" id="uri-uri-<mt:var name="id">" value="<mt:var name="uri" escape="html">" />
+                </span>
+            </td>
+        </tr>
+    <mt:if name="__last__">
+    </tbody>
+    </mt:if>
+</mtapp:listing>

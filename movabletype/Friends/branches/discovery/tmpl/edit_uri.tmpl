@@ -1,0 +1,89 @@
+<mt:if name="object_type" eq="uri">
+    <$mt:setvar name="page_title" value="<__trans phrase="Edit URL">"$>
+    <mt:if name="new_object">
+        <$mt:setvar name="page_title" value="<__trans phrase="Create New URL">"$>
+    </mt:if>
+    
+    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this URL (s)" escape="html">"$>
+    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL" escape="html">"$>
+    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL (x)" escape="html">"$>
+    <$mt:setvar name="position_actions_bottom" value="true"$>  
+</mt:if>
+
+<mt:setvartemplate name="action_buttons">
+    <button
+        mt:mode="save_uri"
+        type="submit"
+        accesskey="s"
+        title="<mt:var name="submit_button_title">"
+        class="primary-button"
+        ><__trans phrase="Save"></button>
+    <button
+        mt:mode="delete_uri"
+        type="submit"
+        accesskey="s"
+        title="<mt:var name="delete_button_title">"
+        ><__trans phrase="Delete"></button>
+    <button
+        onclick="closeDialog(); return false"
+        type="submit"
+        accesskey="x"
+        title="<__trans phrase="Cancel (x)">"
+        ><__trans phrase="Cancel"></button>
+    <div id="autosave-notification-<$mt:var name="bar_position" default="top"$>" class="autosave-notification"></div>
+</mt:setvartemplate>
+
+<mt:include name="dialog/header.tmpl" id="header_include">
+
+<mt:ignore><mt:if name="saved"><script type="text/javascript">closeDialog("<$mt:var name="script_url"$>?__mode=edit_friend&_type=friend&id=<mt:var name="friend_id">");</script></mt:if></mt:ignore>
+
+<mt:if name="saved"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
+<mt:if name="deleted"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
+
+<form name="uri_form" id="uri_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
+        <mt:if name="new_object">
+            <input type="hidden" name="author_id" value="<$mt:var name="author_id"$>" />
+        <mt:else>
+            <input type="hidden" name="id" value="<$mt:var name="id"$>" />
+        </mt:if>
+            <input type="hidden" name="friend_id" value="<$mt:var name="friend_id"$>" />
+            <input type="hidden" name="__mode" value="save_uri" />
+            <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
+            <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
+            <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
+            <input type="hidden" name="action_name" value="" />
+    
+<mtapp:setting
+    id="uri"
+    label="<__trans phrase="URL">">
+    <div class="textarea-wrapper">
+      <input name="uri" id="uri" class="full-width" value="<mt:var name="uri">" />
+    </div>
+</mtapp:setting>
+
+<mtapp:setting
+    id="description"
+    label="<__trans phrase="Label">">
+    <input type="text" name="description" id="description" class="full-width" value="<mt:var name="description" escape="html">"/>
+</mtapp:setting>
+
+<mtapp:setting
+    id="target"
+    label="<__trans phrase="Target">">
+    <select name="target" id="target">
+        <option value="_top"<mt:if name="target" eq="_top"> selected="selected"</mt:if>>Main Window</option>
+        <option value="_top"<mt:if name="target" eq="_blank"> selected="selected"</mt:if>>New Window</option>
+    </select>
+</mtapp:setting>
+
+<mtapp:setting
+    id="notes"
+    label="<__trans phrase="Notes">">
+    <textarea name="notes" rows="3" id="notes" class="full-width"><mt:var name="notes" escape="html"></textarea>
+</mtapp:setting>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
+    
+</form>
+
+<mt:include name="dialog/footer.tmpl" id="footer_include">
