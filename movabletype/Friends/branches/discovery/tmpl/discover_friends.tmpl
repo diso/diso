@@ -2,6 +2,24 @@
 <$mt:setvar name="page_title" value="<__trans phrase="Discover Friends">"$>
 <$mt:setvar name="position_actions_bottom" value="true"$> 
 
+<mt:setvarblock name="html_head" append="1">
+ 	<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
+ 	
+ 	<style type="text/css">
+ 	.content-nav #main-content .msg { margin-left: 0px; }
+ 	#main-content {
+ 	    padding-top:5px;
+ 	}
+ 	
+ 	<mt:loop name="service_styles">
+ 	.service-<mt:var name="service_type"> { background-image: url(<mt:var name="service_icon">); }
+ 	</mt:loop>
+ 	</style>
+ 	
+ 	<script type="text/javascript">
+ 	</script>
+ </mt:setvarblock>
+
 <mt:setvarblock name="object_nav">
     <ul class="object-nav">
         <li><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"
@@ -33,12 +51,16 @@
     <mtapp:setting
         id="source_uri"
         label="<__trans phrase="Start With URL:">">
+        <ul>
+	    <mt:loop name="profiles">
+	    	<li><input type="radio" name="source_uri" class="select" 
+	    			value="<$mt:var name="edit_author_id" escape="html"$>:<$mt:var name="type" escape="html"$>:<$mt:var name="ident" escape="html"$>" />
+	    			<span class="service-icon service-<$mt:var name="type"$>"><$mt:var name="label" escape="html"$> (<$mt:var name="ident" escape="html"$>)</span></li>
+	    </mt:loop>
+	    </ul>
+	    <input type="radio" name="source_uri" class="select" 
+	    			value="other" /> <__trans phrase="Other:">
         <input name="source_uri" id="source_uri" size="40" value="<mt:var name="source_uri">" style="border:1px solid #ccc;" />
-    </mtapp:setting>
-    <mtapp:setting
-        id="getclaimed"
-        label="<__trans phrase="Find My Other Sites">">
-        <input type="checkbox" name="getclaimed" id="getclaimed" value="1" />
     </mtapp:setting>
 </mt:if>
 
