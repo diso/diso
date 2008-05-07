@@ -26,11 +26,11 @@ sub users_content_nav {
     my $html = <<"EOF";
     <mt:if var="USER_VIEW">
 		<li><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-    	<!--li><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li-->
+    	<li><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li>
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="list_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-		<!--li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li-->
+		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li>
     </mt:if>
 EOF
 
@@ -679,7 +679,7 @@ sub get_claimed_uris {
 sub discover_friends {
     my $app = shift;
 
-    require MT::Log;
+    # require MT::Log;
 
     # my # $logger = MT::Log->get_logger();
 
@@ -699,18 +699,31 @@ sub discover_friends {
     my $author_id = $app->param('author_id') || 1;
     my @data;
     my @source_data;
+    
+    my $user = $app->user;
+    
+    my $as_plugin = MT->component('ActionStreams');
+    
     ##
     # Initial state: show the form
   STEP: {
         if ( $step =~ /start/ ) {
 
-            # $logger->debug("in start");
+            MT->log("Discovery: Start");
+            
+            my $profiles;
+            
+            $profiles = $as_plugin ? $user->other_profiles() : [];
+            
+            MT->log(Dumper($profiles));
+            
             return $app->build_page(
                 'discover_friends.tmpl',
                 {
                     step        => $step,
                     id          => $author_id,
-                    object_type => 'friend'
+                    object_type => 'friend',
+                    profiles 	=> \@$profiles
                 }
             );
             last STEP;
