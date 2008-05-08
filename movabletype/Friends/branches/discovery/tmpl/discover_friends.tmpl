@@ -93,7 +93,11 @@
       </mt:if>
       <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
         <td><input type="checkbox" name="import" value="<$mt:var name="uri" $>" id="import">
-        	<$mt:var name="name" escape="html"$></td>
+            <mt:if name="name"><$mt:var name="name" escape="html"$>
+            <mt:elseif name="title"><$mt:var name="title"$>
+            <mt:else><$mt:var name="uri$>
+            </mt:if>
+        </td>
         <td class="uri"><a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
         </td>
       </tr>
