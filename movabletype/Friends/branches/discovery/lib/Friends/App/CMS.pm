@@ -5,6 +5,7 @@ use base qw( MT::App );
 use CGI::Carp 'fatalsToBrowser';
 use JSON;
 use Data::Dumper qw(Dumper);
+use Web::Scraper;
 
 sub _permission_check {
     my $app = MT->instance;
@@ -351,10 +352,11 @@ sub list_friends {
         {
             type           => 'friend',
             listing_screen => 1,
-            listing_screen => 1,
             template =>
               MT->component('Friends')->load_tmpl('list_friends.tmpl'),
-            terms => { author_id => $author_id, },
+            terms => {
+				author_id => $author_id, 
+			},
             code  => sub {
                 my ( $obj, $row ) = @_;
                 $row->{uris} = $obj->uris;
@@ -552,16 +554,6 @@ sub _hcard_from_uri {
     return $hcard->ToHash;
 }
 
-=item discover_friends:
-	
-* fetch related links from Google's social graph api (http://code.google.com/apis/socialgraph/)
-* list contacts from those sites
-* allow user to select contacts to import into local Friends/blogroll
-	
-right now this just lists the contacts. import not implemented.
-
-=cut
-
 ##
 # _get_claimed uses Google's Social Graph API L<http://code.google.com/apis/socialgraph/> to find
 #	other URLs that the user has identified as their own via rel=mes
@@ -598,23 +590,49 @@ sub _get_claimed {
     return @source_data;
 }
 
-sub _get_contacts_for_uris {
-    require MT::Log;
+sub _get_meta_for_uri {
+    my $uri = shift;
+
+    # get hcard name (if there) and page title
+    my $scraper = scraper {
+        process '.vcard .fn',        'name'  => 'TEXT';
+        process '//html/head/title', 'title' => 'TEXT';
+    };
+
+    $scraper->user_agent(
+        ua(
+            {
+                'url'     => $uri,
+                'scraper' => $scraper
+            }
+        )
+    );
+    my $items;
+    eval { $items = $scraper->scrape( URI->new($uri) ); };
+    if ($@) {
+        MT->log($@);
+    }
+    return $items;
+}
+
+sub _get_contacts_for_uri {
+
+    # require MT::Log;
 
     # my # $logger = MT::Log->get_logger();
 
     # $logger->debug('_get_contacts_for_uris');
-    my @uris = @_;
+    my $uri = shift;
 
     require Net::SocialGraph;
     my %opts = (
         edo => 1,
-        fme => 1,
+        fme => 0,
     );
     my $sg_client = Net::SocialGraph->new(%opts);
 
     # $logger->debug("calling Google");
-    my $sg = $sg_client->get( join( ',', @uris ) );
+    my $sg = $sg_client->get($uri);
 
     # $logger->debug("done with Google");
     my @source_data;
@@ -623,24 +641,31 @@ sub _get_contacts_for_uris {
 
         for my $referenced_uri ( keys %{ $source->{nodes_referenced} } ) {
 
-            my $related_for_refuri = _get_claimed($referenced_uri);
+            my $meta = _get_meta_for_uri($referenced_uri);
+            MT->log( Dumper($meta) );
 
             my $refuri_node = $source->{nodes_referenced}->{$referenced_uri};
 
-            $refuri_node->{uri}     = $referenced_uri;
-            $refuri_node->{related} = $related_for_refuri;
-            $refuri_node->{rel}     = join( " ", @{ $refuri_node->{types} } );
+            $refuri_node->{uri} = $referenced_uri;
+            if ( $meta->{name} ) {
+                $refuri_node->{name}      = $meta->{name};
+                $refuri_node->{has_hcard} = 1;
+            }
+            elsif ( $meta->{title} ) {
+                $refuri_node->{name} = $meta->{title};
+            }
+            else {
+                $refuri_node->{name} = $referenced_uri;
+            }
+
+            $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /me/;
         }
         unless ( scalar @data == 0 ) {
-            push @source_data,
-              {
-                'source'    => $source_uri,
-                object_loop => \@data
-              };
+            return \@data;
         }
     }
-    return @source_data;
+    return [];
 }
 
 sub get_claimed_uris {
@@ -658,6 +683,16 @@ sub get_claimed_uris {
     # $logger->debug( "claimed: " . Dumper(@claimed) );
     return $app->build_page( 'claimed_uris.tmpl', { claimed => \@claimed, } );
 }
+
+=item discover_friends:
+	
+* fetch related links from Google's social graph api (http://code.google.com/apis/socialgraph/)
+* list contacts from those sites
+* allow user to select contacts to import into local Friends/blogroll
+	
+right now this just lists the contacts. import not implemented.
+
+=cut
 
 ##
 # new thoughts:
@@ -699,31 +734,31 @@ sub discover_friends {
     my $author_id = $app->param('author_id') || 1;
     my @data;
     my @source_data;
-    
+
     my $user = $app->user;
-    
+
     my $as_plugin = MT->component('ActionStreams');
-    
+
     ##
     # Initial state: show the form
   STEP: {
         if ( $step =~ /start/ ) {
 
             MT->log("Discovery: Start");
-            
+
             my $profiles;
-            
+
             $profiles = $as_plugin ? $user->other_profiles() : [];
-            
-            MT->log(Dumper($profiles));
-            
+
+            MT->log( Dumper($profiles) );
+
             return $app->build_page(
                 'discover_friends.tmpl',
                 {
                     step        => $step,
                     id          => $author_id,
                     object_type => 'friend',
-                    profiles 	=> \@$profiles
+                    profiles    => \@$profiles
                 }
             );
             last STEP;
@@ -753,23 +788,25 @@ sub discover_friends {
             last STEP;
         }
         if ( $step =~ /find/ ) {
-            my @uris = $app->param('uri');
-            return $app->return_to_dashboard( redirect => 1 )
-              unless @uris;
+            my $uri = $app->param('source_uri');
+            return $app->error("Param source_uri required to Find contacts")
+              unless $uri;
 
-            # $logger->debug( Dumper(@uris) );
-            my @contacts_for_uris = _get_contacts_for_uris(@uris);
+            MT->log( Dumper($uri) );
+            my @contacts = _get_contacts_for_uri($uri);
 
-          # $logger->debug("contacts_for_uris: " . Dumper(@contacts_for_uris) );
-
-            return $app->build_page(
-                'discover_friends.tmpl',
-                {
-                    step        => $step,
-                    id          => $author_id,
-                    collections => \@contacts_for_uris,
-                }
-            );
+            MT->log( "contacts: " . Dumper(@contacts) );
+			my $tmpl = MT->component('Friends')->load_tmpl('discover_friends.tmpl');
+            return $app->build_page (
+				'discover_friends.tmpl',
+				{
+					listing_screen => 1,
+					source		=> $uri,
+					step        => $step,
+                	id          => $author_id,
+					contacts => \@contacts,
+            	}
+			);
             last STEP;
         }
         elsif ( $step =~ /import/ ) {
@@ -822,6 +859,32 @@ sub _author_ids_for_args {
     return \@author_ids;
 }
 
+my $ua;
+
+sub ua {
+    my $class  = shift;
+    my %params = @_;
+
+    if ( !$ua ) {
+        my %agent_params = ();
+        my @classes      = (qw( LWPx::ParanoidAgent LWP::UserAgent ));
+        while ( my $maybe_class = shift @classes ) {
+            if ( eval "require $maybe_class; 1" ) {
+                $ua = $maybe_class->new(%agent_params);
+                $ua->timeout(10);
+                last;
+            }
+        }
+    }
+
+    $ua->agent(
+          $params{default_useragent}
+        ? $ua->_agent
+        : "mt-friends-lwp/" . MT->component('Friends')->version
+    );
+    return $ua;
+}
+
 =head2 Template Tags
 
 =item <MTBlogRoll></MTBlogRoll>
@@ -856,14 +919,15 @@ sub tag_friends_block {
     if ( my $blog = $ctx->stash('blog') ) {
         require Friends::Friend;
         my @friends = Friends::Friend->search( \%terms );
-        
+
         # MT->log( "friends: " . Dumper(@friends) );
-	
+
       FRIEND: for my $friend (@friends) {
             require Friends::URI;
             my @uris = Friends::URI->load( { friend_id => $friend->id } );
+
             #my $friendlinkscount = @uris;
-	    	#local $ctx->{__stash}{friendlinkscount} = $friendlinkscount;
+            #local $ctx->{__stash}{friendlinkscount} = $friendlinkscount;
             next FRIEND if ( !@uris );
             local $ctx->{__stash}{friend} = $friend;
 
@@ -890,9 +954,11 @@ sub tag_friend_links_block {
     my $res = "";
     require Friends::Friend;
     if ( my $friend = $ctx->stash('friend') ) {
+
         # MT->log( "friend: " . Dumper($friend) );
         require Friends::URI;
         my @uris = Friends::URI->load( { friend_id => $friend->id } );
+
         # MT->log( "uris: " . Dumper(@uris) );
       URI: for my $uri (@uris) {
             next URI unless ( $uri && $uri->uri );
