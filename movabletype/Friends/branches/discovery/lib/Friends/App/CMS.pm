@@ -651,13 +651,10 @@ sub _get_contacts_for_uri {
                 $refuri_node->{name}      = $meta->{name};
                 $refuri_node->{has_hcard} = 1;
             }
-            elsif ( $meta->{title} ) {
-                $refuri_node->{name} = $meta->{title};
+            if ( $meta->{title} ) {
+                $refuri_node->{title} = $meta->{title};
             }
-            else {
-                $refuri_node->{name} = $referenced_uri;
-            }
-
+            
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /me/;
         }
@@ -793,9 +790,9 @@ sub discover_friends {
               unless $uri;
 
             MT->log( Dumper($uri) );
-            my @contacts = _get_contacts_for_uri($uri);
+            my $contacts = _get_contacts_for_uri($uri);
 
-            MT->log( "contacts: " . Dumper(@contacts) );
+            MT->log( "contacts: " . Dumper(@$contacts) );
 			my $tmpl = MT->component('Friends')->load_tmpl('discover_friends.tmpl');
             return $app->build_page (
 				'discover_friends.tmpl',
@@ -804,7 +801,7 @@ sub discover_friends {
 					source		=> $uri,
 					step        => $step,
                 	id          => $author_id,
-					contacts => \@contacts,
+					contacts => $contacts,
             	}
 			);
             last STEP;
