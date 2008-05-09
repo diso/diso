@@ -800,13 +800,20 @@ sub discover_friends {
 					listing_screen => 1,
 					source		=> $uri,
 					step        => $step,
-                	id          => $author_id,
+                			id          => $author_id,
 					contacts => $contacts,
             	}
 			);
             last STEP;
         }
         elsif ( $step =~ /import/ ) {
+            my @uris = $app->{query}->{"uris"};
+            MT->log(Dumper(@uris));
+            
+            return $app->build_page (
+	    				'discover_friends.tmpl',
+	    				{}
+	    );
             last STEP;
         }
     }
