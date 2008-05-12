@@ -7,21 +7,21 @@ use JSON;
 use Data::Dumper qw(Dumper);
 use Web::Scraper;
 
-our $LOGTYPE = 'log4mt'; # 'mt'
+our $LOGTYPE = 'mt'; # 'log4mt';
 our $logger;
 
 sub _log {
 	my $msg = shift;
-	if ($LOGTYPE=='log4mt') {
-		if (!$logger) {
-			$logger = MT::Log->get_logger();
-		}
-		$logger->debug($msg);
-	}
-	else
-	{
+	#if ($LOGTYPE=='log4mt') {
+	#	if (!$logger) {
+	#		$logger = MT::Log->get_logger();
+	#	}
+	#	$logger->debug($msg);
+	#}
+	#else
+	#{
 		MT->log($msg);
-	}
+	#}
 }
 
 sub _permission_check {
@@ -314,13 +314,8 @@ sub save_uri {
     $obj->save() or die "Saving failed: ", $obj->errstr;
 
    # return edit_friend page - this gets submitted to _top so just load the page
-    $app->build_page(
-        'edit_friend.tmpl',
-        {
-            id            => $friend_id,
-            author_id     => $author_id,
-            saved_changes => 1
-        }
+    $app->redirect(
+      	$app->path . $app->script . "?__mode=edit_friend&_type=friend&id=$friend_id&author_id=".$obj->author_id
     );
 
     # my $tmpl = MT->component('Friends')->load_tmpl('edit_friend.tmpl');
@@ -816,11 +811,54 @@ sub discover_friends {
         }
         elsif ( $step =~ /import/ ) {
             my @uris = $app->param("uris");
-            foreach my $u (@uris) {
-                _log($u);
+            
+            require Friends::Friend;
+	    require Friends::URI;
+	    my @created_friends = [];
+	    
+            my $i;
+            for ($i=0; $i < scalar @uris; $i++) {
+            	_log($uris[$i]);
+            	my ($n, $u);
+            	($n, $u) = split(/\|/,$uris[$i]);
+                _log("$n: $u");
+                
+                # 1) create Friend
+		my $friend = Friends::Friend->new();
+		$friend->init();
+		$friend->name($n);
+		$friend->author_id($author_id);
+		$friend->save() or die "Error saving friend: $!";
+		MT->log( Dumper($friend) );
+		
+		# 2) create URI
+		my $uri = Friends::URI->new();
+		$uri->init();
+		$uri->uri($u); 
+		$uri->friend_id($friend->id);
+		$uri->author_id($author_id);
+		$uri->save() or die "Error saving uri: $!";
+		
+		MT->log(Dumper($uri));
+		push @created_friends, $friend;
+	    	
             }
-
-            return $app->build_page( 'discover_friends.tmpl', {} );
+	    
+	    return $app->listing( {
+		type           => 'friend',
+		listing_screen => 1,
+		template =>
+		  MT->component('Friends')->load_tmpl('list_friends.tmpl'),
+		object_loop => \@created_friends,
+		code  => sub {
+		    my ( $obj, $row ) = @_;
+		    $row->{uris} = $obj->uris;
+		},
+		params => {
+		    object_type => 'friend',
+		    id          => $author_id
+		}
+	    });
             last STEP;
         }
     }
