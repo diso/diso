@@ -92,19 +92,21 @@
         </thead>
       </mt:if>
       <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-        <td><input type="checkbox" name="import" value="<$mt:var name="uri" $>" id="import">
+        <td><input type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<$mt:var name="uri" $>">
             <mt:if name="name"><$mt:var name="name" escape="html"$>
             <mt:elseif name="title"><$mt:var name="title"$>
             <mt:else><$mt:var name="uri$>
             </mt:if>
+            <mt:if name="duplicate"> (duplicate)</mt:if>
         </td>
         <td class="uri"><a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
         </td>
       </tr>
     </mtapp:listing>
+    <input type="hidden" name="step" value="import" />
 </mt:if>
 <mt:if name="step" eq="import">
-    
+    <h3>Import</h3>
 </mt:if>
 
 <mt:setvartemplate name="action_buttons">
