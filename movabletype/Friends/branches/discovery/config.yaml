@@ -4,8 +4,8 @@ key: Friends
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provides a blogroll-like means of managing and displaying a friends list on your site
-schema_version: 0.8
-version: 0.7
+schema_version: 0.9
+version: 0.8
 plugin_link: http://diso-project.org/
 object_types:
 	friend: Friends::Friend
@@ -16,6 +16,7 @@ applications:
 			list_friends:       		$Friends::Friends::App::CMS::list_friends
 			edit_friend:        		$Friends::Friends::App::CMS::edit_friend
 			save_friend:        		$Friends::Friends::App::CMS::save_friend
+			delete_friend:              $Friends::Friends::App::CMS::delete_friend
 			save_uri:                   $Friends::Friends::App::CMS::save_uri
 			edit_uri:                   $Friends::Friends::App::CMS::edit_uri
 			delete_uri:                 $Friends::Friends::App::CMS::delete_uri
@@ -58,3 +59,10 @@ list_actions:
             order:              300
             code:               $core::MT::App::CMS::delete
             continue_prompt:    "Are you sure you want to delete the selected friend(s)?"
+upgrade_functions:
+    uri_add_authorid:
+        version_limit: 0.9
+        updater:
+            type: uri
+            label: 'Linking URIs to authors...'
+            code: $Friends::Friends::App::CMS::upgrade_uri_add_authorid

@@ -14,6 +14,7 @@ __PACKAGE__->install_properties(
         column_defs => {
             'id'            => 'integer not null auto_increment',
             'friend_id'     => 'integer not null',
+            'author_id'	    => 'integer not null',
             'uri'           => 'text not null',
             'source_uri'    => 'text',
             'description'   => 'text',
@@ -22,7 +23,7 @@ __PACKAGE__->install_properties(
             'notes'         => 'text',
             'rating'        => 'integer',
             'is_subscribed' => 'integer',
-            'last_updated'  => 'timestamp'
+            'last_updated'  => 'timestamp',
         },
         class_type  => 'uri',
         primary_key => 'id',
