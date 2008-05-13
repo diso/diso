@@ -92,7 +92,7 @@
         </thead>
       </mt:if>
       <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-        <td><input type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
+        <td <mt:if name="duplicate">style="color: #999;"</mt:if>><input type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
             <mt:elseif name="title"><$mt:var name="title"$>
             <mt:else><$mt:var name="uri$>
             </mt:if>|<$mt:var name="uri" $>">
@@ -102,7 +102,7 @@
             </mt:if>
             <mt:if name="duplicate"> (duplicate)</mt:if>
         </td>
-        <td class="uri"><a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
+        <td <mt:if name="duplicate">style="color: #999;"</mt:if> class="uri"><a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
         </td>
       </tr>
     </mtapp:listing>
