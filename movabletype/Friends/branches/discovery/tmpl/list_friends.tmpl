@@ -99,8 +99,7 @@
               <img src="<mt:var name="static_uri">images/status_icons/invert-flag.gif" alt="<__trans phrase="Status">" title="<__trans phrase="Status">" width="9" height="9" />
           </th>
           <th>Name</th>
-          <th>Relationship</th>
-          <th>URI</th>
+          <th>Link(s)</th>
         </tr>
       </thead>
     </mt:if>
@@ -112,7 +111,6 @@
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
         </td>
         <td class="name"><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>"><$mt:var name="name" escape="html"$></a></td>
-        <td class="relationship"><$mt:var name="rel" escape="html"$></td>
         <td class="uri">
             <ul>
             <mt:loop name="uris">
