@@ -6,22 +6,22 @@ use CGI::Carp 'fatalsToBrowser';
 use JSON;
 use Data::Dumper qw(Dumper);
 use Web::Scraper;
+use URI;
 
-our $LOGTYPE = 'mt'; # 'log4mt';
+our $LOGTYPE = 'log4mt';    # 'mt'
 our $logger;
 
 sub _log {
-	my $msg = shift;
-	#if ($LOGTYPE=='log4mt') {
-	#	if (!$logger) {
-	#		$logger = MT::Log->get_logger();
-	#	}
-	#	$logger->debug($msg);
-	#}
-	#else
-	#{
-		MT->log($msg);
-	#}
+    my $msg = shift;
+    if ( $LOGTYPE eq 'log4mt' ) {
+        if ( !$logger ) {
+            $logger = MT::Log->get_logger();
+        }
+        $logger->debug($msg);
+    }
+    else {
+        MT->log($msg);
+    }
 }
 
 sub _permission_check {
@@ -314,9 +314,10 @@ sub save_uri {
     $obj->save() or die "Saving failed: ", $obj->errstr;
 
    # return edit_friend page - this gets submitted to _top so just load the page
-    $app->redirect(
-      	$app->path . $app->script . "?__mode=edit_friend&_type=friend&id=$friend_id&author_id=".$obj->author_id
-    );
+    $app->redirect( $app->path
+          . $app->script
+          . "?__mode=edit_friend&_type=friend&id=$friend_id&author_id="
+          . $obj->author_id );
 
     # my $tmpl = MT->component('Friends')->load_tmpl('edit_friend.tmpl');
 }
@@ -543,6 +544,53 @@ sub save_friend {
 
 }
 
+=item delete_friend
+
+save edited or new contact
+
+=cut
+
+sub delete_friend {
+    my $app = shift;
+    my ($param) = @_;
+	
+	_log("delete_friend");
+
+    my $friend_id = $app->param('id') || 0;
+    unless ($friend_id) {
+        return $app->error("Invalid request. Delete requires friend_id.");
+    }
+
+	
+    require Friends::Friend;
+    require Friends::URI;
+
+	my $friend = Friends::Friend->load( { id => $friend_id } );
+	
+	unless ($friend) {
+        return $app->error("Invalid request. Delete requires valid Friend.");
+	}
+	
+	my $author_id = $friend->author_id;
+
+    Friends::URI->remove( { friend_id => $friend_id } )
+      or
+      return $app->error( 'Could not delete URIs for Friend: ' . $friend_id );
+
+    $friend->remove()
+      or return $app->error( 'Could note delete Friend: ' . $friend_id );
+
+    return $app->redirect(
+        $app->uri(
+            mode => 'list_friends',
+            args => {
+                id          => $author_id,
+                saved_added => 1,
+            },
+        )
+    );
+}
+
 ##
 # _get_claimed uses Google's Social Graph API L<http://code.google.com/apis/socialgraph/> to find
 #	other URLs that the user has identified as their own via rel=mes
@@ -586,6 +634,9 @@ sub _get_meta_for_uri {
     my $scraper = scraper {
         process '.vcard .fn',        'name'  => 'TEXT';
         process '//html/head/title', 'title' => 'TEXT';
+		process '//a[contains(concat(" ", normalize-space(@rel), " ")," me ")]', 'fmes[]' => '@href';
+		process '//link[@rel="openid.delegate"]', 'openid' => '@href';		
+		#process 'a[rel="me"]',		 'fmes[]' => '@href';
     };
 
     $scraper->user_agent(
@@ -633,17 +684,18 @@ sub _get_contacts_for_uri {
 
             my $refuri_node = $source->{nodes_referenced}->{$referenced_uri};
 
-			# is there  uri like this already?
+            # is there uri like this already?
             require Friends::URI;
-			# TODO: research: how to do LIKE here
-			# TODO: get author and limit URIs to this author's URIs
-            my $uri = Friends::URI->load( {	uri => "$referenced_uri" } );
+
+            # TODO: research: how to do LIKE here
+            # TODO: get author and limit URIs to this author's URIs
+            my $uri = Friends::URI->load( { uri => "$referenced_uri" } );
             if ($uri) {
-				$refuri_node->{duplicate} = 1;
+                $refuri_node->{duplicate} = 1;
                 _log(
                     "found matching URI for $referenced_uri: " . Dumper($uri) );
             }
-			
+
             my $meta = _get_meta_for_uri($referenced_uri);
             _log( Dumper($meta) );
 
@@ -655,7 +707,17 @@ sub _get_contacts_for_uri {
             if ( $meta->{title} ) {
                 $refuri_node->{title} = $meta->{title};
             }
-			$refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
+			if ( $meta->{fmes} ) {
+				$refuri_node->{other_profiles} = [];
+				foreach my $fme (@{$meta->{fmes}}) {
+					#_log(Dumper($fme));
+					push @{$refuri_node->{other_profiles}}, $fme->as_string; # I think it's a URI instance. Not sure.
+				}
+			}
+			if ( $meta->{openid} ) {
+				$refuri_node->{openid} = $meta->{openid};
+			}
+            $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /me/;
         }
         unless ( scalar @data == 0 ) {
@@ -784,6 +846,7 @@ sub discover_friends {
             );
             last STEP;
         }
+
         if ( $step =~ /find/ ) {
             my $uri = $app->param('source_uri');
             return $app->error("Param source_uri required to Find contacts")
@@ -809,56 +872,59 @@ sub discover_friends {
             );
             last STEP;
         }
+
         elsif ( $step =~ /import/ ) {
             my @uris = $app->param("uris");
-            
+
             require Friends::Friend;
-	    require Friends::URI;
-	    my @created_friends = [];
-	    
+            require Friends::URI;
+            my @created_friends = [];
+
             my $i;
-            for ($i=0; $i < scalar @uris; $i++) {
-            	_log($uris[$i]);
-            	my ($n, $u);
-            	($n, $u) = split(/\|/,$uris[$i]);
+            for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
+                _log( $uris[$i] );
+                my ( $n, $u );
+                ( $n, $u ) = split( /\|/, $uris[$i] );
                 _log("$n: $u");
-                
+
                 # 1) create Friend
-		my $friend = Friends::Friend->new();
-		$friend->init();
-		$friend->name($n);
-		$friend->author_id($author_id);
-		$friend->save() or die "Error saving friend: $!";
-		MT->log( Dumper($friend) );
-		
-		# 2) create URI
-		my $uri = Friends::URI->new();
-		$uri->init();
-		$uri->uri($u); 
-		$uri->friend_id($friend->id);
-		$uri->author_id($author_id);
-		$uri->save() or die "Error saving uri: $!";
-		
-		MT->log(Dumper($uri));
-		push @created_friends, $friend;
-	    	
+                my $friend = Friends::Friend->new();
+                $friend->init();
+                $friend->name($n);
+                $friend->author_id($author_id);
+                $friend->save() or die "Error saving friend: $!";
+                MT->log( Dumper($friend) );
+
+                # 2) create URI
+                my $uri = Friends::URI->new();
+                $uri->init();
+                $uri->uri($u);
+                $uri->description($n);
+                $uri->friend_id( $friend->id );
+                $uri->author_id($author_id);
+                $uri->save() or die "Error saving uri: $!";
+
+                MT->log( Dumper($uri) );
+                push @created_friends, $friend;
             }
-	    
-	    return $app->listing( {
-		type           => 'friend',
-		listing_screen => 1,
-		template =>
-		  MT->component('Friends')->load_tmpl('list_friends.tmpl'),
-		object_loop => \@created_friends,
-		code  => sub {
-		    my ( $obj, $row ) = @_;
-		    $row->{uris} = $obj->uris;
-		},
-		params => {
-		    object_type => 'friend',
-		    id          => $author_id
-		}
-	    });
+
+            return $app->listing(
+                {
+                    type           => 'friend',
+                    listing_screen => 1,
+                    template =>
+                      MT->component('Friends')->load_tmpl('list_friends.tmpl'),
+                    object_loop => \@created_friends,
+                    code        => sub {
+                        my ( $obj, $row ) = @_;
+                        $row->{uris} = $obj->uris;
+                    },
+                    params => {
+                        object_type => 'friend',
+                        id          => $author_id
+                    }
+                }
+            );
             last STEP;
         }
     }
