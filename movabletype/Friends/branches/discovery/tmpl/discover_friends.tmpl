@@ -14,9 +14,25 @@
  	<mt:loop name="service_styles">
  	.service-<mt:var name="service_type"> { background-image: url(<mt:var name="service_icon">); }
  	</mt:loop>
+ 	
+ 	.disabled td, .disabled td a {
+ 		color: #999;
+ 	}
  	</style>
  	
  	<script type="text/javascript">
+ 	function changeState(idNum, dupState) {
+ 		document.getElementById('cb'+idNum).disabled=dupState;
+ 		if (dupState) {
+ 			document.getElementById('row'+idNum).className='disabled';
+			document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+	 	}
+		else
+		{
+			document.getElementById('row'+idNum).className='';
+ 			document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+	 	}
+ 	}
  	</script>
  </mt:setvarblock>
 
@@ -91,18 +107,31 @@
           </tr>
         </thead>
       </mt:if>
-      <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-        <td <mt:if name="duplicate">style="color: #999;"</mt:if>><input type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
+      <tr id="row<$mt:var name="__counter__"$>" class="<mt:if name="__odd__">odd<mt:else>even</mt:if> <mt:if name="duplicate">disabled</mt:if>">
+        <td>
+            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
             <mt:elseif name="title"><$mt:var name="title"$>
             <mt:else><$mt:var name="uri$>
-            </mt:if>|<$mt:var name="uri" $>">
+            </mt:if>|<$mt:var name="uri" $>" />
             <mt:if name="name"><$mt:var name="name" escape="html"$>
 	                <mt:elseif name="title"><$mt:var name="title"$>
 	                <mt:else><$mt:var name="uri$>
-            </mt:if>
-            <mt:if name="duplicate"> (duplicate)</mt:if>
+            </mt:if> 
+            <span id="duplabel<$mt:var name="__counter__"$>"><mt:if name="duplicate">(duplicate)</mt:if></span>
         </td>
-        <td <mt:if name="duplicate">style="color: #999;"</mt:if> class="uri"><a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
+        <td class="uri">
+        	<mt:if name="other_profiles">
+        	<select id="uri"<mt:if name="duplicate"> onchange="changeState(<$mt:var name="__counter__"$>, (this.selectedIndex==0 ? true : false))"</mt:if>>
+        		<option>
+        		<$mt:var name="uri" escape="html"$>
+        		</option>
+        	<mt:loop name="other_profiles">
+        		<option><a href="<$mt:var name="__value__" escape="html"$>"><$mt:var name="__value__" escape="html"$></li>
+        	</mt:loop>
+        	</select>
+        	<mt:else>
+        	<a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
+        	</mt:if>
         </td>
       </tr>
     </mtapp:listing>
