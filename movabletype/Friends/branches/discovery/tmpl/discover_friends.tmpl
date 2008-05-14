@@ -21,10 +21,13 @@
  	</style>
  	
  	<script type="text/javascript">
- 	function changeState(idNum, dupState) {
+ 	function changeState(el, idNum) {
+ 	    var dupState = (el.value.indexOf("duplicate")!=-1);
  		document.getElementById('cb'+idNum).disabled=dupState;
+ 		
  		if (dupState) {
  			document.getElementById('row'+idNum).className='disabled';
+ 			document.getElementById('cb'+idNum).checked=false;
 			document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
 	 	}
 		else
@@ -116,12 +119,11 @@
             <mt:if name="name"><$mt:var name="name" escape="html"$>
 	                <mt:elseif name="title"><$mt:var name="title"$>
 	                <mt:else><$mt:var name="uri$>
-            </mt:if> 
-            <span id="duplabel<$mt:var name="__counter__"$>"><mt:if name="duplicate">(duplicate)</mt:if></span>
+            </mt:if>
         </td>
         <td class="uri">
         	<mt:if name="other_profiles">
-        	<select id="uri"<mt:if name="duplicate"> onchange="changeState(<$mt:var name="__counter__"$>, (this.selectedIndex==0 ? true : false))"</mt:if>>
+        	<select id="uri"<mt:if name="duplicate"> onchange="changeState(this, <$mt:var name="__counter__"$>)"</mt:if>>
         		<option>
         		<$mt:var name="uri" escape="html"$>
         		</option>
