@@ -14,15 +14,15 @@ our $logger;
 
 sub _log {
     my $msg = shift;
-    if ( $LOGTYPE eq 'log4mt' ) {
-        if ( !$logger ) {
-            $logger = MT::Log->get_logger();
-        }
-        $logger->debug($msg);
-    }
-    else {
+    #if ( $LOGTYPE eq 'log4mt' ) {
+    #    if ( !$logger ) {
+    #        $logger = MT::Log->get_logger();
+    #    }
+    #    $logger->debug($msg);
+    #}
+    #else {
         MT->log($msg);
-    }
+    #}
 }
 
 sub _permission_check {
@@ -718,7 +718,7 @@ sub _get_contacts_for_uri {
                     if ($uri) {
                         $refuri_node->{duplicate} = 1;
                         $meta->{other_uris}[$i] = $u . "|duplicate";
-                        _log( "found matching URI for $referenced_uri: "
+                        _log( "found matching URI for $u: "
                               . Dumper($_) );
                     }
                 }
