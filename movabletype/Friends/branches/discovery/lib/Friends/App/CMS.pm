@@ -2,7 +2,8 @@ package Friends::App::CMS;
 
 use strict;
 use base qw( MT::App );
-use CGI::Carp 'fatalsToBrowser';
+
+#use CGI::Carp 'fatalsToBrowser';
 use JSON;
 use Data::Dumper qw(Dumper);
 use Web::Scraper;
@@ -553,25 +554,24 @@ save edited or new contact
 sub delete_friend {
     my $app = shift;
     my ($param) = @_;
-	
-	_log("delete_friend");
+
+    _log("delete_friend");
 
     my $friend_id = $app->param('id') || 0;
     unless ($friend_id) {
         return $app->error("Invalid request. Delete requires friend_id.");
     }
 
-	
     require Friends::Friend;
     require Friends::URI;
 
-	my $friend = Friends::Friend->load( { id => $friend_id } );
-	
-	unless ($friend) {
+    my $friend = Friends::Friend->load( { id => $friend_id } );
+
+    unless ($friend) {
         return $app->error("Invalid request. Delete requires valid Friend.");
-	}
-	
-	my $author_id = $friend->author_id;
+    }
+
+    my $author_id = $friend->author_id;
 
     Friends::URI->remove( { friend_id => $friend_id } )
       or
@@ -634,9 +634,11 @@ sub _get_meta_for_uri {
     my $scraper = scraper {
         process '.vcard .fn',        'name'  => 'TEXT';
         process '//html/head/title', 'title' => 'TEXT';
-		process '//a[contains(concat(" ", normalize-space(@rel), " ")," me ")]', 'fmes[]' => '@href';
-		process '//link[@rel="openid.delegate"]', 'openid' => '@href';		
-		#process 'a[rel="me"]',		 'fmes[]' => '@href';
+        process '//a[contains(concat(" ", normalize-space(@rel), " ")," me ")]',
+          'other_uris[]' => '@href';
+        process '//link[@rel="openid.delegate"]', 'openid' => '@href';
+
+        #process 'a[rel="me"]',	'fmes[]' => '@href';
     };
 
     $scraper->user_agent(
@@ -662,7 +664,7 @@ sub _get_contacts_for_uri {
     # my # $logger = MT::Log->get_logger();
 
     # $logger->debug('_get_contacts_for_uris');
-    my $uri = shift;
+    my ( $uri, $author_id ) = @_;
 
     require Net::SocialGraph;
     my %opts = (
@@ -680,26 +682,56 @@ sub _get_contacts_for_uri {
         my @data;
 
       URI: for my $referenced_uri ( keys %{ $source->{nodes_referenced} } ) {
+            my $refuri_node = $source->{nodes_referenced}->{$referenced_uri};
+
             next URI if $referenced_uri !~ /^http\:\/\//;
 
-            my $refuri_node = $source->{nodes_referenced}->{$referenced_uri};
+            my $meta = _get_meta_for_uri($referenced_uri);
+            _log( Dumper($meta) );
 
             # is there uri like this already?
             require Friends::URI;
 
             # TODO: research: how to do LIKE here
             # TODO: get author and limit URIs to this author's URIs
-            my $uri = Friends::URI->load( { uri => "$referenced_uri" } );
-            if ($uri) {
+            $referenced_uri =~ s/\/$//;
+			_log ("checking uri: " . $referenced_uri);
+			
+			my $uri = Friends::URI->load(
+                { uri => $referenced_uri } ); #, author_id => $author_id } );
+			_log("tried to load $referenced_uri: " . Dumper($uri));
+			
+			if ($uri) {
                 $refuri_node->{duplicate} = 1;
-                _log(
-                    "found matching URI for $referenced_uri: " . Dumper($uri) );
+                _log( "found matching URI for $referenced_uri: " . Dumper($uri) );
             }
-
-            my $meta = _get_meta_for_uri($referenced_uri);
-            _log( Dumper($meta) );
-
+			_log( Dumper( $meta->{other_uris} ) );
+			
+            if ( $meta->{other_uris} ) {
+                for ( my $i = 0 ; $i < scalar @{ $meta->{other_uris} } ; $i++ ) {
+                    my $u   = $meta->{other_uris}[$i]->as_string;
+					$meta->{other_uris}[$i] = $u;
+					_log ("checking other_uri: " . $u);
+                    my $uri = Friends::URI->load(
+                        { uri => $u } ); #, author_id => $author_id } );
+					_log (Dumper($uri));
+                    if ($uri) {
+                        $refuri_node->{duplicate} = 1;
+                        $meta->{other_uris}[$i] = $u . "|duplicate";
+                        _log( "found matching URI for $referenced_uri: "
+                              . Dumper($_) );
+                    }
+                }
+            }
             $refuri_node->{uri} = $referenced_uri;
+
+            if ( $meta->{other_uris} ) {
+                $refuri_node->{other_profiles} = [];
+                foreach my $fme ( @{ $meta->{other_uris} } ) {
+					push @{ $refuri_node->{other_profiles} },
+                      $fme;  # I think it's a URI instance. Not sure.
+                }
+            }
             if ( $meta->{name} ) {
                 $refuri_node->{name}      = $meta->{name};
                 $refuri_node->{has_hcard} = 1;
@@ -707,18 +739,11 @@ sub _get_contacts_for_uri {
             if ( $meta->{title} ) {
                 $refuri_node->{title} = $meta->{title};
             }
-			if ( $meta->{fmes} ) {
-				$refuri_node->{other_profiles} = [];
-				foreach my $fme (@{$meta->{fmes}}) {
-					#_log(Dumper($fme));
-					push @{$refuri_node->{other_profiles}}, $fme->as_string; # I think it's a URI instance. Not sure.
-				}
-			}
-			if ( $meta->{openid} ) {
-				$refuri_node->{openid} = $meta->{openid};
-			}
+            if ( $meta->{openid} ) {
+                $refuri_node->{openid} = $meta->{openid}->as_string;
+            }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
-            push @data, $refuri_node unless $refuri_node->{rel} =~ /me/;
+            push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
         }
         unless ( scalar @data == 0 ) {
             return \@data;
@@ -853,7 +878,7 @@ sub discover_friends {
               unless $uri;
 
             _log( Dumper($uri) );
-            my @contacts = @{ _get_contacts_for_uri($uri) };
+            my @contacts = @{ _get_contacts_for_uri( $uri, $author_id ) };
 
             # TODO: check if URI is already in database
 
@@ -874,6 +899,8 @@ sub discover_friends {
         }
 
         elsif ( $step =~ /import/ ) {
+            _log( Dumper( $app->param ) );
+
             my @uris = $app->param("uris");
 
             require Friends::Friend;
