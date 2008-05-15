@@ -44,12 +44,12 @@ sub users_content_nav {
 
     my $html = <<"EOF";
     <mt:if var="USER_VIEW">
-		<li><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-    	<li><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li>
+	<li<mt:if name="list_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
+    	<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li>
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="list_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li>
+	<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li>
     </mt:if>
 EOF
 
@@ -308,7 +308,11 @@ sub save_uri {
     for my $field (qw( uri description author_id)) {
         $obj->$field( $app->param($field) );
     }
-
+    my $uri = $app->param('uri');
+    if ($uri =~ /\/$/) {
+    	$obj->uri($uri =~ s/\/$//);
+    }
+    
     # $logger->debug("Saving object:");
     # $logger->debug( Dumper($obj) );
 
@@ -702,7 +706,8 @@ sub _get_contacts_for_uri {
 			_log("tried to load $referenced_uri: " . Dumper($uri));
 			
 			if ($uri) {
-                #$refuri_node->{duplicate} = 1;
+                $refuri_node->{duplicate} = 1;
+                $refuri_node->{dupuri} = $uri;
                 _log( "found matching URI for $referenced_uri: " . Dumper($uri) );
             }
 			$refuri_node->{uri} = $referenced_uri; # . ($refuri_node->{duplicate} ? " (duplicate)" : "");
@@ -718,7 +723,8 @@ sub _get_contacts_for_uri {
                         { uri => $u } ); #, author_id => $author_id } );
 					_log (Dumper($uri));
                     if ($uri) {
-						#$refuri_node->{duplicate} = 1;
+			$refuri_node->{duplicate} = 1;
+			$refuri_node->{dupuri} = $uri;
                         $meta->{other_uris}[$i] = $u . " (duplicate)";
                         _log( "found matching URI for $u: "
                               . Dumper($_) );
@@ -916,6 +922,8 @@ sub discover_friends {
                 ( $n, $u ) = split( /\|/, $uris[$i] );
                 _log("$n: $u");
 
+		# 1) is there a Friend already?
+	
                 # 1) create Friend
                 my $friend = Friends::Friend->new();
                 $friend->init();
