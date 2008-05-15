@@ -28,12 +28,13 @@
  		if (dupState) {
  			document.getElementById('row'+idNum).className='disabled';
  			document.getElementById('cb'+idNum).checked=false;
-			document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+			//document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
 	 	}
 		else
 		{
 			document.getElementById('row'+idNum).className='';
- 			document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+			document.getElementById('cb'+idNum).value = document.getElementById('cb'+idNum).value.split('|')[0] + el.value;
+ 			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
 	 	}
  	}
  	</script>
@@ -116,14 +117,19 @@
         </td>
         <td class="uri">
         	<mt:if name="other_profiles">
-        	<select id="uri"<mt:if name="duplicate"> onchange="changeState(this, <$mt:var name="__counter__"$>)"</mt:if>>
-        		<option>
+        	<select id="select<$mt:var name="__counter__"$>" onchange="changeState(this, <$mt:var name="__counter__"$>)">
+        		<option value="<$mt:var name="uri" escape="html"$>">
         		<$mt:var name="uri" escape="html"$>
         		</option>
         	<mt:loop name="other_profiles">
         		<option><a href="<$mt:var name="__value__" escape="html"$>"><$mt:var name="__value__" escape="html"$></li>
         	</mt:loop>
         	</select>
+        	<script type="text/javascript">
+        	    if (document.getElementById("select<$mt:var name="__counter__"$>").value.indexOf(" (duplicate)") != -1) {
+        	        changeState(document.getElementById("select<$mt:var name="__counter__"$>"),<$mt:var name="__counter__"$>);
+        	    }
+        	</script>
         	<mt:else>
         	<a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
         	</mt:if>

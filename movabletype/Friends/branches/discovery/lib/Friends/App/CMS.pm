@@ -14,15 +14,15 @@ our $logger;
 
 sub _log {
     my $msg = shift;
-    #if ( $LOGTYPE eq 'log4mt' ) {
-    #    if ( !$logger ) {
-    #        $logger = MT::Log->get_logger();
-    #    }
-    #    $logger->debug($msg);
-    #}
-    #else {
+    if ( $LOGTYPE eq 'log4mt' && MT->component('log4mt')) {
+        if ( !$logger ) {
+            $logger = MT::Log->get_logger();
+        }
+        $logger->debug($msg);
+    }
+    else {
         MT->log($msg);
-    #}
+   	}
 }
 
 sub _permission_check {
@@ -702,9 +702,11 @@ sub _get_contacts_for_uri {
 			_log("tried to load $referenced_uri: " . Dumper($uri));
 			
 			if ($uri) {
-                $refuri_node->{duplicate} = 1;
+                #$refuri_node->{duplicate} = 1;
                 _log( "found matching URI for $referenced_uri: " . Dumper($uri) );
             }
+			$refuri_node->{uri} = $referenced_uri; # . ($refuri_node->{duplicate} ? " (duplicate)" : "");
+
 			_log( Dumper( $meta->{other_uris} ) );
 			
             if ( $meta->{other_uris} ) {
@@ -716,14 +718,14 @@ sub _get_contacts_for_uri {
                         { uri => $u } ); #, author_id => $author_id } );
 					_log (Dumper($uri));
                     if ($uri) {
-                        $refuri_node->{duplicate} = 1;
-                        $meta->{other_uris}[$i] = $u . "|duplicate";
+						#$refuri_node->{duplicate} = 1;
+                        $meta->{other_uris}[$i] = $u . " (duplicate)";
                         _log( "found matching URI for $u: "
                               . Dumper($_) );
                     }
                 }
             }
-            $refuri_node->{uri} = $referenced_uri;
+            
 
             if ( $meta->{other_uris} ) {
                 $refuri_node->{other_profiles} = [];
