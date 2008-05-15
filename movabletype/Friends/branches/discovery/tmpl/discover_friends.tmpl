@@ -37,13 +37,6 @@
 	 	}
  	}
  	</script>
- </mt:setvarblock>
-
-<mt:setvarblock name="object_nav">
-    <ul class="object-nav">
-        <li><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"
-    	    title="<__trans phrase="Add Friend">"><__trans phrase="Add Friend"></a></li>
-    </ul>
 </mt:setvarblock>
 
 <mt:setvarblock name="content_nav">
@@ -153,7 +146,7 @@
         ><__trans phrase="Next"></button>
 </mt:setvartemplate>
 
-<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
      
 <mt:setvarblock name="form_footer">
     </form>

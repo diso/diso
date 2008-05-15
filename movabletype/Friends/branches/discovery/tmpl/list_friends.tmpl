@@ -1,4 +1,4 @@
-<mt:setvar name="edit_author" value="1"/>
+<mt:setvar name="edit_author" value="1">
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Friends">"$>
 </mt:if>
@@ -30,10 +30,8 @@
     </script>
 
     <style type="text/css">
-    <!--
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
-    // -->
     </style>
 </mt:setvarblock>
 
@@ -42,9 +40,8 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="content_header">
-    <ul class="object-nav">
-        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"
-    	title="<__trans phrase="Add Friend">"><__trans phrase="Add Friend"></a></li>
+    <ul class="action-link-list">
+        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"><__trans phrase="Add Friend"></a></li>
     </ul>
 </mt:setvarblock>
 
