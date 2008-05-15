@@ -1,5 +1,6 @@
 <$mt:setvar name="edit_author" value="1"$>
 <$mt:setvar name="page_title" value="<__trans phrase="Discover Friends">"$>
+<$mt:setvar name="discover_friends" value="1"$>
 <$mt:setvar name="position_actions_bottom" value="true"$> 
 
 <mt:setvarblock name="html_head" append="1">
@@ -33,7 +34,14 @@
 		else
 		{
 			document.getElementById('row'+idNum).className='';
-			document.getElementById('cb'+idNum).value = document.getElementById('cb'+idNum).value.split('|')[0] + el.value;
+			var newUri = el.value;
+			var name = document.getElementById('cb'+idNum).value.split('|')[0];
+			var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
+			if (oldUri) {
+				document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
+ 			} else {
+ 				document.getElementById('cb'+idNum).value = name + "|"+ newUri;
+ 			}
  			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
 	 	}
  	}
@@ -104,11 +112,11 @@
           </tr>
         </thead>
       </mt:if>
-      <tr id="row<$mt:var name="__counter__"$>" class="<mt:if name="__odd__">odd<mt:else>even</mt:if> <mt:if name="duplicate">disabled</mt:if>">
+      <tr id="row<$mt:var name="__counter__"$>" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
         <td>
-            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" <mt:if name="duplicate">disabled="disabled" </mt:if>name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
+            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
             <mt:elseif name="title"><$mt:var name="title"$>
-            <mt:else><$mt:var name="uri$>
+            <mt:else><$mt:var name="uri"$>
             </mt:if>|<$mt:var name="uri" $>" />
             <mt:if name="name"><$mt:var name="name" escape="html"$>
 	                <mt:elseif name="title"><$mt:var name="title"$>
@@ -117,6 +125,10 @@
         </td>
         <td class="uri">
         	<mt:if name="other_profiles">
+        	<mt:if name="duplicate">
+        		<mt:setvarblock name="dupuri">dupuri<$mt:var name="__counter__"$></mt:setvarblock>
+        	<input type="hidden" id="<$mt:var name="dupuri"$>" value="<$mt:var name="uri"$>" />
+        	</mt:if>
         	<select id="select<$mt:var name="__counter__"$>" onchange="changeState(this, <$mt:var name="__counter__"$>)">
         		<option value="<$mt:var name="uri" escape="html"$>">
         		<$mt:var name="uri" escape="html"$>
@@ -126,9 +138,7 @@
         	</mt:loop>
         	</select>
         	<script type="text/javascript">
-        	    if (document.getElementById("select<$mt:var name="__counter__"$>").value.indexOf(" (duplicate)") != -1) {
-        	        changeState(document.getElementById("select<$mt:var name="__counter__"$>"),<$mt:var name="__counter__"$>);
-        	    }
+        	    changeState(document.getElementById("select<$mt:var name="__counter__"$>"),<$mt:var name="__counter__"$>);
         	</script>
         	<mt:else>
         	<a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
