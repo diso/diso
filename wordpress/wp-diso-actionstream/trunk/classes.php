@@ -87,10 +87,10 @@ class ActionStream {
 				if(!$url) {//feed autodetect
 					$raw = get_raw_actionstream(str_replace('%s',$id,$this->config['profile_services'][$service]['url']));
 
-					preg_match('/<[\s]*link.+atom.+href="(.+)"/', $raw, $match);
+					preg_match('/<[\s]*link[^\f]+?atom[^\f]+?href="(.+?)"/', $raw, $match);
 					$aurl = html_entity_decode($match[1]);
 
-					preg_match('/<[\s]*link.+rss.+href="(.+)"/', $raw, $match);
+					preg_match('/<[\s]*link[^\f]+?rss[^\f]+?href="(.+?)"/', $raw, $match);
 					$rurl = html_entity_decode($match[1]);
 
 					if(($stream['atom'] && $aurl) || !$rurl) {
@@ -150,7 +150,7 @@ class ActionStream {
 							$value = $value[0].'';
 							if($service == 'twitter') {
 								$value = preg_replace('/^'.$id.'\: /','',$value);
-								$value = preg_replace('/@([a-zA-z0-9_]+)/','@<a href="http://twitter.com/$1">$1</a>',$value);
+								$value = preg_replace('/@([a-zA-z0-9_]+)/','<span class="reply vcard tag">@<a class="url fn" href="http://twitter.com/$1">$1</a></span>',$value);
 								$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
 							}//end if twitter
 							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
