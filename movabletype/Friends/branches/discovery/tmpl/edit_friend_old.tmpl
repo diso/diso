@@ -136,7 +136,8 @@
 
 <mtapp:setting
      id="name"
-     label="<__trans phrase="Name">">
+     label="<__trans phrase="Name">"
+     content_class="field-content-text">
      <div class="textarea-wrapper">
        <input name="name" id="name" class="full-width" value="<mt:var name="name">" />
      </div>
@@ -144,8 +145,8 @@
 
 <mtapp:setting
     id="visible"
-    label="<__trans phrase="Public?">">
-    <input type="checkbox" name="visible" value="1" <mt:if name="visible" eq="1">checked="checked"</mt:if>/>    
+    label="<__trans phrase="Published">">
+    <input type="checkbox" name="visible" value="1" checked="checked" <mt:if name="visible" eq="1">checked="checked"</mt:if>/>    
 </mtapp:setting>
 
 <mt:if name="new_object">
@@ -209,7 +210,7 @@
         </div></div>
 </mt:if>
 
-<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
     
 <mt:setvarblock name="form_footer">
     </form>
