@@ -682,7 +682,7 @@ action_streams:
             description: Videos you saved as favorites
             fields:
                 - by
-            html_form: '[_1] saved a favorite video <p><a rel="bookmark" class="entry-title" href="[_2]" title="[_3]"><img src="[_4]" alt="[_3]" /></a></p>'
+            html_form: '[_1] favourited video <span class="entry-title">[_3]</span> <p><a rel="bookmark" href="[_2]" title="[_3]"><img src="[_4]" alt="Thumbnail" /></a></p>'
             html_params:
                 - url
                 - title
