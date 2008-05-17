@@ -74,8 +74,13 @@ function actionstream_page() {
 
 	if(isset($_POST['toggle_local_updates'])) {
 		$userdata->actionstream_local_updates_off = !$userdata->actionstream_local_updates_off;
-		update_usermeta($usermeta->ID, 'actionstream_local_updates_off', $userdata->actionstream_local_updates_off);
+		update_usermeta($userdata->ID, 'actionstream_local_updates_off', $userdata->actionstream_local_updates_off);
 	}//end if toggle_local_updates
+	
+	if(isset($_POST['toggle_collapse'])) {
+		$userdata->actionstream_collapse_off = !$userdata->actionstream_collapse_off;
+		update_usermeta($userdata->ID, 'actionstream_collapse_off', $userdata->actionstream_collapse_off);
+	}//end if toggle_collapse
 	
 	if(isset($_POST['remove_service'])) {
 		unset($userdata->actionstream[$_POST['remove_service']]);
@@ -115,6 +120,10 @@ function actionstream_page() {
 
 	echo '<form method="post" action="">';
 	echo '<input type="submit" name="toggle_local_updates" value="'.($userdata->actionstream_local_updates_off ? 'Show updates from this blog' : 'Hide updates from this blog').'" />';
+	echo '</form>';
+	
+	echo '<form method="post" action="">';
+	echo '<input type="submit" name="toggle_collapse" value="'.($userdata->actionstream_collapse_off ? 'Collapse similar items' : 'Show all similar items').'" />';
 	echo '</form>';
 
 	echo '<h3>Add/Update a Service</h3>';
@@ -209,7 +218,7 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
    else
       $userdata = get_userdatabylogin($userid);
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions);
+	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_off);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }//end function actionstream_render

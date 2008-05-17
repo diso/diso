@@ -170,7 +170,7 @@ class ActionStream {
 		return $items;
 	}//end function items
 
-	function __toString($num=10, $hide_user=false, $permissions=array()) {
+	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse_off=false) {
 		$items = $this->items($num);
 		if(!$items || !count($items))
 			return 'No items to display in actionstream.';
@@ -196,12 +196,12 @@ class ActionStream {
 
 				if($during_service) {
 					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.'">'.$during_service->__toString($hide_user);
-					if(count($after_service)) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
+					if(count($after_service) && !$collapse_off) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
 					$rtrn .= '</li>';
 				}//end if during service
 
 				foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.' actionstream-hidden">'.$cnt->__toString($hide_user).'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script></li>';
+					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id. ($collapse_off ? '' : ' actionstream-hidden') . '">'.$cnt->__toString($hide_user).($collapse_off?'':'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script>') . '</li>';
 				$after_service = array();
 
 				if($c > $num) {$rtrn .= '</ul>'; break;}
@@ -212,11 +212,9 @@ class ActionStream {
 					$rtrn .= '<h3 class="action-stream-header">On '.$previous_day.'</h3>';
 					$rtrn .= '<ul class="hfeed action-stream-list">';
 				}//end if new day
-
 				$during_service = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
 
 			}//end if-else service
-
 			$previous_service = $item['service'];
 		}//end foreach
 
