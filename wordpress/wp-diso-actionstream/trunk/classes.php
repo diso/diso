@@ -43,7 +43,7 @@ class ActionStreamItem {
 	function save() {
 		global $actionstream_config;
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
-		$created_on = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
+		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
 		$data = $actionstream_config['db']->escape(serialize($this->data));
 		$identifier_hash = sha1($this->identifier());
 		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} (identifier_hash, user_id, created_on, service, setup_idx, data) VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') ON DUPLICATE KEY UPDATE data='$data'");
