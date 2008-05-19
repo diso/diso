@@ -156,10 +156,10 @@ class OAuthRequest {/*{{{*/
       $parameters = array_merge($header_parameters, $req_parameters);
       $req = new OAuthRequest($http_method, $http_url, $parameters);
     }
-    else if ($http_method == "GET") {
+    else if ($_GET['oauth_version'] || $_GET['oauth_token']) {
       $req = new OAuthRequest($http_method, $http_url, $_GET);
     }
-    else if ($http_method == "POST") {
+    else { //must return an OAuthRequest, even if empty, so just use this
       $req = new OAuthRequest($http_method, $http_url, $_POST);
     }
     return $req;
