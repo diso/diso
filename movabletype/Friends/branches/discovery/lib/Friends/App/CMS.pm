@@ -726,8 +726,7 @@ sub _get_contacts_for_uri {
 			$refuri_node->{duplicate} = 1;
 			$refuri_node->{dupuri} = $uri;
                         $meta->{other_uris}[$i] = $u . " (duplicate)";
-                        _log( "found matching URI for $u: "
-                              . Dumper($_) );
+                        _log( "found matching URI for $u: " . Dumper($_) );
                     }
                 }
             }
@@ -918,19 +917,27 @@ sub discover_friends {
             my $i;
             for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
                 _log( $uris[$i] );
-                my ( $n, $u );
-                ( $n, $u ) = split( /\|/, $uris[$i] );
-                _log("$n: $u");
+                my ( $n, $u, $dup ) = split( /\|/, $uris[$i] );
+                _log("$n: $u $dup");
 
-		# 1) is there a Friend already?
-	
-                # 1) create Friend
-                my $friend = Friends::Friend->new();
-                $friend->init();
-                $friend->name($n);
-                $friend->author_id($author_id);
-                $friend->save() or die "Error saving friend: $!";
-                MT->log( Dumper($friend) );
+				# 1) is there a Friend already?
+				my ($uri, $friend);
+				if ($dup) {
+					$uri = Friends::URI->load($dup);
+					unless ($uri) {
+						die "Cannot load uri for: $dup";
+					}
+					$friend = Friends::Friend->load($uri->friend_id);
+	                MT->log( Dumper($friend) );
+				} else {
+	                # 1) create Friend
+					my $friend = Friends::Friend->new();
+	                $friend->init();
+	                $friend->name($n);
+	                $friend->author_id($author_id);
+	                $friend->save() or die "Error saving friend: $!";
+	                MT->log( Dumper($friend) );
+				}
 
                 # 2) create URI
                 my $uri = Friends::URI->new();
