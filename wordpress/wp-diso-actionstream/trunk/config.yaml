@@ -284,6 +284,11 @@ profile_services:
        url: http://upcoming.yahoo.com/user/%s
        ident_label: User ID
        ident_example: 12345
+   userscripts:
+       name: Userscripts.org
+       url: http://userscripts.org/users/%s
+       ident_label: User ID
+       ident_example: 3275
    virb:
        name: Virb
        url: http://www.virb.com/%s
@@ -666,7 +671,7 @@ action_streams:
             description: Your public posts
             html_form: '[_1] posted, <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
             html_params:
-                - url
+               - url
                - title
             url: 'http://{{ident}}.tumblr.com/rss/'
             identifier: url
@@ -676,6 +681,16 @@ action_streams:
                     created_on: pubDate/child::text()
                     title: title/child::text()
                     url: link/child::text()
+    userscripts:
+        favorites:
+            name: Favorites
+            description: Scripts you saved as favorites
+            html_form: '[_1] favourited script <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
+            html_params:
+                - url
+                - title
+            url: 'http://userscripts.org/feeds/users/{{ident}}/favorites/updates'
+            rss2: ''
     youtube:
         favorites:
             name: Favorites
