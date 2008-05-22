@@ -14,7 +14,7 @@ our $logger;
 
 sub _log {
     my $msg = shift;
-    if ( $LOGTYPE eq 'log4mt' && MT->component('log4mt')) {
+    if ( $LOGTYPE eq 'log4mt' ) { # && MT->component('log4mt')) {
         if ( !$logger ) {
             $logger = MT::Log->get_logger();
         }
@@ -662,13 +662,14 @@ sub _get_meta_for_uri {
 }
 
 sub _get_contacts_for_uri {
-
     # require MT::Log;
 
     # my # $logger = MT::Log->get_logger();
 
     # $logger->debug('_get_contacts_for_uris');
     my ( $uri, $author_id ) = @_;
+
+	_log ("Get Contacts for: $uri");
 
     require Net::SocialGraph;
     my %opts = (
@@ -691,7 +692,7 @@ sub _get_contacts_for_uri {
             next URI if $referenced_uri !~ /^http\:\/\//;
 
             my $meta = _get_meta_for_uri($referenced_uri);
-            _log( Dumper($meta) );
+            _log( "meta for $referenced_uri: " . Dumper($meta) );
 
             # is there uri like this already?
             require Friends::URI;
@@ -699,16 +700,16 @@ sub _get_contacts_for_uri {
             # TODO: research: how to do LIKE here
             # TODO: get author and limit URIs to this author's URIs
             $referenced_uri =~ s/\/$//;
-			_log ("checking uri: " . $referenced_uri);
+			_log ("does $referenced_uri already exist?");
 			
 			my $uri = Friends::URI->load(
                 { uri => $referenced_uri } ); #, author_id => $author_id } );
-			_log("tried to load $referenced_uri: " . Dumper($uri));
+			_log("result: " . Dumper($uri));
 			
 			if ($uri) {
                 $refuri_node->{duplicate} = 1;
-                $refuri_node->{dupuri} = $uri;
-                _log( "found matching URI for $referenced_uri: " . Dumper($uri) );
+                _log( "found existing URI for $referenced_uri: " . Dumper($uri) );
+                $refuri_node->{dupuri} = $uri->uri;
             }
 			$refuri_node->{uri} = $referenced_uri; # . ($refuri_node->{duplicate} ? " (duplicate)" : "");
 
@@ -716,17 +717,18 @@ sub _get_contacts_for_uri {
 			
             if ( $meta->{other_uris} ) {
                 for ( my $i = 0 ; $i < scalar @{ $meta->{other_uris} } ; $i++ ) {
-                    my $u   = $meta->{other_uris}[$i]->as_string;
-					$meta->{other_uris}[$i] = $u;
-					_log ("checking other_uri: " . $u);
-                    my $uri = Friends::URI->load(
-                        { uri => $u } ); #, author_id => $author_id } );
-					_log (Dumper($uri));
-                    if ($uri) {
-			$refuri_node->{duplicate} = 1;
-			$refuri_node->{dupuri} = $uri;
-                        $meta->{other_uris}[$i] = $u . " (duplicate)";
-                        _log( "found matching URI for $u: " . Dumper($_) );
+                    my $other_uri_str   = $meta->{other_uris}[$i]->as_string;
+					$meta->{other_uris}[$i] = $other_uri_str;
+					_log ("does $other_uri_str already exist?");
+                    my $other_uri = Friends::URI->load(
+                        { uri => $other_uri_str } ); #, author_id => $author_id } );
+					_log (Dumper($other_uri));
+                    
+					if ($other_uri) {
+						$refuri_node->{duplicate} = 1;
+						$refuri_node->{dupuri} = $other_uri->uri;
+                        $meta->{other_uris}[$i] = $other_uri_str . " (duplicate)";
+                        _log( "found existing URI for $other_uri_str: " . Dumper($other_uri) );
                     }
                 }
             }
@@ -906,7 +908,6 @@ sub discover_friends {
         }
 
         elsif ( $step =~ /import/ ) {
-            _log( Dumper( $app->param ) );
 
             my @uris = $app->param("uris");
 
@@ -923,12 +924,14 @@ sub discover_friends {
 				# 1) is there a Friend already?
 				my ($uri, $friend);
 				if ($dup) {
-					$uri = Friends::URI->load($dup);
+					_log ("loading uri for: $dup");
+					$uri = Friends::URI->load({uri=>$dup});
 					unless ($uri) {
 						die "Cannot load uri for: $dup";
 					}
+					_log("dup uri: " . Dumper($uri));
 					$friend = Friends::Friend->load($uri->friend_id);
-	                MT->log( Dumper($friend) );
+	                _log( "friend for dup uri: " . Dumper($friend) );
 				} else {
 	                # 1) create Friend
 					my $friend = Friends::Friend->new();
@@ -936,7 +939,7 @@ sub discover_friends {
 	                $friend->name($n);
 	                $friend->author_id($author_id);
 	                $friend->save() or die "Error saving friend: $!";
-	                MT->log( Dumper($friend) );
+	                _log( "made new friend: " . Dumper($friend) );
 				}
 
                 # 2) create URI
@@ -948,7 +951,7 @@ sub discover_friends {
                 $uri->author_id($author_id);
                 $uri->save() or die "Error saving uri: $!";
 
-                MT->log( Dumper($uri) );
+                _log( Dumper($uri) );
                 push @created_friends, $friend;
             }
 
