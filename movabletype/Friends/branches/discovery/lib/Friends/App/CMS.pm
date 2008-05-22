@@ -943,7 +943,7 @@ sub discover_friends {
 				}
 
                 # 2) create URI
-                my $uri = Friends::URI->new();
+                $uri = Friends::URI->new();
                 $uri->init();
                 $uri->uri($u);
                 $uri->description($n);
