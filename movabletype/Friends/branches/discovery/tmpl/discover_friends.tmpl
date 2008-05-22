@@ -23,6 +23,7 @@
  	
  	<script type="text/javascript">
  	function changeState(el, idNum) {
+ 	    var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
  	    var dupState = (el.value.indexOf("duplicate")!=-1);
  		document.getElementById('cb'+idNum).disabled=dupState;
  		
@@ -126,8 +127,8 @@
         <td class="uri">
         	<mt:if name="other_profiles">
         	<mt:if name="duplicate">
-        		<mt:setvarblock name="dupuri">dupuri<$mt:var name="__counter__"$></mt:setvarblock>
-        	<input type="hidden" id="<$mt:var name="dupuri"$>" value="<$mt:var name="uri"$>" />
+        		<mt:setvarblock name="dupuriId">dupuri<$mt:var name="__counter__"$></mt:setvarblock>
+        	<input type="hidden" id="<$mt:var name="dupuriId"$>" value="<$mt:var name="dupuri"$>" />
         	</mt:if>
         	<select id="select<$mt:var name="__counter__"$>" onchange="changeState(this, <$mt:var name="__counter__"$>)">
         		<option value="<$mt:var name="uri" escape="html"$>">
