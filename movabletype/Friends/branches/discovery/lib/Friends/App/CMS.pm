@@ -644,6 +644,7 @@ sub _get_meta_for_uri {
         process '//a[contains(concat(" ", normalize-space(@rel), " ")," me ")]',
           'other_uris[]' => '@href';
         process '//link[@rel="openid.delegate"]', 'openid' => '@href';
+		process '//link[@rel="openid.local_id"]', 'openid2' => '@href';
 
         #process 'a[rel="me"]',	'fmes[]' => '@href';
     };
@@ -753,6 +754,9 @@ sub _get_contacts_for_uri {
             }
             if ( $meta->{openid} ) {
                 $refuri_node->{openid} = $meta->{openid}->as_string;
+            }
+			if ( $meta->{openid2} ) {
+                $refuri_node->{openid} = $meta->{openid2}->as_string;
             }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
