@@ -24,8 +24,10 @@ applications:
 			claimed_uris:               $Friends::Friends::App::CMS::claimed_uris
 			itemset_show_friends:		$Friends::Friends::App::CMS::itemset_show_friends
 			itemset_hide_friends:		$Friends::Friends::App::CMS::itemset_hide_friends
+			itemset_delete_friends:		$Friends::Friends::App::CMS::itemset_delete_friends
 			itemset_show_all_friends:	$Friends::Friends::App::CMS::itemset_show_all_friends
 			itemset_hide_all_friends:	$Friends::Friends::App::CMS::itemset_hide_all_friends
+			# contact_list:             $Friends::Friends::App::CMS::contact_list
 callbacks:
 	MT::App::CMS::template_source.users_content_nav: $Friends::Friends::App::CMS::users_content_nav
 tags:
@@ -54,11 +56,6 @@ list_actions:
             js:                 "finishPluginActionAll"
             code:               $Friends::Friends::App::CMS::itemset_show_all_friends
             continue_prompt:    "Are you sure you want to show EVERY friend?"
-        delete:
-            label:              "Delete"
-            order:              300
-            code:               $core::MT::App::CMS::delete
-            continue_prompt:    "Are you sure you want to delete the selected friend(s)?"
 upgrade_functions:
     uri_add_authorid:
         version_limit: 0.9

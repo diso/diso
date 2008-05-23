@@ -4,7 +4,6 @@
         <$mt:setvar name="page_title" value="<__trans phrase="Create New Friend">"$>
     </mt:if>
     <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this friend (s)" escape="html">"$>
-    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this friend (x)" escape="html">"$>
     <$mt:setvar name="position_actions_bottom" value="true"$>   
 </mt:if>
 
@@ -73,14 +72,6 @@
         title="<mt:var name="submit_button_title">"
         class="primary-button"
         ><__trans phrase="Save Friend"></button>
-    <mt:if name="id">
-    <button
-        mt:mode="delete_friend"
-        type="submit"
-        accesskey="x"
-        title="<mt:var name="delete_button_title">"
-        ><__trans phrase="Delete Friend"></button>
-    </mt:if>
     <div id="autosave-notification-<$mt:var name="bar_position" default="top"$>" class="autosave-notification"></div>
 </mt:setvartemplate>
 
@@ -146,7 +137,7 @@
 <mtapp:setting
     id="visible"
     label="<__trans phrase="Published">">
-    <input type="checkbox" name="visible" value="1" checked="checked" <mt:if name="visible" eq="1">checked="checked"</mt:if>/>    
+    <input type="checkbox" name="visible" value="1" <mt:if name="visible" eq="1|">checked="checked"</mt:if>/>    
 </mtapp:setting>
 
 <mt:if name="new_object">
