@@ -52,10 +52,15 @@
         title="<__trans phrase="Hide selected friends (h)">"
         ><__trans phrase="Hide"></a>
     <a href="javascript:void(0)"
-        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_show_friends'); return false"
+            onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_show_friends'); return false"
+            accesskey="h"
+            title="<__trans phrase="Show selected friends (h)">"
+            ><__trans phrase="Show"></a>
+    <a href="javascript:void(0)"
+        onclick="if (confirm('Delete selected friends?')) doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_delete_friends'); return false"
         accesskey="h"
-        title="<__trans phrase="Show selected friends (h)">"
-        ><__trans phrase="Show"></a>
+        title="<__trans phrase="Delete selected friends (h)">"
+        ><__trans phrase="Delete"></a>
 </mt:setvarblock>
 
 <mt:var name="position_actions_top" value="1">

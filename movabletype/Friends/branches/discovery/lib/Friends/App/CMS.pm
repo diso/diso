@@ -12,6 +12,13 @@ use URI;
 our $LOGTYPE = 'log4mt';    # 'mt'
 our $logger;
 
+sub _log_params {
+	my $app = shift;
+	foreach my $p ($app->param) {
+		_log ($p . ": " . $app->param($p));
+	}
+}
+
 sub _log {
     my $msg = shift;
     if ( $LOGTYPE eq 'log4mt' ) { # && MT->component('log4mt')) {
@@ -93,6 +100,23 @@ sub itemset_show_friends {
     }
 
     $app->add_return_arg( shown => 1 );
+    $app->call_return;
+}
+
+sub itemset_delete_friends {
+    my ($app) = @_;
+    $app->validate_magic or return;
+
+    my @friends = $app->param('id');
+
+    for my $friend_id (@friends) {
+        my $friend = MT->model('friend')->load($friend_id)
+          or next;
+        next
+          if $app->user->id != $friend->author_id
+              && !$app->user->is_superuser();
+        $friend->remove();
+    }
     $app->call_return;
 }
 
@@ -458,10 +482,8 @@ sub save_friend {
     my $app = shift;
     my ($param) = @_;
 
-    # my # $logger = MT::Log->get_logger();
-    # $logger->debug( Dumper( $app->param ) );
-    # $logger->debug( "visible: " . Dumper( $app->param('visible') ) );
-
+	_log_params ($app);
+	
     return $app->return_to_dashboard( redirect => 1 )
       unless $app->param('author_id') || $app->param('id');
 
@@ -501,9 +523,8 @@ sub save_friend {
         $obj->visible(1);
     }
 
-    # $logger->debug( Dumper( $obj) );
-
-    $obj->save() or die "Saving failed: ", $obj->errstr;
+    $obj->save or die "Saving failed: ", $obj->errstr;
+    _log ( "friend: " . Dumper( $obj) );
 
     if ( $app->param('uri') ) {
 
@@ -514,27 +535,9 @@ sub save_friend {
         $uri->uri( $app->param('uri') );
         $uri->description( $app->param('description') );
         $uri->target( $app->param('target') );
-        $uri->save() or die "Saving URI failed: ", $uri->errstr;
-    }
+        $uri->save or die "Saving URI failed: ", $uri->errstr;
 
-    my $iter = $pkg->load_iter();
-    my @data;
-    ## load up a data structure with the returned friends data
-    while ( my $obj = $iter->() ) {
-        my $row = $obj->column_values;
-
-        ## munge various fields as necessary
-        #
-
-        $row->{object} = $obj;
-        push @data, $row;
-    }
-
-    my ( $res_key, $res_val );
-    $res_key = 'saved_added';
-    $res_val = 0;
-    if ( $obj->id ) {
-        $res_val = 1;
+		_log ("uri: " . Dumper($uri));
     }
 
     return $app->redirect(
@@ -934,7 +937,7 @@ sub discover_friends {
 	                _log( "friend for dup uri: " . Dumper($friend) );
 				} else {
 	                # 1) create Friend
-					my $friend = Friends::Friend->new();
+					$friend = Friends::Friend->new();
 	                $friend->init();
 	                $friend->name($n);
 	                $friend->author_id($author_id);
