@@ -23,6 +23,7 @@ sub xrds_simple {
 	
 	foreach my $service_name (keys %{$xrds_services}) {
 		my $service_def = $xrds_services->{$service_name};
+		# TODO: support coderefs for each parameter (expires, uri, mediatype, etc.)
 		if ($service_def->{local_id_handler}) {
 			#$logger->debug(Dumper($service_def->{local_id_handler}));
 			my $local_id_handler = $app->handler_to_coderef($service_def->{local_id_handler})
