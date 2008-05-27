@@ -1,4 +1,4 @@
-<mt:setvar name="edit_author" value="1"/>
+<mt:setvar name="edit_author" value="1">
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Friends">"$>
 </mt:if>
@@ -30,10 +30,8 @@
     </script>
 
     <style type="text/css">
-    <!--
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
-    // -->
     </style>
 </mt:setvarblock>
 
@@ -42,9 +40,8 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="content_header">
-    <ul class="object-nav">
-        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"
-    	title="<__trans phrase="Add Friend">"><__trans phrase="Add Friend"></a></li>
+    <ul class="action-link-list">
+        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"><__trans phrase="Add Friend"></a></li>
     </ul>
 </mt:setvarblock>
 
@@ -55,10 +52,15 @@
         title="<__trans phrase="Hide selected friends (h)">"
         ><__trans phrase="Hide"></a>
     <a href="javascript:void(0)"
-        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_show_friends'); return false"
+            onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_show_friends'); return false"
+            accesskey="h"
+            title="<__trans phrase="Show selected friends (h)">"
+            ><__trans phrase="Show"></a>
+    <a href="javascript:void(0)"
+        onclick="if (confirm('Delete selected friends?')) doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_delete_friends'); return false"
         accesskey="h"
-        title="<__trans phrase="Show selected friends (h)">"
-        ><__trans phrase="Show"></a>
+        title="<__trans phrase="Delete selected friends (h)">"
+        ><__trans phrase="Delete"></a>
 </mt:setvarblock>
 
 <mt:var name="position_actions_top" value="1">
@@ -99,8 +101,7 @@
               <img src="<mt:var name="static_uri">images/status_icons/invert-flag.gif" alt="<__trans phrase="Status">" title="<__trans phrase="Status">" width="9" height="9" />
           </th>
           <th>Name</th>
-          <th>Relationship</th>
-          <th>URI</th>
+          <th>Link(s)</th>
         </tr>
       </thead>
     </mt:if>
@@ -112,7 +113,6 @@
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
         </td>
         <td class="name"><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>"><$mt:var name="name" escape="html"$></a></td>
-        <td class="relationship"><$mt:var name="rel" escape="html"$></td>
         <td class="uri">
             <ul>
             <mt:loop name="uris">

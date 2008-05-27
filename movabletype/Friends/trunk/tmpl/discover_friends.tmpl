@@ -1,12 +1,52 @@
 <$mt:setvar name="edit_author" value="1"$>
 <$mt:setvar name="page_title" value="<__trans phrase="Discover Friends">"$>
+<$mt:setvar name="discover_friends" value="1"$>
 <$mt:setvar name="position_actions_bottom" value="true"$> 
 
-<mt:setvarblock name="object_nav">
-    <ul class="object-nav">
-        <li><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"
-    	    title="<__trans phrase="Add Friend">"><__trans phrase="Add Friend"></a></li>
-    </ul>
+<mt:setvarblock name="html_head" append="1">
+ 	<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
+ 	
+ 	<style type="text/css">
+ 	.content-nav #main-content .msg { margin-left: 0px; }
+ 	#main-content {
+ 	    padding-top:5px;
+ 	}
+ 	
+ 	<mt:loop name="service_styles">
+ 	.service-<mt:var name="service_type"> { background-image: url(<mt:var name="service_icon">); }
+ 	</mt:loop>
+ 	
+ 	.disabled td, .disabled td a {
+ 		color: #999;
+ 	}
+ 	</style>
+ 	
+ 	<script type="text/javascript">
+ 	function changeState(el, idNum) {
+ 	    var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
+ 	    var dupState = (el.value.indexOf("duplicate")!=-1);
+ 		document.getElementById('cb'+idNum).disabled=dupState;
+ 		
+ 		if (dupState) {
+ 			document.getElementById('row'+idNum).className='disabled';
+ 			document.getElementById('cb'+idNum).checked=false;
+			//document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+	 	}
+		else
+		{
+			document.getElementById('row'+idNum).className='';
+			var newUri = el.value;
+			var name = document.getElementById('cb'+idNum).value.split('|')[0];
+			var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
+			if (oldUri) {
+				document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
+ 			} else {
+ 				document.getElementById('cb'+idNum).value = name + "|"+ newUri;
+ 			}
+ 			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+	 	}
+ 	}
+ 	</script>
 </mt:setvarblock>
 
 <mt:setvarblock name="content_nav">
@@ -33,13 +73,19 @@
     <mtapp:setting
         id="source_uri"
         label="<__trans phrase="Start With URL:">">
+        <ul>
+	    <mt:loop name="profiles">
+	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
+	    			value="<$mt:var name="uri" escape="html"$>" />
+	    			<span style="display:inline;" class="service-icon service-<$mt:var name="type"$>"><$mt:var name="label" escape="html"$> (<$mt:var name="ident" escape="html"$>)</span></li>
+	    </mt:loop>
+	    </ul>
+	    <input type="radio" name="source_uri" class="select" 
+	    			value="other" /> <__trans phrase="Other:">
         <input name="source_uri" id="source_uri" size="40" value="<mt:var name="source_uri">" style="border:1px solid #ccc;" />
     </mtapp:setting>
-    <mtapp:setting
-        id="getclaimed"
-        label="<__trans phrase="Find My Other Sites">">
-        <input type="checkbox" name="getclaimed" id="getclaimed" value="1" />
-    </mtapp:setting>
+    <input type="hidden" name="step" value="find" />
+    <em>This step may take a while if you have a large number of contacts on the remote site. Please be patient.</em>
 </mt:if>
 
 <mt:if name="step" eq="getclaimed">
@@ -56,35 +102,55 @@
 </mt:if>
 
 <mt:if name="step" eq="find">
-    <mt:loop name="collections">
-      <h2><$mt:var name="source" $></h2>
+    <h3><$mt:var name="source" $></h3>
 
-      <mtapp:listing name="contacts">
-          <mt:if __first__>
-            <thead>
-              <tr>
-                <th>URI</th>
-                <th width="20%">Relationship</th>
-              </tr>
-            </thead>
-          </mt:if>
-          <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-            <td class="uri"><input type="checkbox" name="import" value="<$mt:var name="uri" $>" id="import"> <a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
-                <mt:if name="related">
-                    <ul>
-                        <mt:loop name="related">
-                            <li><$mt:var name="__value__"$></li>
-                        </mt:loop>
-                    </ul>
-                </mt:if>
-            </td>
-            <td class="relationship"><$mt:var name="rel" escape="html"$></td>
+    <mtapp:listing name="contacts" type="contact" loop="contacts">
+      <mt:if __first__>
+        <thead>
+          <tr>
+          	<th>Name</th>
+            <th>URI</th>
           </tr>
-      </mtapp:listing>
-    </mt:loop>
+        </thead>
+      </mt:if>
+      <tr id="row<$mt:var name="__counter__"$>" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+        <td>
+            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
+            <mt:elseif name="title"><$mt:var name="title"$>
+            <mt:else><$mt:var name="uri"$>
+            </mt:if>|<$mt:var name="uri" $>" />
+            <mt:if name="name"><$mt:var name="name" escape="html"$>
+	                <mt:elseif name="title"><$mt:var name="title"$>
+	                <mt:else><$mt:var name="uri$>
+            </mt:if>
+        </td>
+        <td class="uri">
+        	<mt:if name="other_profiles">
+        	<mt:if name="duplicate">
+        		<mt:setvarblock name="dupuriId">dupuri<$mt:var name="__counter__"$></mt:setvarblock>
+        	<input type="hidden" id="<$mt:var name="dupuriId"$>" value="<$mt:var name="dupuri"$>" />
+        	</mt:if>
+        	<select id="select<$mt:var name="__counter__"$>" onchange="changeState(this, <$mt:var name="__counter__"$>)">
+        		<option value="<$mt:var name="uri" escape="html"$>">
+        		<$mt:var name="uri" escape="html"$>
+        		</option>
+        	<mt:loop name="other_profiles">
+        		<option><a href="<$mt:var name="__value__" escape="html"$>"><$mt:var name="__value__" escape="html"$></li>
+        	</mt:loop>
+        	</select>
+        	<script type="text/javascript">
+        	    changeState(document.getElementById("select<$mt:var name="__counter__"$>"),<$mt:var name="__counter__"$>);
+        	</script>
+        	<mt:else>
+        	<a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
+        	</mt:if>
+        </td>
+      </tr>
+    </mtapp:listing>
+    <input type="hidden" name="step" value="import" />
 </mt:if>
 <mt:if name="step" eq="import">
-    
+    <h3>Import</h3>
 </mt:if>
 
 <mt:setvartemplate name="action_buttons">
@@ -97,7 +163,7 @@
         ><__trans phrase="Next"></button>
 </mt:setvartemplate>
 
-<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
      
 <mt:setvarblock name="form_footer">
     </form>

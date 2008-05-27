@@ -40,7 +40,7 @@
 <mt:if name="saved"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
 <mt:if name="deleted"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
 
-<form name="uri_form" id="uri_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
+<form name="uri_form" id="uri_form" target="_top" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
         <mt:if name="new_object">
             <input type="hidden" name="author_id" value="<$mt:var name="author_id"$>" />
         <mt:else>
