@@ -257,7 +257,7 @@ sub edit_uri {
     # uri_id or friend_id required
     # uri_id -> edit this uri
     # friend_id -> create new uri, probably
-    _log("uri_id: $uri_id; friend_id: $friend_id");
+    # _log("uri_id: $uri_id; friend_id: $friend_id");
     unless ( $uri_id || $friend_id ) {
         return $app->error(
             "Invalid request. Requires one of uri_id or friend_id.");
@@ -361,10 +361,19 @@ sub delete_uri {
     }
 
     require Friends::URI;
+	require Friends::Friend;
+	my $uri = Friends::URI->load( { id => $uri_id } );
+	my $friend_id = $uri->friend_id;
+	my $friend = Friends::Friend->load( { id => $friend_id } );
+	
     Friends::URI->remove( { id => $uri_id } )
       or return $app->error( 'Could not delete URI ' . $uri_id );
 
-    $app->call_return( deleted => 1, saved_changes => 1 );
+    #$app->call_return( deleted => 1, saved_changes => 1 );
+	$app->redirect( $app->path
+          . $app->script
+          . "?__mode=edit_friend&_type=friend&id=$friend_id&author_id="
+          . $friend->author_id );
 }
 
 =item list_friends
