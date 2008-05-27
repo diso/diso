@@ -1,5 +1,7 @@
 xrds_services:
     openid2:
+    	id: openid2
+    	description: "OpenID Endpoint Definition"
         type: http://specs.openid.net/auth/2.0/server
         # media_type: alternate to type
         uri: http://endpoint.example.net
