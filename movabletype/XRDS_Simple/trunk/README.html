@@ -1,0 +1,37 @@
+<h1 id="xrds_simple_for_movable_type">XRDS Simple for Movable Type</h1>
+
+<p>XRDS Simple for Movable Type implements <a href="http://xrds-simple.net/core/1.0/">XRDS Simple</a> service discovery. New web services like <a href="http://openid.net">OpenID</a> and <a href="http://oauth.net">OAuth</a> are encouraging the use of XRDS (eXtensible Resource Descriptor Sequence) (and specifically the new, simplified version) for service discovery.</p>
+
+<p>XRDS Simple for Movable Type is a faceless application that enables plugins to register services to be advertised in the discovery document.</p>
+
+<h2 id="registering_a_plugin8217s_services">Registering A Plugin&#8217;s Services</h2>
+
+<p>Sample configuration YAML:</p>
+
+<pre><code>xrds_services:
+    openid2:
+        type: http://specs.openid.net/auth/2.0/server
+        # media_type:
+        uri: http://endpoint.example.net
+        namespace_id: openid
+        namespace_uri: http://openid.net/xmlns/1.0
+        priority: 10
+        # local_id: http://redmonk.net
+        local_id_handler: sub { "http://example.com" }
+</code></pre>
+
+<h3 id="xrds_services">xrds_services</h3>
+
+<p>A plugin registers its services with XRDS Simple by including an <code>xrds_services</code> section in <code>config.yaml</code>. In that section are any number of service definitions, each listed under a unique identifier.</p>
+
+<p>Within the service definition are a number of items which generally follow the XRDS Simple spec[1]. Of note are the <code>namespace_id</code>, <code>namespace_uri</code>, and <code>local_id_handler</code>.</p>
+
+<p>Each service can register a namespace to be included in the xml declaration of the discovery document. The <code>namespace_id</code> and <code>namespace_uri</code> parameters are used to construct an <code>xsmlns:</code> attribute, like:</p>
+
+<pre><code>xmlns:openid="http://openid.net/xmlns/1.0"
+</code></pre>
+
+<p>XRDS also supports the concept of a local id - an identifier for this site or user on the service the discovery document points to. The <code>local_id</code> parameter will be added to the generated document in the service definition. Sometimes the <code>local_id</code> will need to be set programatically. In that case, pass in a coderef as <code>local_id_handler</code>.</p>
+
+<pre><code>local_id_handler: sub { "http://example.com" }
+</code></pre>
