@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS
+    xmlns:xrds="xri://$xrds"
+    <mt:loop name="services" var="services"><mt:if name="namespace_id" ne="">
+    xmlns:<mt:var name="namespace_id">="<mt:var name="namespace_uri">"
+    </mt:if></mt:loop>
+    >
+    <XRD>
+        <Type>xri://$xrds*simple</Type>
+        <mt:loop name="services" var="services">
+        <Service priority="<mt:var name="priority">">
+            <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
+            <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
+            <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
+            <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
+        </Service>
+        </mt:loop>
+    </XRD>
+</xrds:XRDS>
