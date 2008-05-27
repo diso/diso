@@ -1,8 +1,10 @@
 xrds_services:
     openid2:
         type: http://specs.openid.net/auth/2.0/server
+        # media_type: alternate to type
         uri: http://endpoint.example.net
         namespace_id: openid
         namespace_uri: http://openid.net/xmlns/1.0
         priority: 10
-        local_id_handler: sub { "http://redmonk.net" }
+        # local_id: can be used instead of handler
+        local_id_handler: sub { "http://example.com" }
