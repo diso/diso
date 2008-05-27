@@ -1,0 +1,8 @@
+xrds_services:
+    openid2:
+        type: http://specs.openid.net/auth/2.0/server
+        uri: http://endpoint.example.net
+        namespace_id: openid
+        namespace_uri: http://openid.net/xmlns/1.0
+        priority: 10
+        local_id_handler: sub { "http://redmonk.net" }
