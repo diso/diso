@@ -1,0 +1,30 @@
+name: XRDS Simple
+id: xrds_simple
+key: xrds_simple
+author_link: http://diso-project.org/
+author_name: Steve Ivy
+description: Provide a simple registry-based system for publishing services through and XRDS file
+version: 0.1
+plugin_link: http://diso-project.org/
+applications:
+	cms:
+		methods:
+			xrds_simple:
+			    code: $XRDS_Simple::XRDS_Simple::App::Plugin::xrds_simple
+			    requires_login: 0
+xrds_services:
+    openid2:
+        type: http://specs.openid.net/auth/2.0/server
+        uri: http://endpoint.example.net
+        namespace_id: openid
+        namespace_uri: http://openid.net/xmlns/1.0
+        priority: 10
+        local_id_handler: $XRDS_Simple::XRDS_Simple::App::Plugin::openid_local_id
+    openid:
+        type: http://openid.net/signon/1.0
+        uri: http://endpoint.example.net
+        priority: 20
+#    portable_data:
+#        type:
+#        uri:
+#        priority: 5
