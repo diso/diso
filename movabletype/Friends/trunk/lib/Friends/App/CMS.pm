@@ -52,11 +52,11 @@ sub users_content_nav {
     my $html = <<"EOF";
     <mt:if var="USER_VIEW">
 		<li<mt:if name="list_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-    	<!--li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li-->
+    	<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Friends">$close_bold</a></li>
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="list_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Friends">$close_bold</a></li>
-		<!--li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li-->
+		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Discover Friends">$close_bold</a></li>
     </mt:if>
 EOF
 
@@ -724,7 +724,7 @@ sub _get_contacts_for_uri {
                 _log( "found existing URI for $referenced_uri: " . Dumper($uri) );
                 $refuri_node->{dupuri} = $uri->uri;
             }
-			$refuri_node->{uri} = $referenced_uri; # . ($refuri_node->{duplicate} ? " (duplicate)" : "");
+			$refuri_node->{uri} = $referenced_uri . ($refuri_node->{duplicate} ? " (duplicate)" : "");
 
 			_log( Dumper( $meta->{other_uris} ) );
 			
@@ -970,24 +970,15 @@ sub discover_friends {
                 _log( Dumper($uri) );
                 push @created_friends, $friend;
             }
-
-            return $app->listing(
-                {
-                    type           => 'friend',
-                    listing_screen => 1,
-                    template =>
-                      MT->component('Friends')->load_tmpl('list_friends.tmpl'),
-                    object_loop => \@created_friends,
-                    code        => sub {
-                        my ( $obj, $row ) = @_;
-                        $row->{uris} = $obj->uris;
-                    },
-                    params => {
-                        object_type => 'friend',
-                        id          => $author_id
-                    }
-                }
-            );
+			return $app->redirect(
+		        $app->uri(
+		            mode => 'list_friends',
+		            args => {
+		                id          => $author_id,
+		                saved_added => 1,
+		            },
+		        )
+		    );
             last STEP;
         }
     }
