@@ -1,12 +1,62 @@
 xrds_services:
-    openid2:
-    	id: openid2
-    	description: "OpenID Endpoint Definition"
-        type: http://specs.openid.net/auth/2.0/server
-        # media_type: alternate to type
-        uri: http://endpoint.example.net
-        namespace_id: openid
-        namespace_uri: http://openid.net/xmlns/1.0
-        priority: 10
-        # local_id: can be used instead of handler
-        local_id_handler: sub { "http://example.com" }
+	openid2:
+		id: openid2
+		description: "OpenID Endpoint Definition"
+		type: http://specs.openid.net/auth/2.0/server
+		# media_type: alternate to type
+		uri: http://endpoint.example.net
+		namespace_id: openid
+		namespace_uri: http://openid.net/xmlns/1.0
+		# local_id: can be used instead of handler
+		local_id_handler: sub { "http://example.com" }
+	oauth:
+		id: oauth
+		description: "Oauth Endpoint Definitions from Ma.gnolia"
+		expires: 2008-06-02T13:37:36Z
+		type: http://oauth.net/discovery/1.0
+		registered_services:
+			request_token:
+				description: "Request Token"
+				types:
+					- http://oauth.net/core/1.0/endpoint/request
+					- http://oauth.net/core/1.0/parameters/auth-header
+					- http://oauth.net/core/1.0/parameters/post-body
+					- http://oauth.net/core/1.0/parameters/uri-query
+					- http://oauth.net/core/1.0/signature/HMAC-SHA1
+					- http://oauth.net/core/1.0/signature/RSA-SHA1
+					- http://oauth.net/core/1.0/signature/PLAINTEXT
+				uri: https://ma.gnolia.com/oauth/get_request_token
+			user_auth:
+				description: "User Authorization (HTTPS Prefered)"
+				types:
+					- http://oauth.net/core/1.0/endpoint/authorize
+					- http://oauth.net/core/1.0/parameters/auth-header
+					- http://oauth.net/core/1.0/parameters/uri-query
+				uris:
+					- https://ma.gnolia.com/oauth/authorize
+					- http://ma.gnolia.com/oauth/authorize
+			access_token:
+				description: "Access Token"
+				types:
+					- http://oauth.net/core/1.0/endpoint/access
+					- http://oauth.net/core/1.0/parameters/auth-header
+					- http://oauth.net/core/1.0/parameters/uri-query
+					- http://oauth.net/core/1.0/parameters/uri-query
+					- http://oauth.net/core/1.0/signature/HMAC-SHA1
+					- http://oauth.net/core/1.0/signature/RSA-SHA1
+					- http://oauth.net/core/1.0/signature/PLAINTEXT
+				uri: https://ma.gnolia.com/oauth/get_access_token
+			protected_resources:
+				description: "Protected Resources"
+				types:
+					- http://oauth.net/core/1.0/endpoint/access
+					- http://oauth.net/core/1.0/parameters/auth-header
+					- http://oauth.net/core/1.0/parameters/uri-query
+					- http://oauth.net/core/1.0/parameters/uri-query
+					- http://oauth.net/core/1.0/signature/HMAC-SHA1
+					- http://oauth.net/core/1.0/signature/RSA-SHA1
+					- http://oauth.net/core/1.0/signature/PLAINTEXT
+			consumer_identity:
+				description: "Consumer Identity"
+				type: http://oauth.net/discovery/1.0/consumer-identity/oob
+				uri: http://ma.gnolia.com/applications/new

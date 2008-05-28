@@ -4,7 +4,7 @@ key: xrds_simple
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provide a simple registry-based system for publishing services through and XRDS file
-version: 0.1
+version: 0.2
 plugin_link: http://diso-project.org/
 applications:
 	cms:
