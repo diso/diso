@@ -1,7 +1,12 @@
-<$mt:setvar name="edit_author" value="1"$>
-<$mt:setvar name="page_title" value="<__trans phrase="Discover Friends">"$>
-<$mt:setvar name="discover_friends" value="1"$>
-<$mt:setvar name="position_actions_bottom" value="true"$> 
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="page_title" value="<__trans phrase="Discover Friends">">
+<mt:setvar name="discover_friends" value="1">
+<mt:setvar name="position_actions_bottom" value="true">
+<mt:if name="step" eq="start">
+    <mt:setvar name="submitbutton" value="Next">
+<mt:elseif name="step" eq="find">
+    <mt:setvar name="submitbutton" value="Import">
+</mt:if>
 
 <mt:setvarblock name="html_head" append="1">
  	<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
@@ -11,7 +16,6 @@
  	#main-content {
  	    padding-top:5px;
  	}
- 	
  	<mt:loop name="service_styles">
  	.service-<mt:var name="service_type"> { background-image: url(<mt:var name="service_icon">); }
  	</mt:loop>
@@ -22,6 +26,27 @@
  	</style>
  	
  	<script type="text/javascript">
+ 	var tableSelect;
+    function init() {
+        // set up table select awesomeness
+        tableSelect = new TC.TableSelect("friend-listing-table");
+        tableSelect.rowSelect = true;
+    }
+
+    TC.attachLoadEvent(init);
+
+    function finishPluginActionAll(f, action) {
+        var select_all = getByID('select-all-checkbox')
+        if (select_all) {
+            select_all.checked = true;
+            tableSelect.select(select_all);
+        }
+        return doForMarkedInThisWindow(f, '', 'contacts', 'id', 'itemset_action',
+            {'action_name': action}, 'to act upon');
+    }
+
+    // -->
+    
  	function changeState(el, idNum) {
  	    var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
  	    var dupState = (el.value.indexOf("duplicate")!=-1);
@@ -54,14 +79,16 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="form_header">
-    <form name="discover_form" id="discover_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="0">
-        <input type="hidden" name="id" value="<$mt:var name="id"$>" />
+    <form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" mt:once="1" mt:auto-save="0">
+        <input type="hidden" name="id" value="<mt:var name="id">" />
         <input type="hidden" name="__mode" value="discover_friends" />
-        <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
-        <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
-        <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
+        <input type="hidden" name="_type" value="<mt:var name="object_type">" />
+        <input type="hidden" name="return_args" value="<mt:var name="return_args" escape="html">" />
+        <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
         <input type="hidden" name="action_name" value="" />
 </mt:setvarblock>
+
+<mt:var name="position_actions_top" value="1">
 
 <mt:include name="include/header.tmpl" id="header_include">
 
@@ -76,8 +103,8 @@
         <ul>
 	    <mt:loop name="profiles">
 	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
-	    			value="<$mt:var name="uri" escape="html"$>" />
-	    			<span style="display:inline;" class="service-icon service-<$mt:var name="type"$>"><$mt:var name="label" escape="html"$> (<$mt:var name="ident" escape="html"$>)</span></li>
+	    			value="<mt:var name="uri" escape="html">" />
+	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"><mt:var name="label" escape="html"> (<mt:var name="ident" escape="html">)</span></li>
 	    </mt:loop>
 	    </ul>
 	    <input type="radio" name="source_uri" class="select" 
@@ -93,8 +120,8 @@
         id="uri"
         label="<__trans phrase="Search These URLs for contacts">">
         <mt:loop name="claimed">
-            <div><label><input type="checkbox" name="uri" id="uri" value="<$mt:var name="__value__"$>" />
-                <$mt:var name="__value__"$></label></div>
+            <div><label><input type="checkbox" name="uri" id="uri" value="<mt:var name="__value__">" />
+                <mt:var name="__value__"></label></div>
         
         </mt:loop>
     </mtapp:setting>
@@ -102,9 +129,7 @@
 </mt:if>
 
 <mt:if name="step" eq="find">
-    <h3><$mt:var name="source" $></h3>
-
-    <mtapp:listing name="contacts" type="contact" loop="contacts">
+    <mtapp:listing name="contacts" loop="contacts">
       <mt:if __first__>
         <thead>
           <tr>
@@ -113,36 +138,32 @@
           </tr>
         </thead>
       </mt:if>
-      <tr id="row<$mt:var name="__counter__"$>" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+      <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
         <td>
-            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="uris" value="<mt:if name="name"><$mt:var name="name" escape="html"$>
-            <mt:elseif name="title"><$mt:var name="title"$>
-            <mt:else><$mt:var name="uri"$>
-            </mt:if>|<$mt:var name="uri" $>" />
-            <mt:if name="name"><$mt:var name="name" escape="html"$>
-	                <mt:elseif name="title"><$mt:var name="title"$>
-	                <mt:else><$mt:var name="uri$>
+            <mt:if name="name"><mt:var name="name" escape="html">
+	                <mt:elseif name="title"><mt:var name="title">
+	                <mt:else><mt:var name="uri>
             </mt:if>
         </td>
         <td class="uri">
         	<mt:if name="other_profiles">
         	<mt:if name="duplicate">
-        		<mt:setvarblock name="dupuriId">dupuri<$mt:var name="__counter__"$></mt:setvarblock>
-        	<input type="hidden" id="<$mt:var name="dupuriId"$>" value="<$mt:var name="dupuri"$>" />
+        		<mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
+        	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
         	</mt:if>
-        	<select id="select<$mt:var name="__counter__"$>" onchange="changeState(this, <$mt:var name="__counter__"$>)">
-        		<option value="<$mt:var name="uri" escape="html"$>">
-        		<$mt:var name="uri" escape="html"$>
+        	<select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
+        		<option value="<mt:var name="uri" escape="html">">
+        		<mt:var name="uri" escape="html">
         		</option>
         	<mt:loop name="other_profiles">
-        		<option><a href="<$mt:var name="__value__" escape="html"$>"><$mt:var name="__value__" escape="html"$></li>
+        		<option><a href="<mt:var name="__value__" escape="html">"><mt:var name="__value__" escape="html"></li>
         	</mt:loop>
         	</select>
         	<script type="text/javascript">
-        	    changeState(document.getElementById("select<$mt:var name="__counter__"$>"),<$mt:var name="__counter__"$>);
+        	    changeState(document.getElementById("select<mt:var name="__counter__">"),<mt:var name="__counter__">);
         	</script>
         	<mt:else>
-        	<a href="<$mt:var name="uri" escape="html"$>"><$mt:var name="uri" escape="html"$></a>
+        	<a href="<mt:var name="uri" escape="html">"><mt:var name="uri" escape="html"></a>
         	</mt:if>
         </td>
       </tr>
@@ -158,9 +179,9 @@
         mt:mode="discover_friends"
         type="submit"
         accesskey="s"
-        title="<mt:var name="Next">"
+        title="<mt:var name="submitbutton">"
         class="primary-button"
-        ><__trans phrase="Next"></button>
+        ><mt:var name="submitbutton"></button>
 </mt:setvartemplate>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
