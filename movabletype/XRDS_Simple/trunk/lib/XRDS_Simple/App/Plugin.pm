@@ -14,7 +14,7 @@ sub init_request {
 sub xrds_simple {
 	my $app = shift;
 	$app->{requires_login} = 0;
-	my $logger = MT::Log->get_logger();
+	#my $logger = MT::Log->get_logger();
 	
 	# load registry xrds_services
 	my $xrds_services = $app->registry('xrds_services') || {};
@@ -25,24 +25,29 @@ sub xrds_simple {
 		my $service_def = $xrds_services->{$service_name};
 		# TODO: support coderefs for each parameter (expires, uri, mediatype, etc.)
 		if ($service_def->{local_id_handler}) {
-			#$logger->debug(Dumper($service_def->{local_id_handler}));
 			my $local_id_handler = $app->handler_to_coderef($service_def->{local_id_handler})
 			        or return $app->error('local_id_handler call failed: ' . $!);
 			    
 			$service_def->{local_id} = $local_id_handler->();
 		}
-		$logger->debug(Dumper($service_def));
+		if ($service_def->{registered_services}) {
+			my @rservices;
+			foreach my $rservice (keys %{$service_def->{registered_services}}) {
+				
+				push @rservices, $service_def->{registered_services}->{$rservice};
+			}
+			$service_def->{registered_services} = \@rservices;
+		}
+		MT->log(Dumper($service_def));
 		push @services, $service_def;
 	}
-	
-	#$logger->debug(Dumper(\@services));
 	
     my $plugin = $app->component('xrds_simple');
     
 	# now serve the file
-	$logger->debug($app->request_method);
+	# $logger->debug($app->request_method);
     if ( 'GET' eq $app->request_method ) {
-        $app->response_content_type('application/xrds+xml');
+        $app->response_content_type('text/plain');
         if ( 'xrds_simple' eq $app->mode ) {
             my $param = {
                 services => \@services,
