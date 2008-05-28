@@ -3,8 +3,7 @@
     xmlns:xrds="xri://$xrds"
     <mt:loop name="services" var="services"><mt:if name="namespace_id">xmlns:<mt:var name="namespace_id">="<mt:var name="namespace_uri">"
     </mt:if></mt:loop>>
-    
-    <mt:loop name="services" var="services">
+    <mt:loop name="services" var="services"><mt:if name="id" like="(openid|openid2)"><mt:else>
     <!-- <mt:var name="description"> -->
     <XRD xml:id="<mt:var name="id">" xmlns="xri://$XRD*($v*2.0)" version="2.0">
         <Type>xri://$xrds*simple</Type>
@@ -40,18 +39,23 @@
         </Service>
         </mt:if>
     </XRD>
-    
+    </mt:if>
     </mt:loop>
     
     <!-- Global Resource Definition -->
     <XRD xmlns="xri://$XRD*($v*2.0)" version="2.0">
         <Type>xri://$xrds*simple</Type>
-        <mt:loop name="services" var="services"><!-- <mt:var name="description"> -->
+        <mt:loop name="services" var="services"><mt:if name="id" like="(openid|openid2)"><Service priority="<mt:var name="__counter__">">
+            <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
+            <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
+            <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
+            <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
+        </Service>
+        <mt:else><!-- <mt:var name="description"> -->
         <Service priority="<mt:var name="__counter__">">
           <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
           <URI>#<mt:var name="id"></URI>
-        </Service>
-        
+        </Service></mt:if>
         </mt:loop>
     </XRD>	
 </xrds:XRDS>
