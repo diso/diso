@@ -1,11 +1,8 @@
 package Friends::URI;
 
 use strict;
-our $VERSION = '0.5';
 
 use base qw( MT::Object );
-
-use constant DEBUG => 1;
 
 __PACKAGE__->install_properties(
     {
