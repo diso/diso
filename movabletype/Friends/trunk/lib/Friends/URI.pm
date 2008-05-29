@@ -30,22 +30,9 @@ __PACKAGE__->install_properties(
 
 sub friend {
     my $uri = shift;
-    $uri->cache_property(
-        'friend',
-        sub {
-            return undef unless $uri->friend_id;
-            my $req          = MT::Request->instance();
-            my $friend_cache = $req->stash('friend_cache');
-            my $friend       = $friend_cache->{ $uri->friend_id };
-            unless ($friend) {
-                require Friends::Friend;
-                $friend = Friends::Friend->load( $uri->friend_id );
-                $friend_cache->{ $uri->friend_id } = $friend;
-                $req->stash( 'friend_cache', $friend_cache );
-            }
-            $friend;
-        }
-    );
+    my $friend_class = MT->model('friend');
+    $friend = Friends::Friend->load( $uri->friend_id );
+	return $friend;
 }
 
 sub class_label { MT->translate('URL'); }
