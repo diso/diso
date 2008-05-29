@@ -1,7 +1,6 @@
 package Friends::Friend;
 
 use strict;
-our $VERSION = '0.5';
 use base qw( MT::Object MT::Scorable MT::Taggable );
 
 use constant DEBUG => 1;
