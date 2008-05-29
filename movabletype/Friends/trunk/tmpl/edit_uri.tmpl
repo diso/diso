@@ -1,12 +1,13 @@
+<mt:setvar name="list_friends" value="1">
 <mt:if name="object_type" eq="uri">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit URL">"$>
     <mt:if name="new_object">
         <$mt:setvar name="page_title" value="<__trans phrase="Create New URL">"$>
     </mt:if>
     
-    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this URL (s)" escape="html">"$>
-    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL" escape="html">"$>
-    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL (x)" escape="html">"$>
+    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this URL (s)">"$>
+    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL">"$>
+    <$mt:setvar name="delete_button_title" value="<__trans phrase="Delete this URL (x)">"$>
     <$mt:setvar name="position_actions_bottom" value="true"$>  
 </mt:if>
 
@@ -49,7 +50,7 @@
             <input type="hidden" name="friend_id" value="<$mt:var name="friend_id"$>" />
             <input type="hidden" name="__mode" value="save_uri" />
             <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
-            <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
+            <input type="hidden" name="return_args" value="<$mt:var name="return_args"$>" />
             <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
             <input type="hidden" name="action_name" value="" />
     
@@ -64,7 +65,7 @@
 <mtapp:setting
     id="description"
     label="<__trans phrase="Label">">
-    <input type="text" name="description" id="description" class="full-width" value="<mt:var name="description" escape="html">"/>
+    <input type="text" name="description" id="description" class="full-width" value="<mt:var name="description">"/>
 </mtapp:setting>
 
 <mtapp:setting
@@ -79,7 +80,7 @@
 <mtapp:setting
     id="notes"
     label="<__trans phrase="Notes">">
-    <textarea name="notes" rows="3" id="notes" class="full-width"><mt:var name="notes" escape="html"></textarea>
+    <textarea name="notes" rows="3" id="notes" class="full-width"><mt:var name="notes"></textarea>
 </mtapp:setting>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1">
