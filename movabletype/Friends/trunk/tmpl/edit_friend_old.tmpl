@@ -3,7 +3,7 @@
     <mt:if name="new_object">
         <$mt:setvar name="page_title" value="<__trans phrase="Create New Friend">"$>
     </mt:if>
-    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this friend (s)" escape="html">"$>
+    <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this friend (s)">"$>
     <$mt:setvar name="position_actions_bottom" value="true"$>   
 </mt:if>
 
@@ -105,7 +105,7 @@
     </mt:if>
         <input type="hidden" name="__mode" value="save_friend" />
         <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
-        <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
+        <input type="hidden" name="return_args" value="<$mt:var name="return_args"$>" />
         <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
         <input type="hidden" name="action_name" value="" />
         <input type="hidden" name="itemset_action_input" value="" />
@@ -185,14 +185,14 @@
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td class="description">
                 <a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="description" escape="html"$></a>
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="description"$></a>
                         <a href="<$mt:var name="script_url"$>"></a></td>
             <td class="uri">
                 <a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri" escape="html"$></a>
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri"$></a>
             </td>
             <td class="view si status-view">
-                <a href="<mt:var name="uri" escape="html">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
+                <a href="<mt:var name="uri">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
             </td>
         </tr>
     </mt:loop>

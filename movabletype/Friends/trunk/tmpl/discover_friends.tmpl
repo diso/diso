@@ -83,7 +83,7 @@
         <input type="hidden" name="id" value="<mt:var name="id">" />
         <input type="hidden" name="__mode" value="discover_friends" />
         <input type="hidden" name="_type" value="<mt:var name="object_type">" />
-        <input type="hidden" name="return_args" value="<mt:var name="return_args" escape="html">" />
+        <input type="hidden" name="return_args" value="<mt:var name="return_args">" />
         <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
         <input type="hidden" name="action_name" value="" />
 </mt:setvarblock>
@@ -103,8 +103,8 @@
         <ul>
 	    <mt:loop name="profiles">
 	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
-	    			value="<mt:var name="uri" escape="html">" />
-	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"><mt:var name="label" escape="html"> (<mt:var name="ident" escape="html">)</span></li>
+	    			value="<mt:var name="uri">" />
+	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"><mt:var name="label"> (<mt:var name="ident">)</span></li>
 	    </mt:loop>
 	    </ul>
 	    <input type="radio" name="source_uri" class="select" 
@@ -112,6 +112,11 @@
         <input name="source_uri" id="source_uri" size="40" value="<mt:var name="source_uri">" style="border:1px solid #ccc;" />
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
+    <mtapp:setting
+        id="get_related"
+        label="Find site related to discovered contacts"
+        ><div><label><input type="checkbox" name="get_related" id="get_related" value="1" /> Get Related</label></div>
+    </mtapp:setting>
     <em>This step may take a while if you have a large number of contacts on the remote site. Please be patient.</em>
 </mt:if>
 
@@ -140,7 +145,11 @@
       </mt:if>
       <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
         <td>
-            <mt:if name="name"><mt:var name="name" escape="html">
+            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="uris" value="<mt:if name="name"><$mt:var name="name"$>
+                       <mt:elseif name="title"><$mt:var name="title"$>
+                        <mt:else><$mt:var name="uri"$>
+                        </mt:if>|<$mt:var name="uri" $>" />
+            <mt:if name="name"><mt:var name="name">
 	                <mt:elseif name="title"><mt:var name="title">
 	                <mt:else><mt:var name="uri>
             </mt:if>
@@ -152,18 +161,18 @@
         	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
         	</mt:if>
         	<select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
-        		<option value="<mt:var name="uri" escape="html">">
-        		<mt:var name="uri" escape="html">
+        		<option value="<mt:var name="uri">">
+        		<mt:var name="uri">
         		</option>
         	<mt:loop name="other_profiles">
-        		<option><a href="<mt:var name="__value__" escape="html">"><mt:var name="__value__" escape="html"></li>
+        		<option><a href="<mt:var name="__value__">"><mt:var name="__value__"></li>
         	</mt:loop>
         	</select>
         	<script type="text/javascript">
         	    changeState(document.getElementById("select<mt:var name="__counter__">"),<mt:var name="__counter__">);
         	</script>
         	<mt:else>
-        	<a href="<mt:var name="uri" escape="html">"><mt:var name="uri" escape="html"></a>
+        	<a href="<mt:var name="uri">"><mt:var name="uri"></a>
         	</mt:if>
         </td>
       </tr>
