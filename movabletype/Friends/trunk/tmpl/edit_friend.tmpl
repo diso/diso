@@ -13,7 +13,7 @@
         <mtapp:statusmsg
             id="saved"
             class="success">
-            <__trans phrase="You have added [_1] to this friend's urls." params="<strong><$mt:var name="saved" escape="html"$></strong>">
+            <__trans phrase="You have added [_1] to this friend's urls." params="<strong><$mt:var name="saved"$></strong>">
         </mtapp:statusmsg>
     </mt:if>
     <mt:if name="saved_deleted">
@@ -190,7 +190,7 @@
 </mt:if>
     <input type="hidden" name="__mode" value="save_friend" />
     <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
-    <input type="hidden" name="return_args" value="<$mt:var name="return_args" escape="html"$>" />
+    <input type="hidden" name="return_args" value="<$mt:var name="return_args"$>" />
     <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
     <input type="hidden" name="action_name" value="" />
     <input type="hidden" name="itemset_action_input" value="" />
@@ -217,7 +217,7 @@
         <input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
         <input type="hidden" name="__mode" value="save_uri" />
         <input type="hidden" name="_type" value="uri" />
-        <input type="hidden" name="return_args" value="<mt:var name="return_args" escape="html">" />
+        <input type="hidden" name="return_args" value="<mt:var name="return_args">" />
         <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" />
         <input type="hidden" name="id" value="" />
         <input type="hidden" name="friend_id" value="<mt:var name="friend_id">" />
@@ -269,15 +269,15 @@
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td class="cb" id="delete-<mt:var name="id">"><input type="checkbox" name="id" value="<mt:var name="id">" class="select" /></td>
             <td>
-                <a id="uri-desc-link-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;" href="javascript:void(0)" title="<__trans phrase="Click to edit URL description">"><mt:var name="description" escape="html"></a>
+                <a id="uri-desc-link-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;" href="javascript:void(0)" title="<__trans phrase="Click to edit URL description">"><mt:var name="description"></a>
                 <span id="uri-desc-field-<mt:var name="id">" style="display: none">
-                    <input type="text" name="uri-desc-<mt:var name="id">" id="uri-desc-<mt:var name="id">" value="<mt:var name="description" escape="html">" />
+                    <input type="text" name="uri-desc-<mt:var name="id">" id="uri-desc-<mt:var name="id">" value="<mt:var name="description">" />
                     
                 </span>
             </td>
-            <td><a href="javascript:void(0)" title="<__trans phrase="Click to edit address">" class="edit-uri" id="uri-uri-link-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;"><mt:var name="uri" escape="html"></a>
+            <td><a href="javascript:void(0)" title="<__trans phrase="Click to edit address">" class="edit-uri" id="uri-uri-link-<mt:var name="id">" onmouseover="highlight_uri(<mt:var name="id">)" onmouseout="unhighlight_uri(<mt:var name="id">)" onclick="edit_uri(<mt:var name="id">); return false;"><mt:var name="uri"></a>
                 <span id="uri-uri-field-<mt:var name="id">" style="display: none">
-                    <input type="text" name="uri-uri-<mt:var name="id">" id="uri-uri-<mt:var name="id">" value="<mt:var name="uri" escape="html">" />
+                    <input type="text" name="uri-uri-<mt:var name="id">" id="uri-uri-<mt:var name="id">" value="<mt:var name="uri">" />
                     <span class="buttons">
                         <a href="javascript:void(0)"
                             onclick="submit_edit(<mt:var name="id">); return false;"
@@ -290,7 +290,7 @@
                 </span>
             </td>
             <td class="view si status-view">
-                <a href="<mt:var name="uri" escape="html">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
+                <a href="<mt:var name="uri">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
             </td>
         </tr>
     <mt:if name="__last__">
