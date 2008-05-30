@@ -1,3 +1,6 @@
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="friends" value="1">
+
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit Friend">"$>
     <mt:if name="new_object">
@@ -96,6 +99,10 @@
     </div>
 </mt:setvarblock>
 
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
+</mt:setvarblock>
+
 <mt:setvarblock name="form_header">
     <form name="friend_form" id="friend_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
     <mt:if name="new_object">
@@ -111,20 +118,9 @@
         <input type="hidden" name="itemset_action_input" value="" />
 </mt:setvarblock>
 
-<mt:setvarblock name="related_content">
-  <div class="related_content">
-    <mtapp:widget
-        id="friend-links-widget"
-        label="<__trans phrase="Related Links">">
-        <ul>
-            <li><a href="<$mt:var name="script_url"$>?__mode=list_friends&id=<$mt:var name="author_id"$>">Friends List</a></li>
-        </ul>
-    </mtapp:widget>
-  </div>
-</mt:setvarblock>
-
 <mt:include name="include/header.tmpl" id="header_include">
 
+<fieldset>
 <mtapp:setting
      id="name"
      label="<__trans phrase="Name">"
@@ -141,7 +137,7 @@
 </mtapp:setting>
 
 <mt:if name="new_object">
-    <h3>Create this Friend's first URI:</h3>
+    <h3>Friend's First Link:</h3>
     
     <mtapp:setting
         id="uri"
@@ -168,7 +164,7 @@
 <mt:else>
     <div class="inner pkg"><div class="listing" id="uri-listing">
     <p id="create-uri"><a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add URI"></a></p>
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Link"></a></p>
     
     <mt:if name="uris">
     <table class="compact">
@@ -183,9 +179,9 @@
           </thead>
         </mt:if>
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-            <td class="description">
+            <td class="label">
                 <a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="description"$></a>
+                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="label"$></a>
                         <a href="<$mt:var name="script_url"$>"></a></td>
             <td class="uri">
                 <a href="javascript:void(0)" 
@@ -204,7 +200,9 @@
 </mt:if>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
-    
+
+</fieldset>
+
 <mt:setvarblock name="form_footer">
     </form>
 </mt:setvarblock>
