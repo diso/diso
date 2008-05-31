@@ -789,6 +789,7 @@ sub discover_friends {
 
         if ( $step =~ /find/ ) {
             my $uri = $app->param('source_uri');
+			$uri = ($uri eq "other") ? $app->param('source_uri_other') : $uri;
             my $get_related = $app->param('get_related') || 0;
 
             return $app->error("Param source_uri required to Find contacts")
