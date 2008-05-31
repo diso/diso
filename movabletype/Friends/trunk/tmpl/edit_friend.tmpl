@@ -1,5 +1,5 @@
 <mt:setvar name="edit_author" value="1">
-<mt:setvar name="friends" value="1">
+<mt:setvar name="friends" value="1">1
 
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit Friend">"$>
@@ -133,7 +133,7 @@
 <mtapp:setting
     id="visible"
     label="<__trans phrase="Published">">
-    <input type="checkbox" name="visible" value="1" <mt:if name="visible" eq="1|">checked="checked"</mt:if>/>    
+    <input type="checkbox" name="visible" value="1" <mt:if name="visible" ne="0">checked="checked"</mt:if>/>    
 </mtapp:setting>
 
 <mt:if name="new_object">
