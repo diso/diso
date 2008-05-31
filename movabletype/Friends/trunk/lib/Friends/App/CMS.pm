@@ -3,14 +3,11 @@ package Friends::App::CMS;
 use strict;
 use base qw( MT::App );
 
-#use CGI::Carp 'fatalsToBrowser';
+use CGI::Carp 'fatalsToBrowser';
 use JSON;
 use Data::Dumper qw(Dumper);
 use Web::Scraper;
 use URI;
-
-our $LOGTYPE = 'log4mt';    # 'mt'
-our $logger;
 
 sub _log_params {
     my $app = shift;
@@ -21,15 +18,7 @@ sub _log_params {
 
 sub _log {
     my $msg = shift;
-    if ( $LOGTYPE eq 'log4mt' ) {    # && MT->component('log4mt')) {
-        if ( !$logger ) {
-            $logger = MT::Log->get_logger();
-        }
-        $logger->debug($msg);
-    }
-    else {
-        MT->log($msg);
-    }
+    MT->log($msg);
 }
 
 sub _permission_check {
@@ -43,9 +32,9 @@ sub users_content_nav {
     my ( $cb, $app, $html_ref ) = @_;
 
     $$html_ref =~ s{class=["']active["']}{}xmsg
-      if $app->mode eq 'list_friends' || 
-		 $app->mode eq 'discover_friends' || 
-		 $app->mode eq 'edit_friend';
+      if $app->mode eq 'list_friends'
+          || $app->mode eq 'discover_friends'
+          || $app->mode eq 'edit_friend';
 
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
@@ -199,8 +188,8 @@ sub edit_uri {
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $uri_class = MT->model('uri');
-    my $type = $param->{type} || $uri_class->class_type;
+    my $uri_class    = MT->model('uri');
+    my $type         = $param->{type} || $uri_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     # grab the URI we want to edit
@@ -263,28 +252,30 @@ sub save_uri {
         $obj->friend_id($friend_id);
     }
 
-    for my $field (qw( uri description author_id)) {
+    for my $field (qw( uri label author_id)) {
         $obj->$field( $app->param($field) );
     }
+    MT->log( Dumper($obj) );
+
     my $uri = $app->param('uri');
     if ( $uri =~ /\/$/ ) {
         $obj->uri( $uri =~ s/\/$// );
     }
-	
+
     $obj->save() or die "Saving failed: ", $obj->errstr;
 
    # return edit_friend page - this gets submitted to _top so just load the page
-    $app->redirect( 
-		$app->uri(
+    $app->redirect(
+        $app->uri(
             mode => 'edit_friend',
-			type => 'friend',
+            type => 'friend',
             args => {
                 id          => $friend_id,
-				author_id	=> $obj->author_id,
+                author_id   => $obj->author_id,
                 saved_added => 1,
             },
         )
-	);
+    );
 
     # my $tmpl = MT->component('Friends')->load_tmpl('edit_friend.tmpl');
 }
@@ -294,15 +285,15 @@ sub delete_uri {
     my ($param) = @_;
 
     my $uri_id = $app->param('id') || 0;
-    if (!$uri_id) {
+    if ( !$uri_id ) {
         return $app->error("Invalid request. Delete requires uri_id.");
     }
 
-    my $uri_class = MT->model('uri');
+    my $uri_class    = MT->model('uri');
     my $friend_class = MT->model('friend');
-    my $uri       = $uri_class->load( { id => $uri_id } );
-    my $friend_id = $uri->friend_id;
-    my $friend    = $friend_class->load( { id => $friend_id } );
+    my $uri          = $uri_class->load( { id => $uri_id } );
+    my $friend_id    = $uri->friend_id;
+    my $friend       = $friend_class->load( { id => $friend_id } );
 
     $uri_class->remove( { id => $uri_id } )
       or return $app->error( 'Could not delete URI ' . $uri_id );
@@ -383,8 +374,8 @@ sub edit_friend {
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $uri_class = MT->model('uri');
-    my $type = $param->{type} || $friend_class->class_type;
+    my $uri_class    = MT->model('uri');
+    my $type         = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     # grab the Friend we want to edit
@@ -434,50 +425,52 @@ sub save_friend {
     my $friend_id = $app->param('id') || 0;
 
     my $friend_class = MT->model('friend');
-    my $uri_class = MT->model('uri');
+    my $uri_class    = MT->model('uri');
+
     my $type = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
-    my $obj;
+    my $friend;
     if ($friend_id) {
-        $obj = $pkg->load($friend_id)
+        $friend = $pkg->load($friend_id)
           or return $app->error('Invalid friend ID');
     }
     else {
-        $obj = $pkg->new;
-        $obj->init();
-        $obj->visible(1);
+        $friend = $pkg->new;
+        $friend->init();
+        $friend->visible(1);
     }
     if ( !$author_id ) {
-        $author_id = $obj->author_id;
+        $author_id = $friend->author_id;
     }
-    else { $obj->author_id($author_id); }
+    else { $friend->author_id($author_id); }
 
     for my $field (qw( name rel notes)) {
-        $obj->$field( $app->param($field) );
+        $friend->$field( $app->param($field) );
     }
     if ( !$app->param('visible') ) {
-        $obj->visible(0);
+        $friend->visible(0);
     }
     else {
-        $obj->visible(1);
+        $friend->visible(1);
     }
 
-    $obj->save or die "Saving failed: ", $obj->errstr;
-    _log( "friend: " . Dumper($obj) );
-
+    $friend->save or die "Saving failed: ", $friend->errstr;
+    _log( "friend: " . Dumper($friend) );
+    _log( "uri? " . $app->param('uri') );
     if ( $app->param('uri') ) {
+        _log("creating first link");
 
         # create new URI
         my $uri = $uri_class->new();
         $uri->init();
-        $uri->friend_id( $obj->id );
-        $uri->uri( $app->param('uri') );
-        $uri->description( $app->param('description') );
-        $uri->target( $app->param('target') );
-        $uri->save or die "Saving URI failed: ", $uri->errstr;
+        $uri->friend_id( $friend->id );
+        for my $field (qw( uri label)) {
+            $uri->$field($app->param($field));
+        }
+        $uri->save() or die "Saving URI failed: ", $uri->errstr;
 
-        _log( "uri: " . Dumper($uri) );
+        _log( "created first link: " . Dumper($uri) );
     }
 
     return $app->redirect(
@@ -510,7 +503,7 @@ sub delete_friend {
     }
 
     my $friend_class = MT->model('friend');
-    my $uri_class = MT->model('uri');
+    my $uri_class    = MT->model('uri');
 
     my $friend = $friend_class->load( { id => $friend_id } );
 
@@ -789,7 +782,7 @@ sub discover_friends {
 
         if ( $step =~ /find/ ) {
             my $uri = $app->param('source_uri');
-			$uri = ($uri eq "other") ? $app->param('source_uri_other') : $uri;
+            $uri = ( $uri eq "other" ) ? $app->param('source_uri_other') : $uri;
             my $get_related = $app->param('get_related') || 0;
 
             return $app->error("Param source_uri required to Find contacts")
@@ -821,8 +814,8 @@ sub discover_friends {
 
             my @uris = $app->param("uris");
 
-            my $friend_class = MT->model('friend');
-            my $uri_class = MT->model('uri');
+            my $friend_class    = MT->model('friend');
+            my $uri_class       = MT->model('uri');
             my @created_friends = [];
 
             my $i;
@@ -1002,7 +995,7 @@ sub tag_friends_block {
     my $res = "";
     if ( my $blog = $ctx->stash('blog') ) {
         my $friend_class = MT->model('friend');
-        my @friends = $friend_class->search( \%terms );
+        my @friends      = $friend_class->search( \%terms );
 
         # _log( "friends: " . Dumper(@friends) );
 
@@ -1035,7 +1028,7 @@ sub tag_friend_links_block {
     my $builder = $ctx->stash('builder');
     my $tokens  = $ctx->stash('tokens');
 
-    my $res = "";
+    my $res          = "";
     my $friend_class = MT->model('friend');
     if ( my $friend = $ctx->stash('friend') ) {
 
