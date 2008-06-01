@@ -1,5 +1,5 @@
 <mt:setvar name="edit_author" value="1">
-<mt:setvar name="friends" value="1">1
+<mt:setvar name="friends" value="1">
 
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit Friend">"$>
@@ -9,63 +9,6 @@
     <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this friend (s)">"$>
     <$mt:setvar name="position_actions_bottom" value="true"$>   
 </mt:if>
-
-<mt:setvarblock name="html_head" append="1">
-<script type="text/javascript">
-<!--
-    function GetElementsWithClassName(elementName, className) {
-    	var allElements = document.getElementsByTagName(elementName);
-    	var elemColl = new Array();
-    	for (i = 0; i < allElements.length; i++) {
-    		if (allElements[i].className == className) {
-    		  elemColl[elemColl.length] = allElements[i];
-    		}
-    	}
-    	return elemColl;
-    }
-
-    function meChecked() {
-    	var undefined;
-    	var eMe = document.getElementById('me');
-    	if (eMe == undefined) return false;
-    	else return eMe.checked;
-    }
-
-    function upit() {
-    	var isMe = meChecked(); //document.getElementById('me').checked;
-    	var inputColl = GetElementsWithClassName('input', 'valinp');
-    	var results = document.getElementById('rel');
-    	var linkText, linkUrl, inputs = '';
-    	for (i = 0; i < inputColl.length; i++) {
-    		 inputColl[i].disabled = isMe;
-    		 inputColl[i].parentNode.className = isMe ? 'disabled' : '';
-    		 if (!isMe && inputColl[i].checked && inputColl[i].value != '') {
-    			inputs += inputColl[i].value + ' ';
-    				}
-    		 }
-    	inputs = inputs.substr(0,inputs.length - 1);
-    	if (isMe) inputs='me';
-    	results.value = inputs;
-    	}
-
-    function blurry() {
-    	if (!document.getElementById) return;
-
-    	var aInputs = document.getElementsByTagName('input');
-
-    	for (var i = 0; i < aInputs.length; i++) {
-    	     //console.log(aInputs[i]);
-    		 aInputs[i].onclick = aInputs[i].onkeyup = upit;
-    		 //console.log(aInputs[i].onclick);
-             
-    	}
-    }
-
-    TC.attachLoadEvent( blurry );
-    
--->
-</script>
-</mt:setvarblock>
 
 <mt:setvartemplate name="action_buttons">
     <button
@@ -148,18 +91,9 @@
     </mtapp:setting>
     
     <mtapp:setting
-        id="description"
-        label="<__trans phrase="Description">">
-        <textarea name="description" rows="3" id="description" class="full-width" value="<mt:var name="description">"></textarea>
-    </mtapp:setting>
-
-    <mtapp:setting
-        id="target"
-        label="<__trans phrase="Target">">
-        <select name="target" id="target">
-            <option value="_top"<mt:if name="target" eq="_top"> selected="selected"</mt:if>>Main Window</option>
-            <option value="_top"<mt:if name="target" eq="_blank"> selected="selected"</mt:if>>New Window</option>
-        </select>
+        id="label"
+        label="<__trans phrase="Label">">
+        <input type="text" name="label" rows="3" id="label" class="full-width" value="<mt:var name="label">" />
     </mtapp:setting>
 <mt:else>
     <div class="inner pkg"><div class="listing" id="uri-listing">
@@ -173,7 +107,7 @@
           <thead>
             <tr>
               <th>Label</th>
-              <th>URI</th>
+              <th>Link</th>
               <th>View</th>
             </tr>
           </thead>
