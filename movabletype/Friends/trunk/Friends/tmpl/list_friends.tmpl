@@ -1,5 +1,6 @@
 <mt:setvar name="edit_author" value="1">
-<mt:setvar name="list_friends" value="1">
+<mt:setvar name="friends" value="1">
+    
 <mt:if name="object_type" eq="friend">
     <$mt:setvar name="page_title" value="<__trans phrase="Friends">"$>
 </mt:if>
@@ -102,7 +103,7 @@
               <img src="<mt:var name="static_uri">images/status_icons/invert-flag.gif" alt="<__trans phrase="Status">" title="<__trans phrase="Status">" width="9" height="9" />
           </th>
           <th>Name</th>
-          <th>Link(s)</th>
+          <th>Links</th>
         </tr>
       </thead>
     </mt:if>
@@ -117,7 +118,7 @@
         <td class="uri">
             <ul>
             <mt:loop name="uris">
-                <li><a href="<$mt:var name="uri"$>"><$mt:var name="description"$></a></li>
+                <li><a href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></li>
             </mt:loop>
             </ul>
         </td>
