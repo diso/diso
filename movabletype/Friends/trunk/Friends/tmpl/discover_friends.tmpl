@@ -83,7 +83,7 @@
         <input type="hidden" name="id" value="<mt:var name="id">" />
         <input type="hidden" name="__mode" value="discover_friends" />
         <input type="hidden" name="_type" value="<mt:var name="object_type">" />
-        <input type="hidden" name="return_args" value="<mt:var name="return_args">" />
+        <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html"/>
         <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
         <input type="hidden" name="action_name" value="" />
 </mt:setvarblock>
@@ -103,43 +103,26 @@
         <ul>
 	    <mt:loop name="profiles">
 	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
-	    			value="<mt:var name="uri">" />
-	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"><mt:var name="label"> (<mt:var name="ident">)</span></li>
+	    			value="<mt:var name="uri">" escape="html"/>
+	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"> <a target="_blank" href="<mt:var name="uri">"><mt:var name="ident"></a></span></li>
 	    </mt:loop>
 	    </ul>
 	    <input type="radio" name="source_uri" class="select" 
 	    			value="other" /> <__trans phrase="Other:">
-        <input name="source_uri" id="source_uri" size="40" value="<mt:var name="source_uri">" style="border:1px solid #ccc;" />
+        <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
-    <mtapp:setting
-        id="get_related"
-        label="Find site related to discovered contacts"
-        ><div><label><input type="checkbox" name="get_related" id="get_related" value="1" /> Get Related</label></div>
-    </mtapp:setting>
+    <mt:ignore>TODO: make this an interstitial with throbber instead</mt:ignore>
     <em>This step may take a while if you have a large number of contacts on the remote site. Please be patient.</em>
 </mt:if>
 
-<mt:if name="step" eq="getclaimed">
-    <mtapp:setting
-        id="uri"
-        label="<__trans phrase="Search These URLs for contacts">">
-        <mt:loop name="claimed">
-            <div><label><input type="checkbox" name="uri" id="uri" value="<mt:var name="__value__">" />
-                <mt:var name="__value__"></label></div>
-        
-        </mt:loop>
-    </mtapp:setting>
-    <input type="hidden" name="step" value="find" />
-</mt:if>
-
 <mt:if name="step" eq="find">
-    <mtapp:listing name="contacts" loop="contacts">
+    <mtapp:listing name="contacts" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
       <mt:if __first__>
         <thead>
           <tr>
           	<th>Name</th>
-            <th>URI</th>
+            <th>Link</th>
           </tr>
         </thead>
       </mt:if>
@@ -193,7 +176,7 @@
         ><mt:var name="submitbutton"></button>
 </mt:setvartemplate>
 
-<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
      
 <mt:setvarblock name="form_footer">
     </form>
