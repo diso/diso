@@ -259,7 +259,8 @@ sub save_uri {
 
     my $uri = $app->param('uri');
     if ( $uri =~ /\/$/ ) {
-        $obj->uri( $uri =~ s/\/$// );
+		$uri =~ s/\/$//;
+        $obj->uri( $uri );
     }
 
     $obj->save() or die "Saving failed: ", $obj->errstr;
