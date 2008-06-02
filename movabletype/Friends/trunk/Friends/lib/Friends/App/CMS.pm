@@ -456,7 +456,8 @@ sub save_friend {
     }
 
     $friend->save or die "Saving failed: ", $friend->errstr;
-    _log( "friend: " . Dumper($friend) );
+
+    #_log( "friend: " . Dumper($friend) );
     _log( "uri? " . $app->param('uri') );
     if ( $app->param('uri') ) {
         _log("creating first link");
@@ -465,10 +466,10 @@ sub save_friend {
         my $uri = $uri_class->new();
         $uri->init();
         $uri->friend_id( $friend->id );
-        for my $field (qw( uri label)) {
-            $uri->$field($app->param($field));
-        }
-        $uri->save() or die "Saving URI failed: ", $uri->errstr;
+        $uri->uri( $app->param("uri") );
+        $uri->label( $app->param("label") );
+        $uri->author_id($author_id);
+        $uri->save or die "Saving URI failed: ", $uri->errstr;
 
         _log( "created first link: " . Dumper($uri) );
     }
@@ -482,7 +483,6 @@ sub save_friend {
             },
         )
     );
-
 }
 
 =item delete_friend
@@ -625,7 +625,8 @@ sub _get_contacts_for_uri {
             next URI if $referenced_uri !~ /^http\:\/\//;
 
             my $meta = _get_meta_for_uri( $referenced_uri, $get_related );
-            _log( "meta for $referenced_uri: " . Dumper($meta) );
+
+            #_log( "meta for $referenced_uri: " . Dumper($meta) );
 
             # is there uri like this already?
             my $uri_class = MT->model('uri');
@@ -633,42 +634,46 @@ sub _get_contacts_for_uri {
             # TODO: research: how to do LIKE here
             # TODO: get author and limit URIs to this author's URIs
             $referenced_uri =~ s/\/$//;
-            _log("does $referenced_uri already exist?");
+
+            #_log("does $referenced_uri already exist?");
 
             my $uri =
               $uri_class->load( { uri => $referenced_uri } )
               ;    #, author_id => $author_id } );
-            _log( "result: " . Dumper($uri) );
+                   #_log( "result: " . Dumper($uri) );
 
             if ($uri) {
                 $refuri_node->{duplicate} = 1;
-                _log(
-                    "found existing URI for $referenced_uri: " . Dumper($uri) );
+
+               #_log(
+               #    "found existing URI for $referenced_uri: " . Dumper($uri) );
                 $refuri_node->{dupuri} = $uri->uri;
             }
             $refuri_node->{uri} = $referenced_uri
               . ( $refuri_node->{duplicate} ? " (duplicate)" : "" );
 
-            _log( Dumper( $meta->{other_uris} ) );
+            #_log( Dumper( $meta->{other_uris} ) );
 
             if ( $meta->{other_uris} ) {
                 for ( my $i = 0 ; $i < scalar @{ $meta->{other_uris} } ; $i++ )
                 {
                     my $other_uri_str = $meta->{other_uris}[$i]->as_string;
                     $meta->{other_uris}[$i] = $other_uri_str;
-                    _log("does $other_uri_str already exist?");
+
+                    #_log("does $other_uri_str already exist?");
                     my $other_uri =
                       $uri_class->load( { uri => $other_uri_str } )
                       ;    #, author_id => $author_id } );
-                    _log( Dumper($other_uri) );
+                           #_log( Dumper($other_uri) );
 
                     if ($other_uri) {
                         $refuri_node->{duplicate} = 1;
                         $refuri_node->{dupuri}    = $other_uri->uri;
                         $meta->{other_uris}[$i] =
                           $other_uri_str . " (duplicate)";
-                        _log( "found existing URI for $other_uri_str: "
-                              . Dumper($other_uri) );
+
+                        #_log( "found existing URI for $other_uri_str: "
+                        #      . Dumper($other_uri) );
                     }
                 }
             }
@@ -688,10 +693,12 @@ sub _get_contacts_for_uri {
                 $refuri_node->{title} = $meta->{title};
             }
             if ( $meta->{openid} ) {
+				# call as_string b/c this is a Net::URI object
                 $refuri_node->{openid} = $meta->{openid}->as_string;
             }
             if ( $meta->{openid2} ) {
-                $refuri_node->{openid} = $meta->{openid2}->as_string;
+                # call as_string b/c this is a Net::URI object
+				$refuri_node->{openid} = $meta->{openid2}->as_string;
             }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
@@ -766,7 +773,7 @@ sub discover_friends {
 
             $profiles = $as_plugin ? $user->other_profiles() : [];
 
-            _log( Dumper($profiles) );
+            #_log( Dumper($profiles) );
 
             return $app->build_page(
                 'discover_friends.tmpl',

@@ -17,7 +17,9 @@
  	    padding-top:5px;
  	}
  	<mt:loop name="service_styles">
- 	.service-<mt:var name="service_type"> { background-image: url(<mt:var name="service_icon">); }
+ 	.service-<mt:var name="service_type"> {
+ 	    background-image: url(<mt:var name="service_icon">); 
+ 	}
  	</mt:loop>
  	
  	.disabled td, .disabled td a {
@@ -88,8 +90,6 @@
         <input type="hidden" name="action_name" value="" />
 </mt:setvarblock>
 
-<mt:var name="position_actions_top" value="1">
-
 <mt:include name="include/header.tmpl" id="header_include">
 
 <mt:if name="blog_id">
@@ -134,7 +134,7 @@
                         </mt:if>|<$mt:var name="uri" $>" />
             <mt:if name="name"><mt:var name="name">
 	                <mt:elseif name="title"><mt:var name="title">
-	                <mt:else><mt:var name="uri>
+	                <mt:else><mt:var name="uri">
             </mt:if>
         </td>
         <td class="uri">
