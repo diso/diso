@@ -1,8 +1,8 @@
 <mt:setvar name="list_friends" value="1">
-<mt:if name="object_type" eq="uri">
-    <$mt:setvar name="page_title" value="<__trans phrase="Edit URL">"$>
+<mt:if name="object_type" eq="link">
+    <$mt:setvar name="page_title" value="<__trans phrase="Edit Link">"$>
     <mt:if name="new_object">
-        <$mt:setvar name="page_title" value="<__trans phrase="Create New URL">"$>
+        <$mt:setvar name="page_title" value="<__trans phrase="Create New Link">"$>
     </mt:if>
     
     <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this URL (s)">"$>
@@ -13,7 +13,7 @@
 
 <mt:setvartemplate name="action_buttons">
     <button
-        mt:mode="save_uri"
+        mt:mode="save_link"
         type="submit"
         accesskey="s"
         title="<mt:var name="submit_button_title">"
@@ -48,7 +48,7 @@
         <input type="hidden" name="id" value="<$mt:var name="id"$>" />
     </mt:if>
     <input type="hidden" name="friend_id" value="<$mt:var name="friend_id"$>" />
-    <input type="hidden" name="__mode" value="save_uri" />
+    <input type="hidden" name="__mode" value="save_link" />
     <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
     <input type="hidden" name="return_args" value="<$mt:var name="return_args"$>" />
     <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
