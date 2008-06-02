@@ -629,8 +629,8 @@ sub _get_contacts_for_uri {
 
             #_log( "meta for $referenced_uri: " . Dumper($meta) );
 
-            # is there uri like this already?
-            my $uri_class = MT->model('uri');
+            # is there link like this already?
+            my $link_class = MT->model('link');
 
             # TODO: research: how to do LIKE here
             # TODO: get author and limit URIs to this author's URIs
@@ -638,17 +638,17 @@ sub _get_contacts_for_uri {
 
             #_log("does $referenced_uri already exist?");
 
-            my $uri =
-              $uri_class->load( { uri => $referenced_uri } )
+            my $link =
+              $link_class->load( { uri => $referenced_uri } )
               ;    #, author_id => $author_id } );
-                   #_log( "result: " . Dumper($uri) );
+                   #_log( "result: " . Dumper($link) );
 
-            if ($uri) {
+            if ($link) {
                 $refuri_node->{duplicate} = 1;
 
                #_log(
                #    "found existing URI for $referenced_uri: " . Dumper($uri) );
-                $refuri_node->{dupuri} = $uri->uri;
+                $refuri_node->{dupuri} = $link->uri;
             }
             $refuri_node->{uri} = $referenced_uri
               . ( $refuri_node->{duplicate} ? " (duplicate)" : "" );
@@ -663,7 +663,7 @@ sub _get_contacts_for_uri {
 
                     #_log("does $other_uri_str already exist?");
                     my $other_uri =
-                      $uri_class->load( { uri => $other_uri_str } )
+                      $link_class->load( { uri => $other_uri_str } )
                       ;    #, author_id => $author_id } );
                            #_log( Dumper($other_uri) );
 
@@ -833,7 +833,7 @@ sub discover_friends {
                 _log("$n: $u $dup");
 
                 # 1) is there a Friend already?
-                my ( $uri, $friend );
+                my ( $link, $friend );
                 if ($dup) {
                     _log("loading uri for: $dup");
                     $link = $link_class->load( { uri => $dup } );
