@@ -167,35 +167,35 @@ sub itemset_show_all_friends {
     $app->call_return;
 }
 
-sub edit_uri {
+sub edit_link {
     my $app = shift;
     my ($param) = @_;
 
-    _log( "edit_uri: " . Dumper( $app->param ) );
+    _log( "edit_link: " . Dumper( $app->param ) );
 
     my $author_id = $app->param('author_id');
-    my $uri_id    = $app->param('id') || 0;
+    my $link_id    = $app->param('id') || 0;
     my $friend_id = $app->param('friend_id');    # if new, should have this
 
-    # uri_id or friend_id required
-    # uri_id -> edit this uri
-    # friend_id -> create new uri, probably
-    # _log("uri_id: $uri_id; friend_id: $friend_id");
-    if ( !$uri_id && !$friend_id ) {
+    # link_id or friend_id required
+    # link_id -> edit this link
+    # friend_id -> create new link, probably
+    # _log("link_id: $link_id; friend_id: $friend_id");
+    if ( !$link_id && !$friend_id ) {
         return $app->error(
-            "Invalid request. Requires one of uri_id or friend_id.");
+            "Invalid request. Requires one of link_id or friend_id.");
     }
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $uri_class    = MT->model('uri');
-    my $type         = $param->{type} || $uri_class->class_type;
+    my $link_class    = MT->model('link');
+    my $type         = $param->{type} || $link_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     # grab the URI we want to edit
-    my $obj = ($uri_id) ? $pkg->load($uri_id) : undef;
+    my $obj = ($link_id) ? $pkg->load($link_id) : undef;
 
-    # if no friend_id and we've got a uri, get the friend_id from there
+    # if no friend_id and we've got a link, get the friend_id from there
     if ( !$friend_id && $obj ) {
         $friend_id = $obj->friend_id;
     }
@@ -209,7 +209,7 @@ sub edit_uri {
     my %param;
     if ($obj) {
         $param = {
-            id => $uri_id,
+            id => $link_id,
             %{ $obj->column_values() },
         };
     }
@@ -220,31 +220,31 @@ sub edit_uri {
     $param->{author_id} = $author_id;
     $param->{friend_id} = $friend_id;
 
-    $param->{object_type} = 'uri';
+    $param->{object_type} = 'link';
     $param->{saved}       = $app->param('saved');
     $param->{deleted}     = $app->param('deleted');
 
     _log( Dumper($param) );
 
-    return $app->build_page( 'edit_uri.tmpl', $param );
+    return $app->build_page( 'edit_link.tmpl', $param );
 }
 
-sub save_uri {
+sub save_link {
     my $app = shift;
     my ($param) = @_;
 
     my $friend_id = $app->param('friend_id');
     my $author_id = $app->param('author_id');
-    my $uri_id    = $app->param('id') || 0;
+    my $link_id    = $app->param('id') || 0;
 
-    my $uri_class = MT->model('uri');
-    my $type = $param->{type} || $uri_class->class_type;
+    my $link_class = MT->model('link');
+    my $type = $param->{type} || $link_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     my $obj;
-    if ($uri_id) {
-        $obj = $pkg->load($uri_id)
-          or return $app->error( 'Invalid uri ID: ' . $uri_id );
+    if ($link_id) {
+        $obj = $pkg->load($link_id)
+          or return $app->error( 'Invalid link ID: ' . $link_id );
     }
     else {
         $obj = $pkg->new;
@@ -281,23 +281,23 @@ sub save_uri {
     # my $tmpl = MT->component('Friends')->load_tmpl('edit_friend.tmpl');
 }
 
-sub delete_uri {
+sub delete_link {
     my $app = shift;
     my ($param) = @_;
 
-    my $uri_id = $app->param('id') || 0;
-    if ( !$uri_id ) {
-        return $app->error("Invalid request. Delete requires uri_id.");
+    my $link_id = $app->param('id') || 0;
+    if ( !$link_id ) {
+        return $app->error("Invalid request. Delete requires link_id.");
     }
 
-    my $uri_class    = MT->model('uri');
+    my $link_class    = MT->model('link');
     my $friend_class = MT->model('friend');
-    my $uri          = $uri_class->load( { id => $uri_id } );
-    my $friend_id    = $uri->friend_id;
+    my $link          = $link_class->load( { id => $link_id } );
+    my $friend_id    = $link->friend_id;
     my $friend       = $friend_class->load( { id => $friend_id } );
 
-    $uri_class->remove( { id => $uri_id } )
-      or return $app->error( 'Could not delete URI ' . $uri_id );
+    $link_class->remove( { id => $link_id } )
+      or return $app->error( 'Could not delete URI ' . $link_id );
 
     #$app->call_return( deleted => 1, saved_changes => 1 );
     $app->redirect( $app->path
@@ -344,7 +344,7 @@ sub list_friends {
             terms => { author_id => $author_id },
             code  => sub {
                 my ( $obj, $row ) = @_;
-                $row->{uris} = $obj->uris;
+                $row->{links} = $obj->links;
             },
             params => {
                 object_type => 'friend',
@@ -375,7 +375,7 @@ sub edit_friend {
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $uri_class    = MT->model('uri');
+    my $link_class    = MT->model('link');
     my $type         = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
@@ -399,7 +399,7 @@ sub edit_friend {
 
     $param->{author_id}   = $author_id;
     $param->{object_type} = 'friend';
-    $param->{uris}        = $obj ? $obj->uris : [];
+    $param->{links}        = $obj ? $obj->links : [];
 
     return $app->build_page( 'edit_friend.tmpl', $param );
 }
@@ -426,7 +426,7 @@ sub save_friend {
     my $friend_id = $app->param('id') || 0;
 
     my $friend_class = MT->model('friend');
-    my $uri_class    = MT->model('uri');
+    my $link_class    = MT->model('link');
 
     my $type = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
@@ -464,15 +464,15 @@ sub save_friend {
         _log("creating first link");
 
         # create new URI
-        my $uri = $uri_class->new();
-        $uri->init();
-        $uri->friend_id( $friend->id );
-        $uri->uri( $app->param("uri") );
-        $uri->label( $app->param("label") );
-        $uri->author_id($author_id);
-        $uri->save or die "Saving URI failed: ", $uri->errstr;
+        my $link = $link_class->new();
+        $link->init();
+        $link->friend_id( $friend->id );
+        $link->uri( $app->param("uri") );
+        $link->label( $app->param("label") );
+        $link->author_id($author_id);
+        $link->save or die "Saving URI failed: ", $link->errstr;
 
-        _log( "created first link: " . Dumper($uri) );
+        _log( "created first link: " . Dumper($link) );
     }
 
     return $app->redirect(
@@ -504,7 +504,7 @@ sub delete_friend {
     }
 
     my $friend_class = MT->model('friend');
-    my $uri_class    = MT->model('uri');
+    my $link_class    = MT->model('link');
 
     my $friend = $friend_class->load( { id => $friend_id } );
 
@@ -514,7 +514,7 @@ sub delete_friend {
 
     my $author_id = $friend->author_id;
 
-    $uri_class->remove( { friend_id => $friend_id } )
+    $link_class->remove( { friend_id => $friend_id } )
       or
       return $app->error( 'Could not delete URIs for Friend: ' . $friend_id );
 
@@ -823,7 +823,7 @@ sub discover_friends {
             my @uris = $app->param("uris");
 
             my $friend_class    = MT->model('friend');
-            my $uri_class       = MT->model('uri');
+            my $link_class       = MT->model('link');
             my @created_friends = [];
 
             my $i;
@@ -836,13 +836,13 @@ sub discover_friends {
                 my ( $uri, $friend );
                 if ($dup) {
                     _log("loading uri for: $dup");
-                    $uri = $uri_class->load( { uri => $dup } );
-                    unless ($uri) {
-                        die "Cannot load uri for: $dup";
+                    $link = $link_class->load( { uri => $dup } );
+                    unless ($link) {
+                        die "Cannot load link for: $dup";
                     }
-                    _log( "dup uri: " . Dumper($uri) );
-                    $friend = $friend_class->load( $uri->friend_id );
-                    _log( "friend for dup uri: " . Dumper($friend) );
+                    _log( "dup link: " . Dumper($link) );
+                    $friend = $friend_class->load( $link->friend_id );
+                    _log( "friend for dup link: " . Dumper($friend) );
                 }
                 else {
 
@@ -856,15 +856,15 @@ sub discover_friends {
                 }
 
                 # 2) create URI
-                $uri = $uri_class->new();
-                $uri->init();
-                $uri->uri($u);
-                $uri->label($n);
-                $uri->friend_id( $friend->id );
-                $uri->author_id($author_id);
-                $uri->save() or die "Error saving uri: $!";
+                $link = $link_class->new();
+                $link->init();
+                $link->uri($u);
+                $link->label($n);
+                $link->friend_id( $friend->id );
+                $link->author_id($author_id);
+                $link->save() or die "Error saving link: $!";
 
-                _log( Dumper($uri) );
+                _log( Dumper($link) );
                 push @created_friends, $friend;
             }
             return $app->redirect(
@@ -879,11 +879,6 @@ sub discover_friends {
             last STEP;
         }
     }
-}
-
-# import_to_friend ($uri, $name)
-sub import_to_friend {
-    my ( $uri, $name ) = @_;
 }
 
 ##
@@ -958,13 +953,13 @@ sub ua {
 
 ##########################
 
-sub upgrade_uri_add_authorid {
-    my ($uri) = @_;
+sub upgrade_link_add_authorid {
+    my ($link) = @_;
     my $friend_class = MT->model('friend');
-    my $friend = $friend_class->load( { id => $uri->friend_id } );
+    my $friend = $friend_class->load( { id => $link->friend_id } );
     if ($friend) {
-        $uri->author_id( $friend->author_id );
-        $uri->save;
+        $link->author_id( $friend->author_id );
+        $link->save;
     }
 }
 
@@ -1008,12 +1003,12 @@ sub tag_friends_block {
         # _log( "friends: " . Dumper(@friends) );
 
       FRIEND: for my $friend (@friends) {
-            my $uri_class = MT->model('uri');
-            my @uris = $uri_class->load( { friend_id => $friend->id } );
+            my $link_class = MT->model('link');
+            my @links = $link_class->load( { friend_id => $friend->id } );
 
-            #my $friendlinkscount = @uris;
+            #my $friendlinkscount = @links;
             #local $ctx->{__stash}{friendlinkscount} = $friendlinkscount;
-            next FRIEND if ( !@uris );
+            next FRIEND if ( !@links );
             local $ctx->{__stash}{friend} = $friend;
 
             defined( my $out = $builder->build( $ctx, $tokens, $cond ) )
@@ -1041,13 +1036,13 @@ sub tag_friend_links_block {
     if ( my $friend = $ctx->stash('friend') ) {
 
         # _log( "friend: " . Dumper($friend) );
-        my $uri_class = MT->model('uri');
-        my @uris = $uri_class->load( { friend_id => $friend->id } );
+        my $link_class = MT->model('link');
+        my @links = $link_class->load( { friend_id => $friend->id } );
 
-        # _log( "uris: " . Dumper(@uris) );
-      URI: for my $uri (@uris) {
-            next URI unless ( $uri && $uri->uri );
-            local $ctx->{__stash}{uri} = $uri;
+        # _log( "links: " . Dumper(@links) );
+      URI: for my $link (@links) {
+            next URI unless ( $link && $link->uri );
+            local $ctx->{__stash}{link} = $link;
 
             defined( my $out = $builder->build( $ctx, $tokens, $cond ) )
               or return $ctx->error( $builder->errstr );
@@ -1097,12 +1092,12 @@ context: C<<MTBlogRoll>>
 
 sub tag_friend_link_name {
     my ( $ctx, $arg, $cond ) = @_;
-    my $uri = $ctx->stash('uri')
+    my $link = $ctx->stash('link')
       or return $ctx->error("Used FriendLinkName in a non-link context!");
-    return $uri->label || '';
+    return $link->label || '';
 }
 
-=item <$mt:friendlinkuri$>
+=item <$mt:friendlinklink$>
 
 Outputs the friend URI.
 
@@ -1112,9 +1107,9 @@ context: C<<MTBlogRoll>>
 
 sub tag_friend_link_uri {
     my ( $ctx, $arg, $cond ) = @_;
-    my $uri = $ctx->stash('uri')
+    my $link = $ctx->stash('link')
       or return $ctx->error("Used FriendLinkUri in a non-link context!");
-    return $uri->uri || '';
+    return $link->uri || '';
 }
 
 =item <$mt:friendlinknotes$>
@@ -1127,10 +1122,10 @@ context: <MTBlogRoll>
 
 sub tag_friend_link_notes {
     my ( $ctx, $arg, $cond ) = @_;
-    my $uri = $ctx->stash('uri')
+    my $link = $ctx->stash('link')
       or
       return $ctx->error("Used FriendLinkDescription in a non-link context!");
-    return $uri->notes || '';
+    return $link->notes || '';
 }
 
 =item <$mt:friendlinklabel$>
@@ -1143,9 +1138,9 @@ context: <MTBlogRoll>
 
 sub tag_friend_link_label {
     my ( $ctx, $arg, $cond ) = @_;
-    my $uri = $ctx->stash('uri')
-      or return $ctx->error("Used FriendLinkLabel in a non-uri context!");
-    return $uri->label ? $uri->label : $uri->uri;
+    my $link = $ctx->stash('link')
+      or return $ctx->error("Used FriendLinkLabel in a non-link context!");
+    return $link->label ? $link->label : $link->uri;
 }
 
 1;

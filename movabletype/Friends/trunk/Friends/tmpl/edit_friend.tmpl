@@ -100,9 +100,9 @@
     <p id="create-uri"><a href="javascript:void(0)" 
                     onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Link"></a></p>
     
-    <mt:if name="uris">
+    <mt:if name="links">
     <table class="compact">
-    <mt:loop name="uris">
+    <mt:loop name="links">
         <mt:if __first__>
           <thead>
             <tr>
@@ -115,11 +115,10 @@
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td class="label">
                 <a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="label"$></a>
-                        <a href="<$mt:var name="script_url"$>"></a></td>
-            <td class="uri">
+                    onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="label"$></a></td>
+            <td class="link">
                 <a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_uri','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri"$></a>
+                    onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri"$></a>
             </td>
             <td class="view si status-view">
                 <a href="<mt:var name="uri">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
@@ -128,9 +127,9 @@
     </mt:loop>
     </table>
     <mt:else>
-        <__trans phrase="No URLs could be found.">
+        <__trans phrase="No Links could be found.">
     </mt:if>
-        </div></div>
+    </div></div>
 </mt:if>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">

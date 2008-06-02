@@ -25,12 +25,12 @@ __PACKAGE__->install_properties(
     }
 );
 
-sub uris {
+sub links {
     my $self = shift;
-    my $uri_class = MT->model('uri');
-    my @uris = $uri_class->load( { friend_id => $self->id } );
-	MT->log(Dumper(\@uris));
-    return \@uris;
+    my $link_class = MT->model('link');
+    my @links = $link_class->load( { friend_id => $self->id } );
+	MT->log(Dumper(\@links));
+    return \@links;
 }
 
 sub class_label        { MT->translate('Friend'); }
