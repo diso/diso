@@ -1,4 +1,4 @@
-package Friends::URI;
+package Friends::Link;
 
 use strict;
 
