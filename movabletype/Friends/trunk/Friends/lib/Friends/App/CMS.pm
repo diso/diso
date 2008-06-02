@@ -192,7 +192,7 @@ sub edit_link {
     my $type         = $param->{type} || $link_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
-    # grab the URI we want to edit
+    # grab the Link we want to edit
     my $obj = ($link_id) ? $pkg->load($link_id) : undef;
 
     # if no friend_id and we've got a link, get the friend_id from there
@@ -297,7 +297,7 @@ sub delete_link {
     my $friend       = $friend_class->load( { id => $friend_id } );
 
     $link_class->remove( { id => $link_id } )
-      or return $app->error( 'Could not delete URI ' . $link_id );
+      or return $app->error( 'Could not delete Link ' . $link_id );
 
     #$app->call_return( deleted => 1, saved_changes => 1 );
     $app->redirect( $app->path
@@ -332,7 +332,7 @@ sub list_friends {
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     ## TODO: Include list of URLs (or first few?)
-    ## I can't seem to figure out how to do this so that in the listing, i can list the URIs
+    ## I can't seem to figure out how to do this so that in the listing, i can list the Links
     ## for that friend.
 
     return $app->listing(
@@ -463,14 +463,14 @@ sub save_friend {
     if ( $app->param('uri') ) {
         _log("creating first link");
 
-        # create new URI
+        # create new Link
         my $link = $link_class->new();
         $link->init();
         $link->friend_id( $friend->id );
         $link->uri( $app->param("uri") );
         $link->label( $app->param("label") );
         $link->author_id($author_id);
-        $link->save or die "Saving URI failed: ", $link->errstr;
+        $link->save or die "Saving Link failed: ", $link->errstr;
 
         _log( "created first link: " . Dumper($link) );
     }
@@ -516,7 +516,7 @@ sub delete_friend {
 
     $link_class->remove( { friend_id => $friend_id } )
       or
-      return $app->error( 'Could not delete URIs for Friend: ' . $friend_id );
+      return $app->error( 'Could not delete Links for Friend: ' . $friend_id );
 
     $friend->remove()
       or return $app->error( 'Could note delete Friend: ' . $friend_id );
@@ -673,7 +673,7 @@ sub _get_contacts_for_uri {
                         $meta->{other_uris}[$i] =
                           $other_uri_str . " (duplicate)";
 
-                        #_log( "found existing URI for $other_uri_str: "
+                        #_log( "found existing Link for $other_uri_str: "
                         #      . Dumper($other_uri) );
                     }
                 }
@@ -800,7 +800,7 @@ sub discover_friends {
             my @contacts =
               @{ _get_contacts_for_uri( $uri, $author_id, $get_related ) };
 
-            # TODO: check if URI is already in database
+            # TODO: check if Link is already in database
 
             _log( "contacts: " . Dumper(@contacts) );
             my $tmpl =
@@ -855,7 +855,7 @@ sub discover_friends {
                     _log( "made new friend: " . Dumper($friend) );
                 }
 
-                # 2) create URI
+                # 2) create Link
                 $link = $link_class->new();
                 $link->init();
                 $link->uri($u);
@@ -1040,8 +1040,8 @@ sub tag_friend_links_block {
         my @links = $link_class->load( { friend_id => $friend->id } );
 
         # _log( "links: " . Dumper(@links) );
-      URI: for my $link (@links) {
-            next URI unless ( $link && $link->uri );
+      Link: for my $link (@links) {
+            next Link unless ( $link && $link->uri );
             local $ctx->{__stash}{link} = $link;
 
             defined( my $out = $builder->build( $ctx, $tokens, $cond ) )
@@ -1099,7 +1099,7 @@ sub tag_friend_link_name {
 
 =item <$mt:friendlinklink$>
 
-Outputs the friend URI.
+Outputs the friend Link.
 
 context: C<<MTBlogRoll>>
 

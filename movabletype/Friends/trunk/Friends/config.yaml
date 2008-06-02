@@ -4,12 +4,12 @@ key: Friends
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provides a blogroll-like means of managing and displaying a friends list on your site
-schema_version: 0.91
-version: 0.8
+schema_version: 0.92
+version: 0.9
 plugin_link: http://diso-project.org/
 object_types:
 	friend: Friends::Friend
-	link:    Friends::URI
+	link:    Friends::Link
 applications:
 	cms:
 		methods:
@@ -61,11 +61,5 @@ upgrade_functions:
         version_limit: 0.9
         updater:
             type: link
-            label: 'Linking URIs to authors...'
+            label: 'Linking Links to authors...'
             code: $Friends::Friends::App::CMS::upgrade_link_add_authorid
-    migrate_uri_to_link:
-        version_limit: 0.92
-        updater:
-            type: link
-            label: 'Migrating URIs to Links...'
-            code: $Friends::Friends::App::CMS::migrate_uri_to_link
