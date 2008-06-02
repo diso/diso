@@ -3,7 +3,7 @@ package Friends::App::CMS;
 use strict;
 use base qw( MT::App );
 
-use CGI::Carp 'fatalsToBrowser';
+#use CGI::Carp 'fatalsToBrowser';
 use JSON;
 use Data::Dumper qw(Dumper);
 use Web::Scraper;
