@@ -1098,7 +1098,7 @@ sub tag_friend_link_name {
     my ( $ctx, $arg, $cond ) = @_;
     my $uri = $ctx->stash('uri')
       or return $ctx->error("Used FriendLinkName in a non-link context!");
-    return $uri->description || '';
+    return $uri->label || '';
 }
 
 =item <$mt:friendlinkuri$>
@@ -1144,7 +1144,7 @@ sub tag_friend_link_label {
     my ( $ctx, $arg, $cond ) = @_;
     my $uri = $ctx->stash('uri')
       or return $ctx->error("Used FriendLinkLabel in a non-uri context!");
-    return $uri->description ? $uri->description : $uri->uri;
+    return $uri->label ? $uri->label : $uri->uri;
 }
 
 1;
