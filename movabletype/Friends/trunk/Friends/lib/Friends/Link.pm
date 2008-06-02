@@ -17,16 +17,16 @@ __PACKAGE__->install_properties(
             'notes'        => 'text',
             'last_updated' => 'timestamp',
         },
-        class_type  => 'uri',
+        class_type  => 'link',
         primary_key => 'id',
         audit       => 1,
     }
 );
 
 sub friend {
-    my $uri          = shift;
+    my $link          = shift;
     my $friend_class = MT->model('friend');
-    my $friend = $friend_class->load( { id => $uri->friend_id } );
+    my $friend = $friend_class->load( { id => $link->friend_id } );
     return $friend;
 }
 
