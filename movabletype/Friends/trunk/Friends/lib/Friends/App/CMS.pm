@@ -858,7 +858,7 @@ sub discover_friends {
                 $uri = $uri_class->new();
                 $uri->init();
                 $uri->uri($u);
-                $uri->description($n);
+                $uri->label($n);
                 $uri->friend_id( $friend->id );
                 $uri->author_id($author_id);
                 $uri->save() or die "Error saving uri: $!";
