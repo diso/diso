@@ -6,9 +6,13 @@ author_name: Steve Ivy
 description: Provide a simple registry-based system for publishing services through and XRDS file
 version: 0.2
 plugin_link: http://diso-project.org/
+
+init_app: $XRDS_Simple::XRDS_Simple::App::Plugin::init_app
+
 applications:
 	cms:
 		methods:
 			xrds_simple:
-			    code: $XRDS_Simple::XRDS_Simple::App::Plugin::xrds_simple
-			    requires_login: 0
+				code: $XRDS_Simple::XRDS_Simple::App::Plugin::xrds_simple
+				requires_login: 0
+
