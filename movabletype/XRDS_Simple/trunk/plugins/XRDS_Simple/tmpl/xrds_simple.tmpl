@@ -28,6 +28,11 @@
 		    	</mt:loop>
 		    </mt:if>
 		    <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
+		    <mt:loop name="custom">
+		    	<mt:loop name="__value__">
+		    		<<mt:var name="namespace_id">:<mt:var name="name">><mt:var name="value"></<mt:var name="namespace_id">:<mt:var name="name">>
+		    	</mt:loop>
+		    </mt:loop>
 		</Service>
         	</mt:loop>
         <mt:else>
@@ -37,6 +42,7 @@
             <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
             <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
         </Service>
+        
         </mt:if>
     </XRD>
     </mt:if>
@@ -45,11 +51,15 @@
     <!-- Global Resource Definition -->
     <XRD xmlns="xri://$XRD*($v*2.0)" version="2.0">
         <Type>xri://$xrds*simple</Type>
-        <mt:loop name="services" var="services"><mt:if name="id" like="(openid|openid2)"><Service priority="<mt:var name="__counter__">">
+        <mt:loop name="services" var="services"><mt:if name="id" like="(openid|openid2)"><!-- <mt:var name="description"> -->
+        <Service priority="<mt:var name="__counter__">">
             <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
             <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
-            <URI<mt:if name="http_method"> simple:httpMethod="<mt:var name="http_method">"</mt:if>><mt:var name="uri" encode_xml="1"></URI>
+            <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
             <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
+            <mt:loop name="custom">
+	       	<<mt:var name="namespace_id">:<mt:var name="__key__">><mt:var name="__value__"></<mt:var name="namespace_id">:<mt:var name="__key__">>
+	    </mt:loop>
         </Service>
         <mt:else><!-- <mt:var name="description"> -->
         <Service priority="<mt:var name="__counter__">">
