@@ -13,11 +13,8 @@
         	<!-- <mt:var name="description"> -->
 		<Service priority="<mt:var name="__counter__">">
 		    <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
-		    <mt:if name="types">
-		    	<mt:loop name="types">
-		    	<Type><mt:var name="__value__"></Type>
-		    	</mt:loop>
-		    </mt:if>
+		    <mt:loop name="types"><Type><mt:var name="__value__"></Type>
+		    </mt:loop>
 		    <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
 		    <mt:if name="uri">
 		    <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
@@ -54,7 +51,9 @@
         <mt:loop name="services" var="services"><mt:if name="id" like="(openid|openid2)"><!-- <mt:var name="description"> -->
         <Service priority="<mt:var name="__counter__">">
             <mt:if name="type"><Type><mt:var name="type"></Type></mt:if>
-            <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
+	    <mt:loop name="types"><Type><mt:var name="__value__"></Type>
+	    </mt:loop>
+	    <mt:if name="media_type"><MediaType><mt:var name="media_type"></MediaType></mt:if>
             <URI simple:httpMethod="GET"><mt:var name="uri" encode_xml="1"></URI>
             <mt:if name="local_id"><LocalID><mt:var name="local_id" encode_xml="1"></LocalID></mt:if>
             <mt:loop name="custom">
