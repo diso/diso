@@ -1,5 +1,5 @@
 <mt:setvar name="edit_author" value="1">
-<mt:setvar name="page_title" value="<__trans phrase="Discover Friends">">
+<mt:setvar name="page_title" value="<__trans phrase="Import Contacts">">
 <mt:setvar name="discover_friends" value="1">
 <mt:setvar name="position_actions_bottom" value="true">
 <mt:if name="step" eq="start">
@@ -99,7 +99,7 @@
 <mt:if name="step" eq="start">
     <mtapp:setting
         id="source_uri"
-        label="<__trans phrase="Start With URL:">">
+        label="<__trans phrase="Import From:">">
         <ul>
 	    <mt:loop name="profiles">
 	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
@@ -117,29 +117,32 @@
 </mt:if>
 
 <mt:if name="step" eq="find">
-    <mtapp:listing name="contacts" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
-      <mt:if __first__>
+    <mtapp:listing type="friend" name="contacts" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
+        <mt:if __first__>
         <thead>
-          <tr>
-          	<th>Name</th>
-            <th>Link</th>
-          </tr>
+            <tr>
+                <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
+                <th>Name</th>
+                <th>Link</th>
+            </tr>
         </thead>
-      </mt:if>
-      <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-        <td>
-            <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="uris" value="<mt:if name="name"><$mt:var name="name"$>
-                       <mt:elseif name="title"><$mt:var name="title"$>
-                        <mt:else><$mt:var name="uri"$>
-                        </mt:if>|<$mt:var name="uri" $>" />
+        </mt:if>
+            <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+                <td>
+                    <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$>
+                   <mt:elseif name="title"><$mt:var name="title"$>
+                    <mt:else><$mt:var name="uri"$>
+                    </mt:if>|<$mt:var name="uri" $>" />
+                </td>
+                <td>
             <mt:if name="name"><mt:var name="name">
 	                <mt:elseif name="title"><mt:var name="title">
 	                <mt:else><mt:var name="uri">
             </mt:if>
-        </td>
-        <td class="uri">
-        	<mt:if name="other_profiles">
-        	<mt:if name="duplicate">
+                </td>
+                <td class="uri">
+        	        <mt:if name="other_profiles">
+                	<mt:if name="duplicate">
         		<mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
         	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
         	</mt:if>

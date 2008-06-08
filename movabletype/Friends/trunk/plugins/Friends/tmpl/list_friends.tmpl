@@ -2,7 +2,7 @@
 <mt:setvar name="friends" value="1">
     
 <mt:if name="object_type" eq="friend">
-    <$mt:setvar name="page_title" value="<__trans phrase="Friends">"$>
+    <$mt:setvar name="page_title" value="<__trans phrase="People I Know">"$>
 </mt:if>
 
 <mt:setvarblock name="html_head" append="1">
@@ -43,7 +43,7 @@
 
 <mt:setvarblock name="content_header">
     <ul class="action-link-list">
-        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;author_id=<$mt:var name="id"$>"><__trans phrase="Add Friend"></a></li>
+        <li><a class="icon-left icon-create" href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;id=<$mt:var name="id"$>"><__trans phrase="Add Contact"></a></li>
     </ul>
 </mt:setvarblock>
 
@@ -80,7 +80,7 @@
               id="saved-added"
               class="success">
               <mt:if name="object_type" eq="friend">
-                  <__trans phrase="This friend has been saved.">
+                  <__trans phrase="This contact has been saved.">
               </mt:if>
           </mtapp:statusmsg>
       </mt:if>
@@ -94,7 +94,7 @@
     </div>
 </mt:setvarblock>
 
-<mtapp:listing type="friend" default="<__trans phrase="No friends could be found.">" empty_message="<__trans phrase="No friends could be found.">">
+<mtapp:listing type="friend" default="<__trans phrase="No contacts could be found.">" empty_message="<__trans phrase="No contacts could be found.">">
     <mt:if __first__>
       <thead>
         <tr>
@@ -114,7 +114,7 @@
         <td class="status si status-<mt:if name="visible">publish<mt:else>pending</mt:if>">
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
         </td>
-        <td class="name"><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>"><$mt:var name="name"$></a></td>
+        <td class="name"><a href="<$mt:var name="script_url"$>?__mode=edit_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;friend_id=<$mt:var name="id"$>"><$mt:var name="name"$></a></td>
         <td class="uri">
             <ul>
             <mt:loop name="links">
