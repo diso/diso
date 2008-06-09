@@ -1,0 +1,189 @@
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="page_title" value="<__trans phrase="Import Contacts">">
+<mt:setvar name="discover_friends" value="1">
+<mt:setvar name="position_actions_bottom" value="true">
+<mt:if name="step" eq="start">
+    <mt:setvar name="submitbutton" value="Next">
+<mt:elseif name="step" eq="find">
+    <mt:setvar name="submitbutton" value="Import">
+</mt:if>
+
+<mt:setvarblock name="html_head" append="1">
+ 	<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
+ 	
+ 	<style type="text/css">
+ 	.content-nav #main-content .msg { margin-left: 0px; }
+ 	#main-content {
+ 	    padding-top:5px;
+ 	}
+ 	<mt:loop name="service_styles">
+ 	.service-<mt:var name="service_type"> {
+ 	    background-image: url(<mt:var name="service_icon">); 
+ 	}
+ 	</mt:loop>
+ 	
+ 	.disabled td, .disabled td a {
+ 		color: #999;
+ 	}
+ 	</style>
+ 	
+ 	<script type="text/javascript">
+ 	var tableSelect;
+    function init() {
+        // set up table select awesomeness
+        tableSelect = new TC.TableSelect("friend-listing-table");
+        tableSelect.rowSelect = true;
+    }
+
+    TC.attachLoadEvent(init);
+
+    function finishPluginActionAll(f, action) {
+        var select_all = getByID('select-all-checkbox')
+        if (select_all) {
+            select_all.checked = true;
+            tableSelect.select(select_all);
+        }
+        return doForMarkedInThisWindow(f, '', 'contacts', 'id', 'itemset_action',
+            {'action_name': action}, 'to act upon');
+    }
+
+    // -->
+    
+ 	function changeState(el, idNum) {
+ 	    var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
+ 	    var dupState = (el.value.indexOf("duplicate")!=-1);
+ 		document.getElementById('cb'+idNum).disabled=dupState;
+ 		
+ 		if (dupState) {
+ 			document.getElementById('row'+idNum).className='disabled';
+ 			document.getElementById('cb'+idNum).checked=false;
+			//document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+	 	}
+		else
+		{
+			document.getElementById('row'+idNum).className='';
+			var newUri = el.value;
+			var name = document.getElementById('cb'+idNum).value.split('|')[0];
+			var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
+			if (oldUri) {
+				document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
+ 			} else {
+ 				document.getElementById('cb'+idNum).value = name + "|"+ newUri;
+ 			}
+ 			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+	 	}
+ 	}
+ 	</script>
+</mt:setvarblock>
+
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
+</mt:setvarblock>
+
+<mt:setvarblock name="form_header">
+    <form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" mt:once="1" mt:auto-save="0">
+        <input type="hidden" name="id" value="<mt:var name="id">" />
+        <input type="hidden" name="__mode" value="discover_friends" />
+        <input type="hidden" name="_type" value="<mt:var name="object_type">" />
+        <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html"/>
+        <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
+        <input type="hidden" name="action_name" value="" />
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl" id="header_include">
+
+<mt:if name="blog_id">
+<input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
+</mt:if>
+
+<mt:if name="step" eq="start">
+    <mtapp:setting
+        id="source_uri"
+        label="<__trans phrase="Import From:">">
+        <ul>
+	    <mt:loop name="profiles">
+	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
+	    			value="<mt:var name="uri">" escape="html"/>
+	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"> <a target="_blank" href="<mt:var name="uri">"><mt:var name="ident"></a></span></li>
+	    </mt:loop>
+	    </ul>
+	    <input type="radio" name="source_uri" class="select" 
+	    			value="other" /> <__trans phrase="Other:">
+        <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
+    </mtapp:setting>
+    <input type="hidden" name="step" value="find" />
+    <mt:ignore>TODO: make this an interstitial with throbber instead</mt:ignore>
+    <em>This step may take a while if you have a large number of contacts on the remote site. Please be patient.</em>
+</mt:if>
+
+<mt:if name="step" eq="find">
+    <mtapp:listing type="friend" name="contacts" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
+        <mt:if __first__>
+        <thead>
+            <tr>
+                <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
+                <th>Name</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        </mt:if>
+            <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+                <td>
+                    <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$>
+                   <mt:elseif name="title"><$mt:var name="title"$>
+                    <mt:else><$mt:var name="uri"$>
+                    </mt:if>|<$mt:var name="uri" $>" />
+                </td>
+                <td>
+            <mt:if name="name"><mt:var name="name">
+	                <mt:elseif name="title"><mt:var name="title">
+	                <mt:else><mt:var name="uri">
+            </mt:if>
+                </td>
+                <td class="uri">
+        	        <mt:if name="other_profiles">
+                	<mt:if name="duplicate">
+        		<mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
+        	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
+        	</mt:if>
+        	<select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
+        		<option value="<mt:var name="uri">">
+        		<mt:var name="uri">
+        		</option>
+        	<mt:loop name="other_profiles">
+        		<option><a href="<mt:var name="__value__">"><mt:var name="__value__"></li>
+        	</mt:loop>
+        	</select>
+        	<script type="text/javascript">
+        	    changeState(document.getElementById("select<mt:var name="__counter__">"),<mt:var name="__counter__">);
+        	</script>
+        	<mt:else>
+        	<a href="<mt:var name="uri">"><mt:var name="uri"></a>
+        	</mt:if>
+        </td>
+      </tr>
+    </mtapp:listing>
+    <input type="hidden" name="step" value="import" />
+</mt:if>
+<mt:if name="step" eq="import">
+    <h3>Import</h3>
+</mt:if>
+
+<mt:setvartemplate name="action_buttons">
+    <button
+        mt:mode="discover_friends"
+        type="submit"
+        accesskey="s"
+        title="<mt:var name="submitbutton">"
+        class="primary-button"
+        ><mt:var name="submitbutton"></button>
+</mt:setvartemplate>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
+     
+<mt:setvarblock name="form_footer">
+    </form>
+</mt:setvarblock>
+
+
+<mt:include name="include/footer.tmpl" id="footer_include">
