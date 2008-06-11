@@ -66,29 +66,27 @@
         <input type="hidden" name="action_name" value="" />
         <input type="hidden" name="itemset_action_input" value="" />
 </mt:setvarblock>
+<mt:setvarblock name="listing_header">
+    <mtapp:setting
+         id="name"
+         label="<__trans phrase="Name">"
+         content_class="field-content-text">
+         <div class="textarea-wrapper">
+           <input name="name" id="name" class="full-width" value="<mt:var name="name">" />
+         </div>
+    </mtapp:setting>
+    <mtapp:setting
+        id="visible"
+        label="<__trans phrase="List In Blogroll">">
+        <input type="checkbox" name="visible" value="1" <mt:if name="visible" ne="0">checked="checked"</mt:if>/>    
+    </mtapp:setting>
+    <mt:unless name="new_object">
+    <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
+    </mt:unless>
+</mt:setvarblock>
 
 <mt:include name="include/header.tmpl" id="header_include">
-
 <fieldset>
-    <mt:setvarblock name="listing_header">
-        <mtapp:setting
-             id="name"
-             label="<__trans phrase="Name">"
-             content_class="field-content-text">
-             <div class="textarea-wrapper">
-               <input name="name" id="name" class="full-width" value="<mt:var name="name">" />
-             </div>
-        </mtapp:setting>
-        <mtapp:setting
-            id="visible"
-            label="<__trans phrase="List In Blogroll">">
-            <input type="checkbox" name="visible" value="1" <mt:if name="visible" ne="0">checked="checked"</mt:if>/>    
-        </mtapp:setting>
-        <mt:unless name="new_object">
-        <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
-        </mt:unless>
-    </mt:setvarblock>
-
 <mt:if name="new_object">
     <$mt:var name="listing_header"$>
     <h3>First Profile</h3>
@@ -107,7 +105,6 @@
         </div>
     </mtapp:setting>
 <mt:else>
-
     <mt:setvarblock name="action_buttons">
         <a href="javascript:void(0)"
             onclick="doRemoveItems(getByID('template-listing-form'), '<__trans phrase="Widget Set" escape="js">', '<__trans phrase="Widget Sets" escape="js">', '', '', 'delete_widget'); return false;"
@@ -158,8 +155,6 @@
 </mt:if>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
-
-</fieldset>
 
 <mt:setvarblock name="form_footer">
     </form>
