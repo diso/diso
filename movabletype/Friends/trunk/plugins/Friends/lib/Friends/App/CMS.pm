@@ -406,7 +406,7 @@ sub edit_friend {
 
     $param->{id}          = $author_id;
     $param->{object_type} = 'friend';
-    $param->{links}       = $obj ? $obj->links : [];
+    $param->{object_loop}       = $obj ? $obj->links : [];
 
     return $app->build_page( 'edit_friend.tmpl', $param );
 }
