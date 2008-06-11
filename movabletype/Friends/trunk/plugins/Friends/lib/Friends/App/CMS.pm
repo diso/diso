@@ -47,10 +47,12 @@ sub users_content_nav {
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="javascript:void(0);" onclick="openDialog(null,'discover_friends','&amp;id=<mt:var name="id">'); return false;">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
     </mt:if>
 EOF
 
+#<a href="javascript:void(0)"
+#    onclick="openDialog(null,'edit_link','&amp;_type=friend&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;">
     $$html_ref =~ s{(?=</ul>)}{$html}xmsg;
 }
 
@@ -174,7 +176,7 @@ sub edit_link {
     _log( "edit_link: " . Dumper( $app->param ) );
 
     my $author_id = $app->param('author_id');
-    my $link_id    = $app->param('id') || 0;
+    my $link_id   = $app->param('id') || 0;
     my $friend_id = $app->param('friend_id');    # if new, should have this
 
     # link_id or friend_id required
@@ -188,7 +190,7 @@ sub edit_link {
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $link_class    = MT->model('link');
+    my $link_class   = MT->model('link');
     my $type         = $param->{type} || $link_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
@@ -226,7 +228,7 @@ sub edit_link {
 
     _log( Dumper($param) );
 
-    return $app->build_page( 'edit_link.tmpl', $param );
+    return $app->build_page( 'dialog/edit_link.tmpl', $param );
 }
 
 sub save_link {
@@ -235,7 +237,7 @@ sub save_link {
 
     my $friend_id = $app->param('friend_id');
     my $author_id = $app->param('author_id');
-    my $link_id    = $app->param('id') || 0;
+    my $link_id   = $app->param('id') || 0;
 
     my $link_class = MT->model('link');
     my $type = $param->{type} || $link_class->class_type;
@@ -259,8 +261,8 @@ sub save_link {
 
     my $uri = $app->param('uri');
     if ( $uri =~ /\/$/ ) {
-		$uri =~ s/\/$//;
-        $obj->uri( $uri );
+        $uri =~ s/\/$//;
+        $obj->uri($uri);
     }
 
     $obj->save() or die "Saving failed: ", $obj->errstr;
@@ -271,7 +273,7 @@ sub save_link {
             mode => 'edit_friend',
             type => 'friend',
             args => {
-                id          => $friend_id,
+                friend_id   => $friend_id,
                 author_id   => $obj->author_id,
                 saved_added => 1,
             },
@@ -290,9 +292,9 @@ sub delete_link {
         return $app->error("Invalid request. Delete requires link_id.");
     }
 
-    my $link_class    = MT->model('link');
+    my $link_class   = MT->model('link');
     my $friend_class = MT->model('friend');
-    my $link          = $link_class->load( { id => $link_id } );
+    my $link         = $link_class->load( { id => $link_id } );
     my $friend_id    = $link->friend_id;
     my $friend       = $friend_class->load( { id => $friend_id } );
 
@@ -371,25 +373,30 @@ sub edit_friend {
       unless _permission_check();
 
     my $author_id = $app->param('id');
-    my $friend_id = $app->param('friend_id') || 0;
+	if (!$author_id)
+	{
+		$author_id = $app->param('author_id');
+   	}
+ 	my $friend_id = $app->param('friend_id') || 0;
 
     # load the Friend package
     my $friend_class = MT->model('friend');
-    my $link_class    = MT->model('link');
+    my $link_class   = MT->model('link');
     my $type         = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     # grab the Friend we want to edit
     my $obj = ($friend_id) ? $pkg->load($friend_id) : undef;
 
-    if ( !$author_id && $obj) {
+    if ( !$author_id && $obj ) {
         $author_id = $obj->author_id;
     }
 
     my %param;
     if ($obj) {
         $param = {
-            id => $friend_id,
+            author_id => $author_id,
+            friend_id => $friend_id,
             %{ $obj->column_values() },
         };
     }
@@ -397,9 +404,9 @@ sub edit_friend {
         $param = { new_object => 1, };
     }
 
-    $param->{author_id}   = $author_id;
+    $param->{id}          = $author_id;
     $param->{object_type} = 'friend';
-    $param->{links}        = $obj ? $obj->links : [];
+    $param->{links}       = $obj ? $obj->links : [];
 
     return $app->build_page( 'edit_friend.tmpl', $param );
 }
@@ -426,7 +433,7 @@ sub save_friend {
     my $friend_id = $app->param('id') || 0;
 
     my $friend_class = MT->model('friend');
-    my $link_class    = MT->model('link');
+    my $link_class   = MT->model('link');
 
     my $type = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
@@ -504,7 +511,7 @@ sub delete_friend {
     }
 
     my $friend_class = MT->model('friend');
-    my $link_class    = MT->model('link');
+    my $link_class   = MT->model('link');
 
     my $friend = $friend_class->load( { id => $friend_id } );
 
@@ -694,12 +701,14 @@ sub _get_contacts_for_uri {
                 $refuri_node->{title} = $meta->{title};
             }
             if ( $meta->{openid} ) {
-				# call as_string b/c this is a Net::URI object
+
+                # call as_string b/c this is a Net::URI object
                 $refuri_node->{openid} = $meta->{openid}->as_string;
             }
             if ( $meta->{openid2} ) {
+
                 # call as_string b/c this is a Net::URI object
-				$refuri_node->{openid} = $meta->{openid2}->as_string;
+                $refuri_node->{openid} = $meta->{openid2}->as_string;
             }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
@@ -777,7 +786,7 @@ sub discover_friends {
             #_log( Dumper($profiles) );
 
             return $app->build_page(
-                'discover_friends.tmpl',
+                'dialog/discover_friends.tmpl',
                 {
                     step        => $step,
                     id          => $author_id,
@@ -803,10 +812,8 @@ sub discover_friends {
             # TODO: check if Link is already in database
 
             _log( "contacts: " . Dumper(@contacts) );
-            my $tmpl =
-              MT->component('Friends')->load_tmpl('discover_friends.tmpl');
             return $app->build_page(
-                'discover_friends.tmpl',
+                'dialog/discover_friends.tmpl',
                 {
                     listing_screen => 1,
                     source         => $uri,
@@ -823,7 +830,7 @@ sub discover_friends {
             my @uris = $app->param("uris");
 
             my $friend_class    = MT->model('friend');
-            my $link_class       = MT->model('link');
+            my $link_class      = MT->model('link');
             my @created_friends = [];
 
             my $i;

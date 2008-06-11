@@ -49,9 +49,9 @@
 <mt:setvarblock name="form_header">
     <form name="friend_form" id="friend_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
     <mt:if name="new_object">
-        <input type="hidden" name="author_id" value="<$mt:var name="author_id"$>" />
+        <input type="hidden" name="author_id" value="<$mt:var name="id"$>" />
     <mt:else>
-        <input type="hidden" name="id" value="<$mt:var name="id"$>" />
+        <input type="hidden" name="id" value="<$mt:var name="friend_id"$>" />
     </mt:if>
         <input type="hidden" name="__mode" value="save_friend" />
         <input type="hidden" name="_type" value="<$mt:var name="object_type"$>" />
@@ -98,7 +98,7 @@
 <mt:else>
     <div class="inner pkg"><div class="listing" id="uri-listing">
     <p id="create-uri"><a href="javascript:void(0)" 
-                    onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
+                    onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
     
     <mt:if name="links">
     <table class="compact">
