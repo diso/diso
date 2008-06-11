@@ -4,6 +4,7 @@
 <mt:setvar name="position_actions_bottom" value="true">
 <mt:if name="step" eq="start">
     <mt:setvar name="submitbutton" value="Next">
+    <mt:setvarblock name="indicatoronclick">onclick="showThrobber()"</mt:setvarblock>
 <mt:elseif name="step" eq="find">
     <mt:setvar name="submitbutton" value="Import">
 </mt:if>
@@ -25,6 +26,15 @@
  	.disabled td, .disabled td a {
  		color: #999;
  	}
+ 	
+ 	#indicator {
+ 	    position: relative;
+        background: url(images/indicator.gif) no-repeat;
+        width: 66px;
+        height: 66px;
+        margin: 0 auto;
+        display: none;
+    }
  	</style>
  	
  	<script type="text/javascript">
@@ -73,25 +83,32 @@
  			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
 	 	}
  	}
+ 	
+ 	function showThrobber() {
+ 	    var indicator = getByID('indicator');
+ 	    indicator.style.top='0';
+ 	    indicator.style.bottom='100%';
+ 	    indicator.style.left='0';
+ 	    indicator.style.right='100%';
+ 	    indicator.display="block";
+ 	}
  	</script>
 </mt:setvarblock>
 
-<mt:setvarblock name="content_nav">
-    <mt:include name="include/users_content_nav.tmpl">
+<mt:include name="dialog/header.tmpl" id="header_include">
+
+<mt:setvarblock name="formtarget">
+    <mt:if name="step" eq="find">target="_top"</mt:if>
 </mt:setvarblock>
 
-<mt:setvarblock name="form_header">
-    <form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" mt:once="1" mt:auto-save="0">
-        <input type="hidden" name="id" value="<mt:var name="id">" />
-        <input type="hidden" name="__mode" value="discover_friends" />
-        <input type="hidden" name="_type" value="<mt:var name="object_type">" />
-        <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html"/>
-        <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
-        <input type="hidden" name="action_name" value="" />
-</mt:setvarblock>
-
-<mt:include name="include/header.tmpl" id="header_include">
-
+<form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" <mt:var name="formtarget"> mt:once="1" mt:auto-save="0">
+    <input type="hidden" name="id" value="<mt:var name="id">" />
+    <input type="hidden" name="__mode" value="discover_friends" />
+    <input type="hidden" name="_type" value="<mt:var name="object_type">" />
+    <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html"/>
+    <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
+    <input type="hidden" name="action_name" value="" />
+        
 <mt:if name="blog_id">
 <input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
 </mt:if>
@@ -113,7 +130,6 @@
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
     <mt:ignore>TODO: make this an interstitial with throbber instead</mt:ignore>
-    <em>This step may take a while if you have a large number of contacts on the remote site. Please be patient.</em>
 </mt:if>
 
 <mt:if name="step" eq="find">
@@ -176,14 +192,12 @@
         accesskey="s"
         title="<mt:var name="submitbutton">"
         class="primary-button"
+        <mt:var name="indicatoronclick">
         ><mt:var name="submitbutton"></button>
 </mt:setvartemplate>
 
 <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
      
-<mt:setvarblock name="form_footer">
-    </form>
-</mt:setvarblock>
-
+</form>
 
 <mt:include name="include/footer.tmpl" id="footer_include">
