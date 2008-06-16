@@ -1,7 +1,6 @@
 <mt:setvar name="edit_author" value="1">
 <mt:setvar name="page_title" value="<__trans phrase="Import Contacts">">
 <mt:setvar name="discover_friends" value="1">
-<mt:setvar name="position_actions_bottom" value="true">
 <mt:setvar name="submitbutton" value="Import">
 
 <mt:var name="position_actions_top" value="1">
@@ -13,18 +12,14 @@
 
 <input type="hidden" name="step" value="import" />
 
-<mt:setvartemplate name="action_buttons">
+<mt:setvarblock name="action_buttons">
     <a href="javascript:void(0)"
-        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_hide_friends'); return false"accesskey="i"
+        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="contact">', '<__trans phrase="contacts">', 'id', 'itemset_import_contacts'); return false" accesskey="i"
         title="<__trans phrase="Import selected friends (i)">"
         ><__trans phrase="Import Selected"></a>
-</mt:setvartemplate>
+</mt:setvarblock>
 
-<mt:var name="position_actions_top" value="1">
-
-<mt:include name     = "include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
-    
-<mtapp:listing type="friend" name="contacts" empty_message="No contacts could be found at <mt:var name="source">">
+<mtapp:listing type="contact" name="contacts" empty_message="No contacts could be found at <mt:var name="source">">
     <mt:if __first__>
     <thead>
         <tr>
@@ -36,10 +31,7 @@
     </mt:if>
         <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td>
-                <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$>
-               <mt:elseif name="title"><$mt:var name="title"$>
-                <mt:else><$mt:var name="uri"$>
-                </mt:if>|<$mt:var name="uri" $>" />
+                <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$><mt:elseif name="title"><$mt:var name="title"$><mt:else><$mt:var name="uri"$></mt:if>|<$mt:var name="uri" $>" />
             </td>
             <td>
         <mt:if name="name"><mt:var name="name">
@@ -51,13 +43,11 @@
                 <a href="<mt:var name="uri">"><$mt:var name="uri"$></a>
     	        <mt:if name="other_profiles">
             	<mt:if name="duplicate">
-    		<mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
-    	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
-    	</mt:if>
-    	<select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
-    		<option value="<$mt:var name="uri"$>">
-    		<mt:var name="uri">
-    		</option>
+    		        <mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
+    	            <input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
+    	        </mt:if>
+    	        <select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
+    		        <option value="<$mt:var name="uri"$>"><mt:var name="uri"></option>
     	<mt:loop name="other_profiles">
     		<option><a href="<mt:var name="__value__">"><mt:var name="__value__"></li>
     	</mt:loop>
