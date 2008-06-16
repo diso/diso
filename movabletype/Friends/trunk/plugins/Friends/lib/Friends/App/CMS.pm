@@ -47,7 +47,7 @@ sub users_content_nav {
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="javascript:void(0);" onclick="openDialog(null,'discover_friends','&amp;id=<mt:var name="id">'); return false;">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
     </mt:if>
 EOF
 
@@ -350,7 +350,7 @@ sub list_friends {
             },
             params => {
                 object_type => 'friend',
-                id          => $author_id
+                id          => $author_id,
             }
         }
     );
@@ -373,11 +373,10 @@ sub edit_friend {
       unless _permission_check();
 
     my $author_id = $app->param('id');
-	if (!$author_id)
-	{
-		$author_id = $app->param('author_id');
-   	}
- 	my $friend_id = $app->param('friend_id') || 0;
+    if ( !$author_id ) {
+        $author_id = $app->param('author_id');
+    }
+    my $friend_id = $app->param('friend_id') || 0;
 
     # load the Friend package
     my $friend_class = MT->model('friend');
@@ -404,9 +403,10 @@ sub edit_friend {
         $param = { new_object => 1, };
     }
 
-    $param->{id}          = $author_id;
-    $param->{object_type} = 'friend';
-    $param->{object_loop}       = $obj ? $obj->links : [];
+    $param->{id}             = $author_id;
+    $param->{object_type}    = 'friend';
+    $param->{listing_screen} = 1;
+    $param->{object_loop}    = $obj ? $obj->links : [];
 
     return $app->build_page( 'edit_friend.tmpl', $param );
 }
@@ -791,7 +791,7 @@ sub discover_friends {
                     step        => $step,
                     id          => $author_id,
                     object_type => 'friend',
-                    profiles    => \@$profiles
+                    profiles    => \@$profiles,
                 }
             );
             last STEP;
@@ -812,16 +812,23 @@ sub discover_friends {
             # TODO: check if Link is already in database
 
             _log( "contacts: " . Dumper(@contacts) );
-            return $app->build_page(
-                'dialog/discover_friends.tmpl',
+
+            return $app->listing(
                 {
                     listing_screen => 1,
-                    source         => $uri,
-                    step           => $step,
-                    id             => $author_id,
-                    contacts       => \@contacts,
+                    template =>
+                      MT->component('Friends')->load_tmpl('find_contacts.tmpl'),
+					mode        => 'discover_friends',
+                    params => {
+                        object_type => 'contact',
+                        id          => $author_id,
+                        source      => $uri,
+                        
+                        object_loop => \@contacts
+                    }
                 }
             );
+
             last STEP;
         }
 
@@ -995,7 +1002,8 @@ Attributes: display_name(s)="author names" || author_id(s)="id(s)"
 sub tag_friends_block {
     my %terms = (
         author_id => _author_ids_for_args(@_),
-        visible => 1,    # only show Friends that are marked "public" (visible)
+        visible =>
+          1,    # only show Friends that are marked "Show In Blogroll" (visible)
     );
 
     my ( $ctx, $args, $cond ) = @_;
@@ -1072,21 +1080,6 @@ sub tag_friend_name {
     my $friend = $ctx->stash('friend')
       or return $ctx->error("Used FriendName in a non-friend context!");
     return $friend->name || '<!-- no friend name provided -->';
-}
-
-=item <$mt:friendrel$>
-
-Outputs the rel attribute for the link. This is a space-seperated list of XFN rel values.
-
-context: <MTBlogRoll>
-
-=cut
-
-sub tag_friend_rel {
-    my ( $ctx, $arg, $cond ) = @_;
-    my $friend = $ctx->stash('friend')
-      or return $ctx->error("Used FriendLinkRel in a non-link context!");
-    return $friend->rel || '';
 }
 
 =item <$mt:friendlinkname$>

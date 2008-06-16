@@ -4,13 +4,14 @@
 <mt:setvar name="position_actions_bottom" value="true">
 <mt:if name="step" eq="start">
     <mt:setvar name="submitbutton" value="Next">
-    <mt:setvarblock name="indicatoronclick">onclick="showThrobber()"</mt:setvarblock>
+    <mt:setvar name="indicatoronclick" value="onclick='getContacts(); return false;'">
 <mt:elseif name="step" eq="find">
     <mt:setvar name="submitbutton" value="Import">
 </mt:if>
 
 <mt:setvarblock name="html_head" append="1">
- 	<link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
+    <script type="text/javascript" src="<mt:var name="static_uri">js/tc/client.js"></script>
+    <link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
  	
  	<style type="text/css">
  	.content-nav #main-content .msg { margin-left: 0px; }
@@ -38,6 +39,11 @@
  	</style>
  	
  	<script type="text/javascript">
+ 	
+ 	var ScriptURI;
+    var ScriptBaseURI;
+    var StaticURI;
+    
  	var tableSelect;
     function init() {
         // set up table select awesomeness
@@ -84,24 +90,45 @@
 	 	}
  	}
  	
- 	function showThrobber() {
- 	    var indicator = getByID('indicator');
- 	    indicator.style.top='0';
- 	    indicator.style.bottom='100%';
- 	    indicator.style.left='0';
- 	    indicator.style.right='100%';
- 	    indicator.display="block";
+ 	function getContacts () {
+ 	    var f = getByID('discover_form');
+        console.log("getContacts");
+        var args = DOM.getFormData(f);
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            'loading': function(c) { console.log("loading"); showSpinner (c) },
+            'load': function(c) { loadResults (c) },
+            'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
  	}
+ 	
+ 	function showSpinner(c) {
+ 	    var container = getByID('main-content-inner');
+ 	    var content = getByID('main-content-inner');
+ 	    content.innerHTML = "<div style='text-align:center;'><p>Please wait while we find your contacts...</p><img src='/mt/mt-static/images/indicator.gif' /></div>";
+        return true;
+ 	}
+ 	
+ 	function loadResults (c) {
+ 	    var newContents = c.responseText;
+ 	    var content = getByID('main-content-inner');
+ 	    DOM.addClassName( getByID('container'), "listing-screen");
+ 	    content.innerHTML = newContents;
+ 	}
+ 	
  	</script>
 </mt:setvarblock>
 
-<mt:include name="dialog/header.tmpl" id="header_include">
-
-<mt:setvarblock name="formtarget">
-    <mt:if name="step" eq="find">target="_top"</mt:if>
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
 </mt:setvarblock>
 
-<form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" <mt:var name="formtarget"> mt:once="1" mt:auto-save="0">
+<mt:include name="include/header.tmpl" id="header_include">
+
+<form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" mt:once="1" mt:auto-save="0">
     <input type="hidden" name="id" value="<mt:var name="id">" />
     <input type="hidden" name="__mode" value="discover_friends" />
     <input type="hidden" name="_type" value="<mt:var name="object_type">" />
@@ -129,57 +156,10 @@
         <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
-    <mt:ignore>TODO: make this an interstitial with throbber instead</mt:ignore>
 </mt:if>
 
 <mt:if name="step" eq="find">
-    <mtapp:listing type="friend" name="contacts" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
-        <mt:if __first__>
-        <thead>
-            <tr>
-                <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
-                <th>Name</th>
-                <th>Link</th>
-            </tr>
-        </thead>
-        </mt:if>
-            <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-                <td>
-                    <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$>
-                   <mt:elseif name="title"><$mt:var name="title"$>
-                    <mt:else><$mt:var name="uri"$>
-                    </mt:if>|<$mt:var name="uri" $>" />
-                </td>
-                <td>
-            <mt:if name="name"><mt:var name="name">
-	                <mt:elseif name="title"><mt:var name="title">
-	                <mt:else><mt:var name="uri">
-            </mt:if>
-                </td>
-                <td class="uri">
-        	        <mt:if name="other_profiles">
-                	<mt:if name="duplicate">
-        		<mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
-        	<input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
-        	</mt:if>
-        	<select id="select<mt:var name="__counter__">" onchange="changeState(this, <mt:var name="__counter__">)">
-        		<option value="<mt:var name="uri">">
-        		<mt:var name="uri">
-        		</option>
-        	<mt:loop name="other_profiles">
-        		<option><a href="<mt:var name="__value__">"><mt:var name="__value__"></li>
-        	</mt:loop>
-        	</select>
-        	<script type="text/javascript">
-        	    changeState(document.getElementById("select<mt:var name="__counter__">"),<mt:var name="__counter__">);
-        	</script>
-        	<mt:else>
-        	<a href="<mt:var name="uri">"><mt:var name="uri"></a>
-        	</mt:if>
-        </td>
-      </tr>
-    </mtapp:listing>
-    <input type="hidden" name="step" value="import" />
+    
 </mt:if>
 <mt:if name="step" eq="import">
     <h3>Import</h3>
@@ -192,7 +172,7 @@
         accesskey="s"
         title="<mt:var name="submitbutton">"
         class="primary-button"
-        <mt:var name="indicatoronclick">
+        <mt:var name="indicatoronclick" />
         ><mt:var name="submitbutton"></button>
 </mt:setvartemplate>
 
