@@ -571,7 +571,8 @@ sub _get_claimed {
 
 sub _get_meta_for_uri {
     my $uri = shift;
-    my $get_related = shift || 0;
+    _log ("get_meta_for_uri: " . $uri);
+	my $get_related = shift || 0;
 
     # get hcard name (if there) and page title
     my $scraper = scraper {
@@ -610,7 +611,7 @@ sub _get_contacts_for_uri {
 
     my $uri         = shift;
     my $author_id   = shift;
-    my $get_related = shift || 0;
+    my $get_related = shift || 1;
 
     _log("Get Contacts for: $uri");
 
@@ -798,9 +799,11 @@ sub discover_friends {
         }
 
         if ( $step =~ /find/ ) {
-            my $uri = $app->param('source_uri');
+            _log("Discovery: Find");
+			
+			my $uri = $app->param('source_uri');
             $uri = ( $uri eq "other" ) ? $app->param('source_uri_other') : $uri;
-            my $get_related = $app->param('get_related') || 0;
+            my $get_related = $app->param('get_related') || 1;
 
             return $app->error("Param source_uri required to Find contacts")
               unless $uri;
@@ -813,19 +816,14 @@ sub discover_friends {
 
             _log( "contacts: " . Dumper(@contacts) );
 
-            return $app->listing(
+            return $app->build_page(
+				'find_contacts.tmpl',
                 {
                     listing_screen => 1,
-                    template =>
-                      MT->component('Friends')->load_tmpl('find_contacts.tmpl'),
-					mode        => 'discover_friends',
-                    params => {
-                        object_type => 'contact',
-                        id          => $author_id,
-                        source      => $uri,
-                        
-                        object_loop => \@contacts
-                    }
+                    source         => $uri,
+                    step           => $step,
+                    id             => $author_id,
+                    contacts       => \@contacts,
                 }
             );
 
