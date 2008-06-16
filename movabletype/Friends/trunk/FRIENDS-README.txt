@@ -19,14 +19,20 @@ As usual. Nothing extra to go anywhere but drop in the plugin, and enable it. To
 This widget outputs a basic microformatted blogroll, marked up with hCard and XFN
 
 <div class="widget-blogroll widget">
-   <h3 class="widget-header">BlogRoll</h3>
-   <div class="widget-content">
-      <ul class="blogroll xoxo">
-         <MTBlogRoll display_name="Steve">
-            <li class="vcard"><a class="fn url" title="<$MTFriendLinkDescription$>" rel="<$MTFriendLinkRel$>" href="<$MTFriendLinkUri$>"><$MTFriendLinkLabel$></a></li>
-         </MTBlogRoll>
-      </ul>
-   </div>
+    <h3 class="widget-header">People I Know</h3>
+    <div class="widget-content">
+        <ul class="blogroll xoxo">
+        <mt:friends>
+            <li class="vcard"><$mt:friendname$>
+                <ul>
+                    <mt:friendlinks>
+                        <li><a class="fn url" title="<$mt:friendlinknotes$>" rel="<$MTFriendRel$>" href="<$mt:friendlinkuri$>"><$mt:friendlinklabel$></a></li>
+                    </mt:friendlinks>
+                </ul>
+            </li>
+        </mt:friends>
+        <ul>
+    </div>
 </div>
 
 ## Next Steps
