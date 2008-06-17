@@ -5,6 +5,10 @@
     .actions-bar-top {
         padding-bottom: 0;
     }
+    .listing-header {
+    	margin-top: 5px;
+    	background-color: #fff;
+    }
     h2.name {
         margin: 0px 0pt 10px 5px;
     }
@@ -16,7 +20,7 @@
     </style>
 </mt:setvarblock>
 
-<$mt:setvar name="page_title" value="<__trans phrase="View Contact">"$>
+<mt:setvarblock name="page_title"><__trans phrase="View Contact"><mt:if name="name"> <mt:var name="name"></mt:if></mt:setvarblock>
 
 <mt:setvarblock name="system_msg">
     <div id="msg-block">
@@ -44,6 +48,7 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="listing_header">
+<div class="listing-header">
     <h2 class="name"><mt:var name="name"> (<a href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Edit"></a>)</h2>
     <mtapp:setting
         id="visible"
@@ -51,51 +56,27 @@
         <span class="visble"><mt:if name="visible" ne="0">Yes<mt:else></mt:if></span>   
     </mtapp:setting>
     <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
+</div>
 </mt:setvarblock>
 
 <mt:include name="include/header.tmpl" id="header_include">
-<fieldset>
-<mt:if name="new_object">
-    <$mt:var name="listing_header"$>
-    <h3>First Profile</h3>
-    <mtapp:setting
-        id="uri"
-        label="<__trans phrase="URL">">
-        <div class="textarea-wrapper">
-            <input type="text" name="uri" rows="3" id="uri" class="full-width" value="<mt:var name="uri">" />
-        </div>
-    </mtapp:setting>
-    <mtapp:setting
-        id="label"
-        label="<__trans phrase="Label">">
-        <div class="textarea-wrapper">
-            <input type="text" name="label" rows="3" id="label" class="full-width" value="<mt:var name="label">" />
-        </div>
-    </mtapp:setting>
-    </fieldset>
-    <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
-</form>
-<mt:else>
-    </fieldset>
-    <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
-    
-</form>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
     <mt:setvarblock name="action_buttons">
         <a href="javascript:void(0)"
             onclick="doRemoveItems(getByID('template-listing-form'), '<__trans phrase="Widget Set" escape="js">', '<__trans phrase="Widget Sets" escape="js">', '', '', 'delete_widget'); return false;"
             accesskey="x"
             title="<__trans phrase="Delete selected Profiles (x)">"
             ><__trans phrase="Delete"></a>
-        <!-- <a href="javascript:void(0)" 
-            onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"
-            accesskey="n"
-            title="<__trans phrase="Add Profile (n)">"
-            ><__trans phrase="Add Profile"></a> -->
     </mt:setvarblock>
+    
+    <$mt:var name="listing_header"$>
+    
     <mtapp:listing
         hide_pager="1"
         listing_class="show-actions-bar-top"
-        type="profile">
+        type="profile"
+        empty_message="No profiles could be found.">
         <mt:if __first__>
         <thead>
             <tr>
@@ -122,10 +103,6 @@
         <mt:if __last__>
             </tbody>
         </mt:if>
-    <mt:else>
-        <mtapp:statusmsg id="zero-state" class="info zero-state">
-            <__trans phrase="No profiles could be found. <a href="[_1]" onclick="[_2]">Add a profile</a>" params="<$mt:var name="mt_url"$>?__mode=view&amp;_type=entry&amp;blog_id=<$mt:var name="blog_id"$>%%openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;">
-        </mtapp:statusmsg>
     </mtapp:listing>
 </mt:if>
 
