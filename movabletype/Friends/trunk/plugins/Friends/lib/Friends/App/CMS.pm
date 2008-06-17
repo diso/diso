@@ -34,7 +34,8 @@ sub users_content_nav {
     $$html_ref =~ s{class=["']active["']}{}xmsg
       if $app->mode eq 'list_friends'
           || $app->mode eq 'discover_friends'
-          || $app->mode eq 'edit_friend';
+          || $app->mode eq 'edit_friend'
+          || $app->mode eq 'view_friend';
 
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
@@ -268,7 +269,7 @@ sub save_link {
    # return edit_friend page - this gets submitted to _top so just load the page
     $app->redirect(
         $app->uri(
-            mode => 'edit_friend',
+            mode => 'view_friend',
             type => 'friend',
             args => {
                 friend_id   => $friend_id,
@@ -762,7 +763,7 @@ sub _get_contacts_for_uri {
             if ( $meta->{openid2} ) {
 
                 # call as_string b/c this is a Net::URI object
-                $refuri_node->{openid} = $meta->{openid2}->cacnonical->as_string;
+                $refuri_node->{openid} = $meta->{openid2}->canonical->as_string;
             }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
