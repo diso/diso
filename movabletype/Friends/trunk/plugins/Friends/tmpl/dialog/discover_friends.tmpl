@@ -92,11 +92,11 @@
  	
  	function getContacts () {
  	    var f = getByID('discover_form');
-        console.log("getContacts");
+        //console.log("getContacts");
         var args = DOM.getFormData(f);
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
-            'loading': function(c) { console.log("loading"); showSpinner (c) },
+            'loading': function(c) { showSpinner (c) },
             'load': function(c) { loadResults (c) },
             'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
             'method': 'POST',
@@ -156,13 +156,6 @@
         <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
-</mt:if>
-
-<mt:if name="step" eq="find">
-    
-</mt:if>
-<mt:if name="step" eq="import">
-    <h3>Import</h3>
 </mt:if>
 
 <mt:setvartemplate name="action_buttons">
