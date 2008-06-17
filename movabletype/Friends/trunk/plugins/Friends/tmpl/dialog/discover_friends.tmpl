@@ -97,6 +97,8 @@
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
             'loading': function(c) { showSpinner (c) },
+            'loaded': function(c) { showSpinner (c) },
+            'interactive': function(c) { showSpinner (c) },
             'load': function(c) { loadResults (c) },
             'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
             'method': 'POST',

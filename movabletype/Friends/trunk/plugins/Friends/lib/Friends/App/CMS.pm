@@ -894,6 +894,72 @@ sub discover_friends {
     }
 }
 
+sub import_contacts {
+	my $app = shift;
+	
+	my @uris = $app->param("id");
+	my $author_id = $app->param('author_id') || 1;
+	
+    my $friend_class    = MT->model('friend');
+    my $link_class      = MT->model('link');
+    
+    my $i;
+    for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
+        _log( $uris[$i] );
+        my ( $n, $u, $dup ) = split( /\|/, $uris[$i] );
+        _log("$n: $u $dup");
+
+        # 1) is there a Friend already?
+        my ( $link, $friend );
+        if ($dup) {
+            _log("loading uri for: $dup");
+            $link = $link_class->load( { uri => $dup } );
+            unless ($link) {
+                die "Cannot load link for: $dup";
+            }
+            _log( "dup link: " . Dumper($link) );
+            $friend = $friend_class->load( $link->friend_id );
+            _log( "friend for dup link: " . Dumper($friend) );
+        }
+        else {
+            # 1) create Friend
+            $friend = $friend_class->new();
+            $friend->init();
+            $friend->name($n);
+            $friend->author_id($author_id);
+            $friend->save() or die "Error saving friend: $!";
+            _log( "made new friend: " . Dumper($friend) );
+        }
+
+        # 2) create Link
+        $link = $link_class->new();
+        $link->init();
+        $link->uri($u);
+        $link->label($n);
+        $link->friend_id( $friend->id );
+        $link->author_id($author_id);
+        $link->save() or die "Error saving link: $!";
+	}
+}
+
+sub itemset_import_contacts {
+	my ($app) = @_;
+    $app->validate_magic or return;
+	my $author_id = $app->param('author_id') || 1;
+	
+    import_contacts ($app);
+
+    return $app->redirect(
+        $app->uri(
+            mode => 'list_friends',
+            args => {
+                id          => $author_id,
+                saved_added => 1,
+            },
+        )
+    );
+}
+
 ##
 # totally cribbed straight from action streams, by mark@sixapart
 #

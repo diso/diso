@@ -14,7 +14,7 @@
 
 <mt:setvarblock name="action_buttons">
     <a href="javascript:void(0)"
-        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="contact">', '<__trans phrase="contacts">', 'id', 'itemset_import_contacts'); return false" accesskey="i"
+        onclick="doForMarkedInThisWindow(getByID('contact-listing-form'), '<__trans phrase="contact">', '<__trans phrase="contacts">', 'id', 'itemset_import_contacts'); return false" accesskey="i"
         title="<__trans phrase="Import selected friends (i)">"
         ><__trans phrase="Import Selected"></a>
 </mt:setvarblock>
@@ -31,7 +31,7 @@
     </mt:if>
         <tr id="row<mt:var name="__counter__">" class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td>
-                <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$><mt:elseif name="title"><$mt:var name="title"$><mt:else><$mt:var name="uri"$></mt:if>|<$mt:var name="uri" $>" />
+                <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$><mt:elseif name="title"><$mt:var name="title"$><mt:else><$mt:var name="uri"$></mt:if>|<$mt:var name="uri" $>" <mt:if name="duplicate"><mt:ifEmpty name="other_profiles">disabled="disabled"</mt:ifEmpty></mt:if> />
             </td>
             <td>
         <mt:if name="name"><mt:var name="name">
