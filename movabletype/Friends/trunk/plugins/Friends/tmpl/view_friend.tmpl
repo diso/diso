@@ -1,0 +1,133 @@
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="friends" value="1">
+<mt:setvarblock name="html_head" append="1">
+    <style type="text/css">
+    .actions-bar-top {
+        padding-bottom: 0;
+    }
+    h2.name {
+        margin: 0px 0pt 10px 5px;
+    }
+    .field-content .visible {
+        font-size: 110%;
+        font-weight: bold;
+    }
+    
+    </style>
+</mt:setvarblock>
+
+<$mt:setvar name="page_title" value="<__trans phrase="View Contact">"$>
+
+<mt:setvarblock name="system_msg">
+    <div id="msg-block">
+      <mt:if name="saved_added">
+          <mtapp:statusmsg
+              id="saved-added"
+              class="success">
+              <mt:if name="object_type" eq="friend">
+                  <__trans phrase="This contact has been saved.">
+              </mt:if>
+          </mtapp:statusmsg>
+      </mt:if>
+      <mt:if name="saved_changes">
+          <mtapp:statusmsg
+              id="saved-changes"
+              class="success">
+              <__trans phrase="Your changes have been saved.">
+          </mtapp:statusmsg>
+      </mt:if>
+    </div>
+</mt:setvarblock>
+
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
+</mt:setvarblock>
+
+<mt:setvarblock name="listing_header">
+    <h2 class="name"><mt:var name="name"> (<a href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Edit"></a>)</h2>
+    <mtapp:setting
+        id="visible"
+        label="<__trans phrase="List In Blogroll">">
+        <span class="visble"><mt:if name="visible" ne="0">Yes<mt:else></mt:if></span>   
+    </mtapp:setting>
+    <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl" id="header_include">
+<fieldset>
+<mt:if name="new_object">
+    <$mt:var name="listing_header"$>
+    <h3>First Profile</h3>
+    <mtapp:setting
+        id="uri"
+        label="<__trans phrase="URL">">
+        <div class="textarea-wrapper">
+            <input type="text" name="uri" rows="3" id="uri" class="full-width" value="<mt:var name="uri">" />
+        </div>
+    </mtapp:setting>
+    <mtapp:setting
+        id="label"
+        label="<__trans phrase="Label">">
+        <div class="textarea-wrapper">
+            <input type="text" name="label" rows="3" id="label" class="full-width" value="<mt:var name="label">" />
+        </div>
+    </mtapp:setting>
+    </fieldset>
+    <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
+</form>
+<mt:else>
+    </fieldset>
+    <mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
+    
+</form>
+    <mt:setvarblock name="action_buttons">
+        <a href="javascript:void(0)"
+            onclick="doRemoveItems(getByID('template-listing-form'), '<__trans phrase="Widget Set" escape="js">', '<__trans phrase="Widget Sets" escape="js">', '', '', 'delete_widget'); return false;"
+            accesskey="x"
+            title="<__trans phrase="Delete selected Profiles (x)">"
+            ><__trans phrase="Delete"></a>
+        <!-- <a href="javascript:void(0)" 
+            onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"
+            accesskey="n"
+            title="<__trans phrase="Add Profile (n)">"
+            ><__trans phrase="Add Profile"></a> -->
+    </mt:setvarblock>
+    <mtapp:listing
+        hide_pager="1"
+        listing_class="show-actions-bar-top"
+        type="profile">
+        <mt:if __first__>
+        <thead>
+            <tr>
+                <th class="cb"><input type="checkbox" name="id-head" value="all" class="select" /></th>
+                <th class="label">Label</th>
+                <th class="url">Link</th>
+                <th class="view"><span>View</span></th>
+            </tr>
+        </thead>
+        </mt:if>
+            <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+                <td class="cb"><input type="checkbox" name="id" value="<$mt:var name="id"$>" class="select" /></td>
+                <td class="label">
+                    <a href="javascript:void(0)" 
+                        onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="label"$></a></td>
+                <td class="link">
+                    <a href="javascript:void(0)" 
+                        onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri"$></a>
+                </td>
+                <td class="view si status-view">
+                    <a href="<mt:var name="uri">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
+                </td>
+            </tr>
+        <mt:if __last__>
+            </tbody>
+        </mt:if>
+    <mt:else>
+        <mtapp:statusmsg id="zero-state" class="info zero-state">
+            <__trans phrase="No profiles could be found. <a href="[_1]" onclick="[_2]">Add a profile</a>" params="<$mt:var name="mt_url"$>?__mode=view&amp;_type=entry&amp;blog_id=<$mt:var name="blog_id"$>%%openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;">
+        </mtapp:statusmsg>
+    </mtapp:listing>
+</mt:if>
+
+<mt:include name="include/footer.tmpl" id="footer_include">
+    

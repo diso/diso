@@ -260,10 +260,8 @@ sub save_link {
     MT->log( Dumper($obj) );
 
     my $uri = $app->param('uri');
-    if ( $uri =~ /\/$/ ) {
-        $uri =~ s/\/$//;
-        $obj->uri($uri);
-    }
+    $uri = URI->new($uri)->canonical->as_string;
+    $obj->uri($uri);
 
     $obj->save() or die "Saving failed: ", $obj->errstr;
 
@@ -351,6 +349,62 @@ sub list_friends {
             params => {
                 object_type => 'friend',
                 id          => $author_id,
+            }
+        }
+    );
+}
+
+=item view_friend
+
+load friend/contact for viewing
+
+=cut
+
+sub view_friend {
+    my $app = shift;
+    my ($param) = @_;
+
+    return $app->return_to_dashboard( redirect => 1 )
+      unless ( $app->param('id') || $app->param('author_id') );
+
+    return $app->return_to_dashboard( permission => 1 )
+      unless _permission_check();
+
+    my $author_id = $app->param('id');
+    if ( !$author_id ) {
+        $author_id = $app->param('author_id');
+    }
+    my $friend_id = $app->param('friend_id') || 0;
+
+    # load the Friend package
+    my $friend_class = MT->model('friend');
+    my $link_class   = MT->model('link');
+    my $type         = $param->{type} || $friend_class->class_type;
+    my $pkg = $app->model($type) or return $app->error("Invalid request.");
+
+    # grab the Friend we want to edit
+    my $obj = ($friend_id) ? $pkg->load($friend_id) : undef;
+
+    if ( !$author_id && $obj ) {
+        $author_id = $obj->author_id;
+    }
+
+    #$param->{id}             = $author_id;
+    #$param->{object_type}    = 'link';
+    #$param->{listing_screen} = 1;
+    #$param->{object_loop}    = $obj ? $obj->links : [];
+
+    return $app->listing(
+        {
+            type           => 'link',
+            listing_screen => 1,
+            template => MT->component('Friends')->load_tmpl('view_friend.tmpl'),
+            terms    => { friend_id => $friend_id },
+            params   => {
+                object_type => 'link',
+                id          => $author_id,
+                friend_id   => $friend_id,
+                %{ $obj->column_values() },
             }
         }
     );
@@ -597,7 +651,8 @@ sub _get_meta_for_uri {
             }
         )
     );
-    my $items;
+	$scraper->__ua->agent('mt-pik-lwp/'.MT->component("Friends")->version);
+	my $items;
     eval { $items = $scraper->scrape( URI->new($uri) ); };
     if ($@) {
         _log($@);
@@ -642,14 +697,14 @@ sub _get_contacts_for_uri {
 
             # TODO: research: how to do LIKE here
             # TODO: get author and limit URIs to this author's URIs
-            $referenced_uri =~ s/\/$//;
+            $referenced_uri = URI->new($referenced_uri)->canonical->as_string;
 
-            #_log("does $referenced_uri already exist?");
+            _log("does $referenced_uri already exist?");
 
             my $link =
               $link_class->load( { uri => $referenced_uri } )
               ;    #, author_id => $author_id } );
-                   #_log( "result: " . Dumper($link) );
+            _log( "\$link: " . Dumper($link) );
 
             if ($link) {
                 $refuri_node->{duplicate} = 1;
@@ -666,23 +721,21 @@ sub _get_contacts_for_uri {
             if ( $meta->{other_uris} ) {
                 for ( my $i = 0 ; $i < scalar @{ $meta->{other_uris} } ; $i++ )
                 {
-                    my $other_uri_str = $meta->{other_uris}[$i]->as_string;
+                    my $other_uri_str =
+                      $meta->{other_uris}[$i]->as_string;
                     $meta->{other_uris}[$i] = $other_uri_str;
 
                     #_log("does $other_uri_str already exist?");
-                    my $other_uri =
+                    my $other_link =
                       $link_class->load( { uri => $other_uri_str } )
                       ;    #, author_id => $author_id } );
-                           #_log( Dumper($other_uri) );
 
-                    if ($other_uri) {
+                    if ($other_link) {
                         $refuri_node->{duplicate} = 1;
-                        $refuri_node->{dupuri}    = $other_uri->uri;
+                        $refuri_node->{dupuri} =
+                          URI->new( $other_link->uri )->canonical->as_string;
                         $meta->{other_uris}[$i] =
                           $other_uri_str . " (duplicate)";
-
-                        #_log( "found existing Link for $other_uri_str: "
-                        #      . Dumper($other_uri) );
                     }
                 }
             }
@@ -691,7 +744,7 @@ sub _get_contacts_for_uri {
                 $refuri_node->{other_profiles} = [];
                 for my $fme ( @{ $meta->{other_uris} } ) {
                     push @{ $refuri_node->{other_profiles} },
-                      $fme;    # I think it's a URI instance. Not sure.
+                      URI->new($fme)->canonical->as_string;    # now string.
                 }
             }
             if ( $meta->{name} ) {
@@ -704,12 +757,12 @@ sub _get_contacts_for_uri {
             if ( $meta->{openid} ) {
 
                 # call as_string b/c this is a Net::URI object
-                $refuri_node->{openid} = $meta->{openid}->as_string;
+                $refuri_node->{openid} = $meta->{openid}->canonical->as_string;
             }
             if ( $meta->{openid2} ) {
 
                 # call as_string b/c this is a Net::URI object
-                $refuri_node->{openid} = $meta->{openid2}->as_string;
+                $refuri_node->{openid} = $meta->{openid2}->cacnonical->as_string;
             }
             $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
             push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
@@ -895,14 +948,14 @@ sub discover_friends {
 }
 
 sub import_contacts {
-	my $app = shift;
-	
-	my @uris = $app->param("id");
-	my $author_id = $app->param('author_id') || 1;
-	
-    my $friend_class    = MT->model('friend');
-    my $link_class      = MT->model('link');
-    
+    my $app = shift;
+
+    my @uris = $app->param("id");
+    my $author_id = $app->param('author_id') || 1;
+
+    my $friend_class = MT->model('friend');
+    my $link_class   = MT->model('link');
+
     my $i;
     for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
         _log( $uris[$i] );
@@ -922,6 +975,7 @@ sub import_contacts {
             _log( "friend for dup link: " . Dumper($friend) );
         }
         else {
+
             # 1) create Friend
             $friend = $friend_class->new();
             $friend->init();
@@ -939,15 +993,15 @@ sub import_contacts {
         $link->friend_id( $friend->id );
         $link->author_id($author_id);
         $link->save() or die "Error saving link: $!";
-	}
+    }
 }
 
 sub itemset_import_contacts {
-	my ($app) = @_;
+    my ($app) = @_;
     $app->validate_magic or return;
-	my $author_id = $app->param('author_id') || 1;
-	
-    import_contacts ($app);
+    my $author_id = $app->param('author_id') || 1;
+
+    import_contacts($app);
 
     return $app->redirect(
         $app->uri(
