@@ -1,4 +1,4 @@
-<mt:setvar name="list_friends" value="1">
+<mt:setvar name="friends" value="1">
 <mt:if name="object_type" eq="link">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit Profile">"$>
     <mt:if name="new_object">
@@ -36,11 +36,6 @@
 
 <mt:include name="dialog/header.tmpl" id="header_include">
 
-<mt:ignore><mt:if name="saved"><script type="text/javascript">closeDialog("<$mt:var name="script_url"$>?__mode=edit_friend&_type=friend&id=<mt:var name="friend_id">");</script></mt:if></mt:ignore>
-
-<mt:if name="saved"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
-<mt:if name="deleted"><script type="text/javascript">closeDialog(window.parent.location+"&saved_changes=1");</script></mt:if>
-
 <form name="uri_form" id="uri_form" target="_top" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
     <mt:if name="new_object">
         <input type="hidden" name="author_id" value="<$mt:var name="author_id"$>" />
@@ -53,6 +48,7 @@
     <input type="hidden" name="return_args" value="<$mt:var name="return_args"$>" />
     <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
     <input type="hidden" name="action_name" value="" />
+
     <fieldset>        
 <mtapp:setting
     id="uri"

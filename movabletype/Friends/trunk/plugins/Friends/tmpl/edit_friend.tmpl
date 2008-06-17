@@ -1,4 +1,6 @@
-<mt:setvar name="edit_author" value="1">
+<mt:if name="new_object">
+    <mt:setvar name="edit_author" value="1">
+</mt:if>
 <mt:setvar name="friends" value="1">
 <mt:setvarblock name="html_head" append="1">
     <style type="text/css">
@@ -14,6 +16,7 @@
         <$mt:setvar name="page_title" value="<__trans phrase="Create New Contact">"$>
     </mt:if>
     <$mt:setvar name="submit_button_title" value="<__trans phrase="Save this contact (s)">"$>
+    <$mt:setvar name="position_actions_bottom" value="true"$>  
 </mt:if>
 
 <mt:setvartemplate name="action_buttons">
@@ -24,6 +27,12 @@
         title="<mt:var name="submit_button_title">"
         class="primary-button"
         ><__trans phrase="Save Contact"></button>
+    <button
+        onclick="closeDialog(); return false"
+        type="submit"
+        accesskey="x"
+        title="<__trans phrase="Cancel (x)">"
+        ><__trans phrase="Cancel"></button>
     <div id="autosave-notification-<$mt:var name="bar_position" default="top"$>" class="autosave-notification"></div>
 </mt:setvartemplate>
 
@@ -48,12 +57,9 @@
     </div>
 </mt:setvarblock>
 
-<mt:setvarblock name="content_nav">
-    <mt:include name="include/users_content_nav.tmpl">
-</mt:setvarblock>
+<mt:include name="dialog/header.tmpl" id="header_include">
 
-<mt:setvarblock name="form_header">
-    <form name="friend_form" id="friend_form" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
+<form name="friend_form" id="frend_form" target="_top" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
     <mt:if name="new_object">
         <input type="hidden" name="author_id" value="<$mt:var name="id"$>" />
     <mt:else>
@@ -65,100 +71,37 @@
         <input type="hidden" name="magic_token" value="<$mt:var name="magic_token"$>" id="m_t" />
         <input type="hidden" name="action_name" value="" />
         <input type="hidden" name="itemset_action_input" value="" />
-</mt:setvarblock>
-<mt:setvarblock name="listing_header">
-    <mtapp:setting
+
+
+<mtapp:setting
          id="name"
          label="<__trans phrase="Name">"
          content_class="field-content-text">
-         <div class="textarea-wrapper">
-           <input name="name" id="name" class="full-width" value="<mt:var name="name">" />
-         </div>
-    </mtapp:setting>
-    <mtapp:setting
+         <input name="name" id="name" size="30" value="<mt:var name="name">" />
+</mtapp:setting>
+<mtapp:setting
         id="visible"
         label="<__trans phrase="List In Blogroll">">
         <input type="checkbox" name="visible" value="1" <mt:if name="visible" ne="0">checked="checked"</mt:if>/>    
-    </mtapp:setting>
-    <mt:unless name="new_object">
-    <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
-    </mt:unless>
-</mt:setvarblock>
+</mtapp:setting>
 
-<mt:include name="include/header.tmpl" id="header_include">
-<fieldset>
 <mt:if name="new_object">
+<fieldset>
     <$mt:var name="listing_header"$>
     <h3>First Profile</h3>
     <mtapp:setting
         id="uri"
         label="<__trans phrase="URL">">
-        <div class="textarea-wrapper">
-            <input type="text" name="uri" rows="3" id="uri" class="full-width" value="<mt:var name="uri">" />
-        </div>
+        <input type="text" name="uri" id="uri" size="50" value="<mt:var name="uri">" />
     </mtapp:setting>
     <mtapp:setting
         id="label"
         label="<__trans phrase="Label">">
-        <div class="textarea-wrapper">
-            <input type="text" name="label" rows="3" id="label" class="full-width" value="<mt:var name="label">" />
-        </div>
+        <input type="text" name="label" size="50" id="label" value="<mt:var name="label">" />
     </mtapp:setting>
-<mt:else>
-    <mt:setvarblock name="action_buttons">
-        <a href="javascript:void(0)"
-            onclick="doRemoveItems(getByID('template-listing-form'), '<__trans phrase="Widget Set" escape="js">', '<__trans phrase="Widget Sets" escape="js">', '', '', 'delete_widget'); return false;"
-            accesskey="x"
-            title="<__trans phrase="Delete selected Profiles (x)">"
-            ><__trans phrase="Delete"></a>
-        <!-- <a href="javascript:void(0)" 
-            onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"
-            accesskey="n"
-            title="<__trans phrase="Add Profile (n)">"
-            ><__trans phrase="Add Profile"></a> -->
-    </mt:setvarblock>
-    <mtapp:listing
-        hide_pager="1"
-        listing_class="show-actions-bar-top"
-        type="profile">
-        <mt:if __first__>
-        <thead>
-            <tr>
-                <th class="cb"><input type="checkbox" name="id-head" value="all" class="select" /></th>
-                <th class="label">Label</th>
-                <th class="url">Link</th>
-                <th class="view"><span>View</span></th>
-            </tr>
-        </thead>
-        </mt:if>
-            <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-                <td class="cb"><input type="checkbox" name="id" value="<$mt:var name="id"$>" class="select" /></td>
-                <td class="label">
-                    <a href="javascript:void(0)" 
-                        onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="label"$></a></td>
-                <td class="link">
-                    <a href="javascript:void(0)" 
-                        onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><$mt:var name="uri"$></a>
-                </td>
-                <td class="view si status-view">
-                    <a href="<mt:var name="uri">" target="<__trans phrase="external_link_target">" title="<__trans phrase="View Site">"><img src="<mt:var name="static_uri">images/spacer.gif" alt="<__trans phrase="View Profile">" width="13" height="9" /></a>
-                </td>
-            </tr>
-        <mt:if __last__>
-            </tbody>
-        </mt:if>
-    <mt:else>
-        <mtapp:statusmsg id="zero-state" class="info zero-state">
-            <__trans phrase="No profiles could be found. <a href="[_1]" onclick="[_2]">Add a profile</a>" params="<$mt:var name="mt_url"$>?__mode=view&amp;_type=entry&amp;blog_id=<$mt:var name="blog_id"$>%%openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;">
-        </mtapp:statusmsg>
-    </mtapp:listing>
+</fieldset>    
 </mt:if>
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
 
-<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="1">
-
-<mt:setvarblock name="form_footer">
-    </form>
-</mt:setvarblock>
-
-<mt:include name="include/footer.tmpl" id="footer_include">
-    
+</form>
+<mt:include name="dialog/footer.tmpl" id="footer_include">
