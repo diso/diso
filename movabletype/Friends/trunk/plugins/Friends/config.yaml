@@ -27,7 +27,7 @@ applications:
 			itemset_delete_friends:		$Friends::Friends::App::CMS::itemset_delete_friends
 			itemset_show_all_friends:	$Friends::Friends::App::CMS::itemset_show_all_friends
 			itemset_hide_all_friends:	$Friends::Friends::App::CMS::itemset_hide_all_friends
-			# contact_list:             $Friends::Friends::App::CMS::contact_list
+			itemset_import_contacts:	$Friends::Friends::App::CMS::itemset_import_contacts
 callbacks:
 	MT::App::CMS::template_source.users_content_nav: $Friends::Friends::App::CMS::users_content_nav
 tags:
