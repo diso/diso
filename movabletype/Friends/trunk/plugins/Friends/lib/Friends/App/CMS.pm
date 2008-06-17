@@ -571,8 +571,8 @@ sub _get_claimed {
 
 sub _get_meta_for_uri {
     my $uri = shift;
-    _log ("get_meta_for_uri: " . $uri);
-	my $get_related = shift || 0;
+    _log( "get_meta_for_uri: " . $uri );
+    my $get_related = shift || 0;
 
     # get hcard name (if there) and page title
     my $scraper = scraper {
@@ -800,8 +800,8 @@ sub discover_friends {
 
         if ( $step =~ /find/ ) {
             _log("Discovery: Find");
-			
-			my $uri = $app->param('source_uri');
+
+            my $uri = $app->param('source_uri');
             $uri = ( $uri eq "other" ) ? $app->param('source_uri_other') : $uri;
             my $get_related = $app->param('get_related') || 1;
 
@@ -817,13 +817,14 @@ sub discover_friends {
             _log( "contacts: " . Dumper(@contacts) );
 
             return $app->build_page(
-				'find_contacts.tmpl',
+                'find_contacts.tmpl',
                 {
                     listing_screen => 1,
                     source         => $uri,
                     step           => $step,
                     id             => $author_id,
                     contacts       => \@contacts,
+                    show_actions   => 0
                 }
             );
 

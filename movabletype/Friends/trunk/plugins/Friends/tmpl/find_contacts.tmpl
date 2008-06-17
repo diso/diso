@@ -19,7 +19,7 @@
         ><__trans phrase="Import Selected"></a>
 </mt:setvarblock>
 
-<mtapp:listing type="contact" name="contacts" empty_message="No contacts could be found at <mt:var name="source">">
+<mtapp:listing type="contact" loop="contacts" empty_message="No contacts could be found at <mt:var name="source">">
     <mt:if __first__>
     <thead>
         <tr>
@@ -40,8 +40,7 @@
         </mt:if>
             </td>
             <td class="uri">
-                <a href="<mt:var name="uri">"><$mt:var name="uri"$></a>
-    	        <mt:if name="other_profiles">
+                <mt:if name="other_profiles">
             	<mt:if name="duplicate">
     		        <mt:setvarblock name="dupuriId">dupuri<mt:var name="__counter__"></mt:setvarblock>
     	            <input type="hidden" id="<mt:var name="dupuriId">" value="<mt:var name="dupuri">" />
