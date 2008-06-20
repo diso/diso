@@ -14,7 +14,7 @@ if(!$_POST['authorize']) {
 
 get_currentuserinfo();
 if(!$userdata->ID) {
-	$redirect_to = urlencode(get_bloginfo('wpurl').'/wp-content/plugins/oauth/authorize_token.php?oauth_token='.urlencode($_REQUEST['oauth_token']).'&oauth_callback='.urlencode($_REQUEST['oauth_callback']));
+	$redirect_to = urlencode(get_bloginfo('wpurl').'/wp-content/plugins/wp-oauth/authorize_token.php?oauth_token='.urlencode($_REQUEST['oauth_token']).'&oauth_callback='.urlencode($_REQUEST['oauth_callback']));
 	header('Location: '.get_bloginfo('wpurl').'/wp-login.php?redirect_to='.$redirect_to,true,303);
 	exit;
 }//end if ! userdata->ID
