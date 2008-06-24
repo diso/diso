@@ -36,7 +36,7 @@ sub users_content_nav {
           || $app->mode eq 'discover_friends'
           || $app->mode eq 'edit_friend'
           || $app->mode eq 'view_friend'
-		  || $app->mode eq 'list_pending';
+          || $app->mode eq 'list_pending';
 
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
@@ -44,15 +44,15 @@ sub users_content_nav {
 
     my $html = <<"EOF";
     <mt:if var="USER_VIEW">
-		<li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-    	<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-		<li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-	</mt:if>
+        <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
+        <li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+        <li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+    </mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-		<li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-		</mt:if>
+        <li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+        <li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+        </mt:if>
 EOF
 
 #<a href="javascript:void(0)"
@@ -112,11 +112,11 @@ sub itemset_delete_friends {
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
-		my @links = MT->model('link')->load({friend_id=>$friend_id});
-		for my $link (@links)
-		{
-			$link->remove();
-		}
+        my @links = MT->model('link')->load({friend_id=>$friend_id});
+        for my $link (@links)
+        {
+            $link->remove();
+        }
         $friend->remove();
     }
     $app->call_return;
@@ -353,7 +353,7 @@ sub list_friends {
             terms => { author_id => $author_id, pending => 0 },
             code  => sub {
                 my ( $obj, $row ) = @_;
-                $row->{links} = $obj->links;
+                $row->{links} = $obj->links({pending=>0});
             },
             params => {
                 object_type => 'friend',
@@ -380,23 +380,30 @@ sub list_pending_friends {
 
     ### get friends (MT::App::CMS.pm::list_entries,12157)
     my $friend_class = MT->model('friend');
+    my $link_class = MT->model('link');
     my $type = $param->{type} || 'friend';
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     ## TODO: Include list of URLs (or first few?)
     ## I can't seem to figure out how to do this so that in the listing, i can list the Links
     ## for that friend.
-
+    
     return $app->listing(
         {
             type           => 'friend',
+            terms          => { author_id => $author_id },
+            args           => {
+                'join' => $link_class->join_on ('friend_id',
+                    { pending => 1 },
+                    { unique => 1 }
+                )
+            },
             listing_screen => 1,
             template =>
               MT->component('Friends')->load_tmpl('list_pending_friends.tmpl'),
-            terms => { author_id => $author_id, pending=>1 },
             code  => sub {
                 my ( $obj, $row ) = @_;
-                $row->{links} = $obj->links;
+                $row->{links} = $obj->links();
             },
             params => {
                 object_type => 'friend',

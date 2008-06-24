@@ -4,48 +4,46 @@ key: Friends
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provides a blogroll-like means of managing and displaying a friends list on your site
-schema_version: 0.936
+schema_version: 0.92
 version: 0.9
 plugin_link: http://diso-project.org/
 object_types:
-    friend: Friends::Friend
-    link:    Friends::Link
+	friend: Friends::Friend
+	link:    Friends::Link
 applications:
-    cms:
-        methods:
-            list_friends:               $Friends::Friends::App::CMS::list_friends
-            view_friend:                $Friends::Friends::App::CMS::view_friend
-            edit_friend:                $Friends::Friends::App::CMS::edit_friend
-            save_friend:                $Friends::Friends::App::CMS::save_friend
-            delete_friend:                  $Friends::Friends::App::CMS::delete_friend
-            save_link:                      $Friends::Friends::App::CMS::save_link
-            edit_link:                      $Friends::Friends::App::CMS::edit_link
-            delete_link:                    $Friends::Friends::App::CMS::delete_link
-            itemset_show_friends:       $Friends::Friends::App::CMS::itemset_show_friends
-            itemset_hide_friends:       $Friends::Friends::App::CMS::itemset_hide_friends
-            itemset_delete_friends:     $Friends::Friends::App::CMS::itemset_delete_friends
-            itemset_show_all_friends:   $Friends::Friends::App::CMS::itemset_show_all_friends
-            itemset_hide_all_friends:   $Friends::Friends::App::CMS::itemset_hide_all_friends
-            discover_friends:           $Friends::Friends::App::Discovery::discover_friends
-            get_contacts_list:       $Friends::Friends::App::Discovery::get_contacts_list_json
-            get_contact_data:       $Friends::Friends::App::Discovery::get_contacts_data
-            get_contacts_view:      $Friends::Friends::App::Discovery::get_contacts_view
-            itemset_import_contacts:    $Friends::Friends::App::Discovery::itemset_import_contacts
-            list_pending:               $Friends::Friends::App::CMS::list_pending_friends
+	cms:
+		methods:
+			list_friends:       		$Friends::Friends::App::CMS::list_friends
+			view_friend:        		$Friends::Friends::App::CMS::view_friend
+			edit_friend:        		$Friends::Friends::App::CMS::edit_friend
+			save_friend:        		$Friends::Friends::App::CMS::save_friend
+			delete_friend:              	$Friends::Friends::App::CMS::delete_friend
+			save_link:                   	$Friends::Friends::App::CMS::save_link
+			edit_link:                   	$Friends::Friends::App::CMS::edit_link
+			delete_link:                 	$Friends::Friends::App::CMS::delete_link
+			itemset_show_friends:		$Friends::Friends::App::CMS::itemset_show_friends
+			itemset_hide_friends:		$Friends::Friends::App::CMS::itemset_hide_friends
+			itemset_delete_friends:		$Friends::Friends::App::CMS::itemset_delete_friends
+			itemset_show_all_friends:	$Friends::Friends::App::CMS::itemset_show_all_friends
+			itemset_hide_all_friends:	$Friends::Friends::App::CMS::itemset_hide_all_friends
+			discover_friends:   		$Friends::Friends::App::Discovery::discover_friends
+			find_contacts:			$Friends::Friends::App::Discovery::find_contacts_json
+			get_contact_data:		$Friends::Friends::App::Discovery::get_contacts_data_json
+			itemset_import_contacts:	$Friends::Friends::App::Discovery::itemset_import_contacts
 callbacks:
-    MT::App::CMS::template_source.users_content_nav: $Friends::Friends::App::CMS::users_content_nav
+	MT::App::CMS::template_source.users_content_nav: $Friends::Friends::App::CMS::users_content_nav
 tags:
-    function:
-        FriendName:             $Friends::Friends::App::CMS::tag_friend_name
-        FriendRel:              $Friends::Friends::App::CMS::tag_friend_rel
-        FriendLinkName:         $Friends::Friends::App::CMS::tag_friend_link_name
-        FriendLinkUri:          $Friends::Friends::App::CMS::tag_friend_link_uri
-        FriendLinkNotes:        $Friends::Friends::App::CMS::tag_friend_link_notes
-        FriendLinkLabel:        $Friends::Friends::App::CMS::tag_friend_link_label
-    block:
-        BlogRoll:               $Friends::Friends::App::CMS::tag_blog_roll_block
-        Friends:                $Friends::Friends::App::CMS::tag_friends_block
-        FriendLinks:            $Friends::Friends::App::CMS::tag_friend_links_block
+	function:
+		FriendName:             $Friends::Friends::App::CMS::tag_friend_name
+		FriendRel:              $Friends::Friends::App::CMS::tag_friend_rel
+		FriendLinkName:         $Friends::Friends::App::CMS::tag_friend_link_name
+		FriendLinkUri:          $Friends::Friends::App::CMS::tag_friend_link_uri
+		FriendLinkNotes:        $Friends::Friends::App::CMS::tag_friend_link_notes
+		FriendLinkLabel:        $Friends::Friends::App::CMS::tag_friend_link_label
+	block:
+		BlogRoll:               $Friends::Friends::App::CMS::tag_blog_roll_block
+		Friends:                $Friends::Friends::App::CMS::tag_friends_block
+		FriendLinks:            $Friends::Friends::App::CMS::tag_friend_links_block
 list_actions:
     friend:
         hide_all:
