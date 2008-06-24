@@ -181,12 +181,14 @@
         var f = getByID('discover_form');
                 //console.log("getContacts");
         var targs = DOM.getFormData(f);
-        
+        //for (a in targs) {
+        //    console.log(a);
+        //}
         var args = {};
         args.author_id = targs.id;
         args.__mode = 'get_contact_data';
         args.contacts_json = contacts_obj.toJSON();
-        console.log(args);
+        
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
             'loading': function(c) { 
@@ -208,7 +210,7 @@
                         getDataForContacts({contacts:contacts.splice(0,10)});
                     } else {
                         hideSpinner();
-                        getContactListView (contact_data, args.source_uri);
+                        getContactListView (contact_data, targs.source_uri);
                     }
                 } else {
                     console.log ("getDataForContacts: non-200 response: " + c.status + " - " + c.responseText);
@@ -223,7 +225,8 @@
     
     function getContactListView (contact_list_data, uri) {
         console.log ("getContactListView");
-        window.location (ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">&amp;contacts_source="+uri);
+        console.log (ScriptBaseURI + ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">");
+        window.location = ScriptBaseURI + ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">";
     }
     
     </script>
