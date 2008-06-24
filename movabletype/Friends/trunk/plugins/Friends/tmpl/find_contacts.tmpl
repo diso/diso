@@ -33,11 +33,13 @@
             <td>
                 <input id="cb<$mt:var name="__counter__"$>" type="checkbox" name="id" value="<mt:if name="name"><$mt:var name="name"$><mt:elseif name="title"><$mt:var name="title"$><mt:else><$mt:var name="uri"$></mt:if>|<$mt:var name="uri" $>" <mt:if name="duplicate"><mt:unless name="other_profiles">disabled="disabled"</mt:unless></mt:if> />
             </td>
-            <td>
-        <mt:if name="name"><mt:var name="name">
-                <mt:elseif name="title"><mt:var name="title">
-                <mt:else><mt:var name="uri">
-        </mt:if>
+            <td id="name<mt:var name="__counter__">">
+        <mt:if 
+        	name="name"><mt:var name="name"><mt:elseif 
+        	name="title"><mt:var name="title"><mt:else><mt:var 
+        	name="uri"></mt:if>(<a 
+        	href="javascript:void(0)"
+        	onclick="add_contact_selector(<mt:var name="__counter__">)">select contact)
             </td>
             <td class="uri">
                 <mt:if name="other_profiles">

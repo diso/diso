@@ -4,47 +4,51 @@
 <mt:setvar name="position_actions_bottom" value="true">
 <mt:if name="step" eq="start">
     <mt:setvar name="submitbutton" value="Next">
-    <mt:setvar name="indicatoronclick" value="onclick='getContacts(); return false;'">
+    <mt:setvar name="indicatoronclick" value="onclick='getContactsList(); return false;'">
 <mt:elseif name="step" eq="find">
     <mt:setvar name="submitbutton" value="Import">
 </mt:if>
 
 <mt:setvarblock name="html_head" append="1">
     <script type="text/javascript" src="<mt:var name="static_uri">js/tc/client.js"></script>
+    <script type="text/javascript" src="<mt:var name="static_uri">js/tc/json.js"></script>
     <link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
- 	
- 	<style type="text/css">
- 	.content-nav #main-content .msg { margin-left: 0px; }
- 	#main-content {
- 	    padding-top:5px;
- 	}
- 	<mt:loop name="service_styles">
- 	.service-<mt:var name="service_type"> {
- 	    background-image: url(<mt:var name="service_icon">); 
- 	}
- 	</mt:loop>
- 	
- 	.disabled td, .disabled td a {
- 		color: #999;
- 	}
- 	
- 	#indicator {
- 	    position: relative;
+    
+    <style type="text/css">
+    .content-nav #main-content .msg { margin-left: 0px; }
+    #main-content {
+        padding-top:5px;
+    }
+    <mt:loop name="service_styles">
+    .service-<mt:var name="service_type"> {
+        background-image: url(<mt:var name="service_icon">); 
+    }
+    </mt:loop>
+    
+    .disabled td, .disabled td a {
+        color: #999;
+    }
+    
+    #indicator {
+        position: relative;
         background: url(images/indicator.gif) no-repeat;
         width: 66px;
         height: 66px;
         margin: 0 auto;
         display: none;
     }
- 	</style>
- 	
- 	<script type="text/javascript">
- 	
- 	var ScriptURI;
+    #msg {
+        margin-top: 10px;
+    }
+    </style>
+    
+    <script type="text/javascript">
+    
+    var ScriptURI;
     var ScriptBaseURI;
     var StaticURI;
     
- 	var tableSelect;
+    var tableSelect;
     function init() {
         // set up table select awesomeness
         tableSelect = new TC.TableSelect("contact-listing-table");
@@ -65,33 +69,33 @@
 
     // -->
     
- 	function changeState(el, idNum) {
- 	    var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
- 	    var dupState = (el.value.indexOf("duplicate")!=-1);
- 		document.getElementById('cb'+idNum).disabled=dupState;
- 		
- 		if (dupState) {
- 			document.getElementById('row'+idNum).className='disabled';
- 			document.getElementById('cb'+idNum).checked=false;
-			//document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
-	 	}
-		else
-		{
-			document.getElementById('row'+idNum).className='';
-			var newUri = el.value;
-			var name = document.getElementById('cb'+idNum).value.split('|')[0];
-			var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
-			if (oldUri) {
-				document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
- 			} else {
- 				document.getElementById('cb'+idNum).value = name + "|"+ newUri;
- 			}
- 			//document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
-	 	}
- 	}
- 	
- 	function getContacts () {
- 	    var f = getByID('discover_form');
+    function changeState(el, idNum) {
+        var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
+        var dupState = (el.value.indexOf("duplicate")!=-1);
+        document.getElementById('cb'+idNum).disabled=dupState;
+        
+        if (dupState) {
+            document.getElementById('row'+idNum).className='disabled';
+            document.getElementById('cb'+idNum).checked=false;
+            //document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+        }
+        else
+        {
+            document.getElementById('row'+idNum).className='';
+            var newUri = el.value;
+            var name = document.getElementById('cb'+idNum).value.split('|')[0];
+            var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
+            if (oldUri) {
+                document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
+            } else {
+                document.getElementById('cb'+idNum).value = name + "|"+ newUri;
+            }
+            //document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+        }
+    }
+
+    function getContacts () {
+        var f = getByID('discover_form');
         //console.log("getContacts");
         var args = DOM.getFormData(f);
         TC.Client.call({
@@ -105,23 +109,124 @@
             'uri': ScriptURI,
             'arguments': args
         });
- 	}
- 	
- 	function showSpinner(c) {
- 	    var container = getByID('main-content-inner');
- 	    var content = getByID('main-content-inner');
- 	    content.innerHTML = "<div style='text-align:center;'><p>Please wait while we find your contacts...</p><img src='/mt/mt-static/images/indicator.gif' /></div>";
+    }
+    
+    function showSpinner(c) {
+        var content = getByID('main-content-inner');
+        getByID('discover_form').style.height = 0;
+        getByID('discover_form').style.opacity = 0;
+        content.innerHTML += "<div style='text-align:center;'><img id='spinner-img' src='/mt/mt-static/images/indicator.gif' /><div id='msg'>Please wait while we find your contacts...</div></div>";
         return true;
- 	}
- 	
- 	function loadResults (c) {
- 	    var newContents = c.responseText;
- 	    var content = getByID('main-content-inner');
- 	    DOM.addClassName( getByID('container'), "listing-screen");
- 	    content.innerHTML = newContents;
- 	}
- 	
- 	</script>
+    }
+    
+    function hideSpinner () {
+        getByID("spinner-img").style.display = 'none';
+    }
+    
+    function loadResults (c) {
+        var newContents = c.responseText;
+        var content = getByID('main-content-inner');
+        DOM.addClassName( getByID('container'), "listing-screen");
+        content.innerHTML = newContents;
+    }
+    
+    var contacts;
+    var nextN=1;
+    var contact_data=[];
+    
+    function getContactsList () {
+        var f = getByID('discover_form');
+        //console.log("getContacts");
+        var args = DOM.getFormData(f);
+        
+        if (!args.source_uri) {
+            alert("Don't know where to look for contacts!");
+            return false;
+        }
+        
+        args.__mode = 'get_contacts_list';
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            'loading': function(c) { 
+                console.log ('loading: '); 
+                showSpinner(c);
+            },
+            'load': function(c) {
+                console.log ('load: ' + c.responseText);
+                if (c.status==200) {
+                    contacts = eval("("+c.responseText+")");
+                    console.log(contacts);
+                    getByID('msg').innerHTML += "<p>Found " + contacts.length + " contacts!" + "</p>"
+                    if (contacts.length) {
+                        getDataForContacts({contacts:contacts.splice(0,10)});
+                    } else {
+                        hideSpinner ();
+                    }
+                } else {
+                    console.log ("getContactsList: non-200 response: " + c.status + " - " + c.responseText);
+                }
+                
+            },
+            'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
+    }
+    
+    function getDataForContacts(contacts_obj) {
+        console.log('getDataForContacts: ');
+        console.log(contacts_obj);
+        
+        var f = getByID('discover_form');
+                //console.log("getContacts");
+        var targs = DOM.getFormData(f);
+        
+        var args = {};
+        args.author_id = targs.id;
+        args.__mode = 'get_contact_data';
+        args.contacts_json = contacts_obj.toJSON();
+        console.log(args);
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            'loading': function(c) { 
+                console.log ('getDataForContacts loading: ');
+            },
+            'load': function(c) {
+                console.log ('getDataForContacts load: ' + c.responseText);
+                if (c.status==200) {                
+                    resp_obj = eval("("+c.responseText+")");
+                    console.log(resp_obj);
+                    for each (contact in resp_obj.contacts) {
+                        contact_data.push(contact);
+                    }
+                    if (contacts.length) {
+                        var nextCount = (contacts.length > 10) ? nextN+9 : nextN + contacts.length;
+                        getByID('msg').innerHTML += "<p>" + "getting information for contacts " + 
+                            nextN + "-" + nextCount + "...</p>";
+                        nextN += 10;
+                        getDataForContacts({contacts:contacts.splice(0,10)});
+                    } else {
+                        hideSpinner();
+                        getContactListView (contact_data, args.source_uri);
+                    }
+                } else {
+                    console.log ("getDataForContacts: non-200 response: " + c.status + " - " + c.responseText);
+                }
+            },
+            'error': function() { console.log("Error getting contacts: " + c.responseText); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
+    }
+    
+    function getContactListView (contact_list_data, uri) {
+        console.log ("getContactListView");
+        window.location (ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">&amp;contacts_source="+uri);
+    }
+    
+    </script>
 </mt:setvarblock>
 
 <mt:setvarblock name="content_nav">
@@ -147,14 +252,14 @@
         id="source_uri"
         label="<__trans phrase="Import From:">">
         <ul>
-	    <mt:loop name="profiles">
-	    	<li style="height:20px;"><input type="radio" name="source_uri" class="select" 
-	    			value="<mt:var name="uri">" escape="html"/>
-	    			<span style="display:inline;" class="service-icon service-<mt:var name="type">"> <a target="_blank" href="<mt:var name="uri">"><mt:var name="ident"></a></span></li>
-	    </mt:loop>
-	    </ul>
-	    <input type="radio" name="source_uri" class="select" 
-	    			value="other" /> <__trans phrase="Other:">
+        <mt:loop name="profiles">
+            <li style="height:20px;"><input type="radio" name="source_uri" class="select" 
+                    value="<mt:var name="uri">" escape="html"/>
+                    <span style="display:inline;" class="service-icon service-<mt:var name="type">"> <a target="_blank" href="<mt:var name="uri">"><mt:var name="ident"></a></span></li>
+        </mt:loop>
+        </ul>
+        <input type="radio" name="source_uri" class="select" 
+                    value="other" /> <__trans phrase="Other:">
         <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
