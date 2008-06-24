@@ -1,0 +1,124 @@
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="list_pending" value="1">
+
+<mt:setvar name="id" value="1">
+
+<mt:if name="object_type" eq="friend">
+    <$mt:setvar name="page_title" value="<__trans phrase="Pending Contacts">"$>
+</mt:if>
+
+<mt:setvarblock name="html_head" append="1">
+    <script type="text/javascript">
+    <!--
+
+    var tableSelect;
+    function init() {
+        // set up table select awesomeness
+        tableSelect = new TC.TableSelect("friend-listing-table");
+        tableSelect.rowSelect = false;
+    }
+
+    TC.attachLoadEvent(init);
+
+    function finishPluginActionAll(f, action) {
+        var select_all = getByID('select-all-checkbox')
+        if (select_all) {
+            select_all.checked = true;
+            tableSelect.select(select_all);
+        }
+        return doForMarkedInThisWindow(f, '', 'friends', 'id', 'itemset_action',
+            {'action_name': action}, 'to act upon');
+    }
+
+    // -->
+    </script>
+
+    <style type="text/css">
+        #main-content { padding-top: 5px; }
+        .content-nav #main-content .msg { margin-left: 0px; }
+    </style>
+</mt:setvarblock>
+
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
+</mt:setvarblock>
+
+<mt:setvarblock name="content_header">
+    <ul class="action-link-list">
+        <li style="list-style-type: none"><p>This is a list of contacts imported from <$mt:var name="contacts_source" default="your other profiles"$>. Review the list, and select those contacts you'd like to import. Non-selected contacts will be deleted.</p></li>
+    </ul>
+</mt:setvarblock>
+
+<mt:setvarblock name="action_buttons">
+    <a href="javascript:void(0)"
+        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="contact">', '<__trans phrase="contacts">', 'id', 'itemset_import_contacts'); return false" accesskey="i"
+        title="<__trans phrase="Import selected friends (i)">"
+        ><__trans phrase="Import Selected"></a>
+    <a href="javascript:void(0)"
+        onclick="doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="contact">', '<__trans phrase="contacts">', 'id', 'itemset_delete_friends'); return false" accesskey="d"
+        title="<__trans phrase="Import selected friends (i)">"
+        ><__trans phrase="Delete Selected"></a>
+</mt:setvarblock>
+
+<mt:var name="position_actions_top" value="1">
+
+<mt:include name="include/header.tmpl" id="header_include">
+    
+<mt:if name="blog_id">
+<input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
+</mt:if>
+
+<mt:setvarblock name="system_msg">
+    <div id="msg-block">
+      <mt:if name="saved_added">
+          <mtapp:statusmsg
+              id="saved-added"
+              class="success">
+              <mt:if name="object_type" eq="friend">
+                  <__trans phrase="This contact has been saved.">
+              </mt:if>
+          </mtapp:statusmsg>
+      </mt:if>
+      <mt:if name="saved_changes">
+          <mtapp:statusmsg
+              id="saved-changes"
+              class="success">
+              <__trans phrase="Your changes have been saved.">
+          </mtapp:statusmsg>
+      </mt:if>
+    </div>
+</mt:setvarblock>
+
+<mtapp:listing type="friend" default="<__trans phrase="You have no contacts pending import.">" empty_message="<__trans phrase="You have no contacts pending import.">">
+    <mt:if __first__>
+      <thead>
+        <tr>
+          <th class="cb"><input type="checkbox" id="select-all-checkbox" name="id-head" value="all" class="select" /></th>
+          <th class="status">
+              <img src="<mt:var name="static_uri">images/status_icons/invert-flag.gif" alt="<__trans phrase="Status">" title="<__trans phrase="Status">" width="9" height="9" />
+          </th>
+          <th>Name</th>
+          <th>Profile Links</th>
+        </tr>
+      </thead>
+    </mt:if>
+    <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+        <$mt:setvar name="friend_id" value="${id}"$>
+        <td class="cb">
+            <input type="checkbox" name="id" value="<mt:var name="id">" class="select" />
+        </td>
+        <td class="status si status-<mt:if name="visible">publish<mt:else>pending</mt:if>">
+            <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
+        </td>
+        <td class="name"><a href="<$mt:var name="script_url"$>?__mode=view_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="author_id"$>&amp;friend_id=<$mt:var name="id"$>"><$mt:var name="name"$></a></td>
+        <td class="uri">
+            <ul>
+            <mt:loop name="links">
+                <li><input type="checkbox" name="links" value="<mt:var name="id">" class="" /> <a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></li>
+            </mt:loop>
+            </ul>
+        </td>
+    </tr>
+</mtapp:listing>
+
+<mt:include name="include/footer.tmpl" id="footer_include">

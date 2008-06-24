@@ -35,7 +35,8 @@ sub users_content_nav {
       if $app->mode eq 'list_friends'
           || $app->mode eq 'discover_friends'
           || $app->mode eq 'edit_friend'
-          || $app->mode eq 'view_friend';
+          || $app->mode eq 'view_friend'
+		  || $app->mode eq 'list_pending';
 
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
@@ -45,11 +46,13 @@ sub users_content_nav {
     <mt:if var="USER_VIEW">
 		<li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
     	<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+		<li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
 	</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
 		<li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-    </mt:if>
+		<li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+		</mt:if>
 EOF
 
 #<a href="javascript:void(0)"
@@ -109,6 +112,11 @@ sub itemset_delete_friends {
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
+		my @links = MT->model('link')->load({friend_id=>$friend_id});
+		for my $link (@links)
+		{
+			$link->remove();
+		}
         $friend->remove();
     }
     $app->call_return;
@@ -342,7 +350,50 @@ sub list_friends {
             listing_screen => 1,
             template =>
               MT->component('Friends')->load_tmpl('list_friends.tmpl'),
-            terms => { author_id => $author_id },
+            terms => { author_id => $author_id, pending => 0 },
+            code  => sub {
+                my ( $obj, $row ) = @_;
+                $row->{links} = $obj->links;
+            },
+            params => {
+                object_type => 'friend',
+                id          => $author_id,
+            }
+        }
+    );
+}
+
+# lazy copy-paste implementation of the "review pending" controller
+sub list_pending_friends {
+
+    my $app = shift;
+    my ($param) = @_;
+
+    return $app->return_to_dashboard( redirect => 1 )
+      unless $app->param('id');
+
+    return $app->return_to_dashboard( permission => 1 )
+      unless _permission_check();
+
+    my $author_id = $app->param('id');
+    my @data;
+
+    ### get friends (MT::App::CMS.pm::list_entries,12157)
+    my $friend_class = MT->model('friend');
+    my $type = $param->{type} || 'friend';
+    my $pkg = $app->model($type) or return $app->error("Invalid request.");
+
+    ## TODO: Include list of URLs (or first few?)
+    ## I can't seem to figure out how to do this so that in the listing, i can list the Links
+    ## for that friend.
+
+    return $app->listing(
+        {
+            type           => 'friend',
+            listing_screen => 1,
+            template =>
+              MT->component('Friends')->load_tmpl('list_pending_friends.tmpl'),
+            terms => { author_id => $author_id, pending=>1 },
             code  => sub {
                 my ( $obj, $row ) = @_;
                 $row->{links} = $obj->links;
@@ -383,7 +434,7 @@ sub view_friend {
     my $type         = $param->{type} || $friend_class->class_type;
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
-    # grab the Friend we want to edit
+    # grab the Friend we want to view
     my $obj = ($friend_id) ? $pkg->load($friend_id) : undef;
 
     if ( !$author_id && $obj ) {
@@ -582,427 +633,6 @@ sub delete_friend {
 
     $friend->remove()
       or return $app->error( 'Could note delete Friend: ' . $friend_id );
-
-    return $app->redirect(
-        $app->uri(
-            mode => 'list_friends',
-            args => {
-                id          => $author_id,
-                saved_added => 1,
-            },
-        )
-    );
-}
-
-##
-# _get_claimed uses Google's Social Graph API L<http://code.google.com/apis/socialgraph/> to find
-#	other URLs that the user has identified as their own via rel=mes
-#
-sub _get_claimed {
-    require MT::Log;
-
-    my $start_at = shift;
-
-    my @source_data;
-
-    return @source_data unless $start_at =~ /^http/;
-
-    my %opts = (
-        edo => 0,
-        fme => 1,
-        edi => 0
-    );
-
-    require Net::SocialGraph;
-    my $sg_client = Net::SocialGraph->new(%opts);
-    my $sg        = $sg_client->get($start_at);
-
-    while ( my ( $source_uri, $source ) = each %{ $sg->{nodes} } ) {
-        push @source_data, $source_uri unless $source_uri !~ /^http/;
-    }
-
-    return @source_data;
-}
-
-sub _get_meta_for_uri {
-    my $uri = shift;
-    _log( "get_meta_for_uri: " . $uri );
-    my $get_related = shift || 0;
-
-    # get hcard name (if there) and page title
-    my $scraper = scraper {
-        process '.vcard .fn',        'name'  => 'TEXT';
-        process '//html/head/title', 'title' => 'TEXT';
-        if ($get_related) {
-            process
-              '//a[contains(concat(" ", normalize-space(@rel), " ")," me ")]',
-              'other_uris[]' => '@href';
-        }
-        process '//link[@rel="openid.delegate"]', 'openid'  => '@href';
-        process '//link[@rel="openid.local_id"]', 'openid2' => '@href';
-
-        #process 'a[rel="me"]',	'fmes[]' => '@href';
-    };
-
-    $scraper->user_agent(
-        ua(
-            {
-                'url'     => $uri,
-                'scraper' => $scraper
-            }
-        )
-    );
-	$scraper->__ua->agent('mt-pik-lwp/'.MT->component("Friends")->version);
-	my $items;
-    eval { $items = $scraper->scrape( URI->new($uri) ); };
-    if ($@) {
-        _log($@);
-    }
-    return $items;
-}
-
-sub _get_contacts_for_uri {
-
-    # require MT::Log;
-
-    my $uri         = shift;
-    my $author_id   = shift;
-    my $get_related = shift || 1;
-
-    _log("Get Contacts for: $uri");
-
-    require Net::SocialGraph;
-    my %opts = (
-        edo => 1,
-        fme => 0,
-    );
-    my $sg_client = Net::SocialGraph->new(%opts);
-
-    my $sg = $sg_client->get($uri);
-
-    my @source_data;
-    while ( my ( $source_uri, $source ) = each %{ $sg->{nodes} } ) {
-        my @data;
-
-      URI: for my $referenced_uri ( keys %{ $source->{nodes_referenced} } ) {
-            my $refuri_node = $source->{nodes_referenced}->{$referenced_uri};
-
-            next URI if $referenced_uri !~ /^http\:\/\//;
-
-            my $meta = _get_meta_for_uri( $referenced_uri, $get_related );
-
-            #_log( "meta for $referenced_uri: " . Dumper($meta) );
-
-            # is there link like this already?
-            my $link_class = MT->model('link');
-
-            # TODO: research: how to do LIKE here
-            # TODO: get author and limit URIs to this author's URIs
-            $referenced_uri = URI->new($referenced_uri)->canonical->as_string;
-
-            _log("does $referenced_uri already exist?");
-
-            my $link =
-              $link_class->load( { uri => $referenced_uri } )
-              ;    #, author_id => $author_id } );
-            _log( "\$link: " . Dumper($link) );
-
-            if ($link) {
-                $refuri_node->{duplicate} = 1;
-
-               #_log(
-               #    "found existing URI for $referenced_uri: " . Dumper($uri) );
-                $refuri_node->{dupuri} = $link->uri;
-            }
-            $refuri_node->{uri} = $referenced_uri
-              . ( $refuri_node->{duplicate} ? " (duplicate)" : "" );
-
-            #_log( Dumper( $meta->{other_uris} ) );
-
-            if ( $meta->{other_uris} ) {
-                for ( my $i = 0 ; $i < scalar @{ $meta->{other_uris} } ; $i++ )
-                {
-                    my $other_uri_str =
-                      $meta->{other_uris}[$i]->as_string;
-                    $meta->{other_uris}[$i] = $other_uri_str;
-
-                    #_log("does $other_uri_str already exist?");
-                    my $other_link =
-                      $link_class->load( { uri => $other_uri_str } )
-                      ;    #, author_id => $author_id } );
-
-                    if ($other_link) {
-                        $refuri_node->{duplicate} = 1;
-                        $refuri_node->{dupuri} =
-                          URI->new( $other_link->uri )->canonical->as_string;
-                        $meta->{other_uris}[$i] =
-                          $other_uri_str . " (duplicate)";
-                    }
-                }
-            }
-
-            if ( $meta->{other_uris} ) {
-                $refuri_node->{other_profiles} = [];
-                for my $fme ( @{ $meta->{other_uris} } ) {
-                    push @{ $refuri_node->{other_profiles} },
-                      URI->new($fme)->canonical->as_string;    # now string.
-                }
-            }
-            if ( $meta->{name} ) {
-                $refuri_node->{name}      = $meta->{name};
-                $refuri_node->{has_hcard} = 1;
-            }
-            if ( $meta->{title} ) {
-                $refuri_node->{title} = $meta->{title};
-            }
-            if ( $meta->{openid} ) {
-
-                # call as_string b/c this is a Net::URI object
-                $refuri_node->{openid} = $meta->{openid}->canonical->as_string;
-            }
-            if ( $meta->{openid2} ) {
-
-                # call as_string b/c this is a Net::URI object
-                $refuri_node->{openid} = $meta->{openid2}->canonical->as_string;
-            }
-            $refuri_node->{rel} = join( " ", @{ $refuri_node->{types} } );
-            push @data, $refuri_node unless $refuri_node->{rel} =~ /\bme\b/;
-        }
-        unless ( scalar @data == 0 ) {
-            return \@data;
-        }
-    }
-    return [];
-}
-
-sub get_claimed_uris {
-    my $app = shift;
-
-    my $start_uri = $app->param('source_uri');
-
-    my @claimed = _get_claimed($start_uri);
-
-    return $app->build_page( 'claimed_uris.tmpl', { claimed => \@claimed, } );
-}
-
-=item discover_friends:
-	
-* fetch related links from Google's social graph api (http://code.google.com/apis/socialgraph/)
-* list contacts from those sites
-* allow user to select contacts to import into local Friends/blogroll
-	
-right now this just lists the contacts. import not implemented.
-
-=cut
-
-##
-# new thoughts:
-# 	- with each contact in the discovery phase, store:
-#		- source uri (string)
-#		- uri (string)
-#		- relationship (string)
-#
-#	- add to Friend:
-#		- source_uri (string)
-#		- is_subscribed (bool)
-#		- last_updated
-#
-#	- create an update function
-# 		- find list of subscribed hCards
-#		- fetch and update each one
-#			- if last_updated is within a certain time-frame
-#
-sub discover_friends {
-    my $app = shift;
-
-    my ($param) = @_;
-
-    my $step = $app->param('step') || "start";
-
-    my $author_id = $app->param('author_id') || 1;
-    my @data;
-    my @source_data;
-
-    my $user = $app->user;
-
-    my $as_plugin = MT->component('ActionStreams');
-
-    ##
-    # Initial state: show the form
-  STEP: {
-        if ( $step =~ /start/ ) {
-
-            _log("Discovery: Start");
-
-            my $profiles;
-
-            $profiles = $as_plugin ? $user->other_profiles() : [];
-
-            #_log( Dumper($profiles) );
-
-            return $app->build_page(
-                'dialog/discover_friends.tmpl',
-                {
-                    step        => $step,
-                    id          => $author_id,
-                    object_type => 'friend',
-                    profiles    => \@$profiles,
-                }
-            );
-            last STEP;
-        }
-
-        if ( $step =~ /find/ ) {
-            _log("Discovery: Find");
-
-            my $uri = $app->param('source_uri');
-            $uri = ( $uri eq "other" ) ? $app->param('source_uri_other') : $uri;
-            my $get_related = $app->param('get_related') || 1;
-
-            return $app->error("Param source_uri required to Find contacts")
-              unless $uri;
-
-            _log( Dumper($uri) );
-            my @contacts =
-              @{ _get_contacts_for_uri( $uri, $author_id, $get_related ) };
-
-            # TODO: check if Link is already in database
-
-            _log( "contacts: " . Dumper(@contacts) );
-
-            return $app->build_page(
-                'find_contacts.tmpl',
-                {
-                    listing_screen => 1,
-                    source         => $uri,
-                    step           => $step,
-                    id             => $author_id,
-                    contacts       => \@contacts,
-                    show_actions   => 0
-                }
-            );
-
-            last STEP;
-        }
-
-        elsif ( $step =~ /import/ ) {
-
-            my @uris = $app->param("uris");
-
-            my $friend_class    = MT->model('friend');
-            my $link_class      = MT->model('link');
-            my @created_friends = [];
-
-            my $i;
-            for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
-                _log( $uris[$i] );
-                my ( $n, $u, $dup ) = split( /\|/, $uris[$i] );
-                _log("$n: $u $dup");
-
-                # 1) is there a Friend already?
-                my ( $link, $friend );
-                if ($dup) {
-                    _log("loading uri for: $dup");
-                    $link = $link_class->load( { uri => $dup } );
-                    unless ($link) {
-                        die "Cannot load link for: $dup";
-                    }
-                    _log( "dup link: " . Dumper($link) );
-                    $friend = $friend_class->load( $link->friend_id );
-                    _log( "friend for dup link: " . Dumper($friend) );
-                }
-                else {
-
-                    # 1) create Friend
-                    $friend = $friend_class->new();
-                    $friend->init();
-                    $friend->name($n);
-                    $friend->author_id($author_id);
-                    $friend->save() or die "Error saving friend: $!";
-                    _log( "made new friend: " . Dumper($friend) );
-                }
-
-                # 2) create Link
-                $link = $link_class->new();
-                $link->init();
-                $link->uri($u);
-                $link->label($n);
-                $link->friend_id( $friend->id );
-                $link->author_id($author_id);
-                $link->save() or die "Error saving link: $!";
-
-                _log( Dumper($link) );
-                push @created_friends, $friend;
-            }
-            return $app->redirect(
-                $app->uri(
-                    mode => 'list_friends',
-                    args => {
-                        id          => $author_id,
-                        saved_added => 1,
-                    },
-                )
-            );
-            last STEP;
-        }
-    }
-}
-
-sub import_contacts {
-    my $app = shift;
-
-    my @uris = $app->param("id");
-    my $author_id = $app->param('author_id') || 1;
-
-    my $friend_class = MT->model('friend');
-    my $link_class   = MT->model('link');
-
-    my $i;
-    for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
-        _log( $uris[$i] );
-        my ( $n, $u, $dup ) = split( /\|/, $uris[$i] );
-        _log("$n: $u $dup");
-
-        # 1) is there a Friend already?
-        my ( $link, $friend );
-        if ($dup) {
-            _log("loading uri for: $dup");
-            $link = $link_class->load( { uri => $dup } );
-            unless ($link) {
-                die "Cannot load link for: $dup";
-            }
-            _log( "dup link: " . Dumper($link) );
-            $friend = $friend_class->load( $link->friend_id );
-            _log( "friend for dup link: " . Dumper($friend) );
-        }
-        else {
-
-            # 1) create Friend
-            $friend = $friend_class->new();
-            $friend->init();
-            $friend->name($n);
-            $friend->author_id($author_id);
-            $friend->save() or die "Error saving friend: $!";
-            _log( "made new friend: " . Dumper($friend) );
-        }
-
-        # 2) create Link
-        $link = $link_class->new();
-        $link->init();
-        $link->uri($u);
-        $link->label($n);
-        $link->friend_id( $friend->id );
-        $link->author_id($author_id);
-        $link->save() or die "Error saving link: $!";
-    }
-}
-
-sub itemset_import_contacts {
-    my ($app) = @_;
-    $app->validate_magic or return;
-    my $author_id = $app->param('author_id') || 1;
-
-    import_contacts($app);
 
     return $app->redirect(
         $app->uri(

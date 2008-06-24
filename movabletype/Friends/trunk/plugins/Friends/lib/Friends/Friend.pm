@@ -18,6 +18,7 @@ __PACKAGE__->install_properties(
             'image'     => 'text',
             'notes'     => 'text',
             'visible'   => 'integer',
+            'pending'   => 'integer',
         },
         class_type  => 'friend',
         primary_key => 'id',
@@ -29,7 +30,7 @@ sub links {
     my $self = shift;
     my $link_class = MT->model('link');
     my @links = $link_class->load( { friend_id => $self->id } );
-	MT->log(Dumper(\@links));
+    MT->log(Dumper(\@links));
     return \@links;
 }
 
