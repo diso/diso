@@ -14,6 +14,7 @@ applications:
 	cms:
 		methods:
 			list_friends:       		$Friends::Friends::App::CMS::list_friends
+			list_pending:       		$Friends::Friends::App::CMS::list_pending_friends
 			view_friend:        		$Friends::Friends::App::CMS::view_friend
 			edit_friend:        		$Friends::Friends::App::CMS::edit_friend
 			save_friend:        		$Friends::Friends::App::CMS::save_friend
