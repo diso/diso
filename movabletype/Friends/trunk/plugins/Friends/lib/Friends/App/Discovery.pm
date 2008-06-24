@@ -285,11 +285,11 @@ sub _lookup_service_name {
         return "Blog";
     }
 
-    my %profile_services = $app->registry('profile_services');
+    my %profile_services = %{ $app->registry('profile_services')};
 
-    for my $svc ( each %profile_services ) {
+    for my $svc ( values %profile_services ) {
         _log( "profile service: " . Dumper($svc) );
-        my $svc_host = URI->new( %{$svc}->{url} )->canonical->authority;
+        my $svc_host = URI->new( $svc->{url} )->canonical->authority;
         return $svc->{name} if ( $svc_host eq $host );
     }
     return "Blog";
@@ -535,10 +535,10 @@ sub import_pending_contacts {
             $friend = $friend_class->new();
             $friend->init();
             $friend->name(
-                $contact->{name} ? $contact->{name} : $contact->{title} );
+                $contact->{name} || $contact->{title} || $contact->{uri});
             $friend->author_id($author_id);
             $friend->pending(1);
-            $friend->save() or die "Error saving friend: $!";
+            $friend->save() or die "Error saving friend: " . $friend->errstr;
             _log( "made new friend: " . Dumper($friend) );
         }
 
@@ -553,10 +553,10 @@ sub import_pending_contacts {
                 $link->init();
                 $link->pending(1);
                 $link->friend_id( $friend->id );
-                $link->uri($uri);
-                $link->label( _lookup_service_name( $app, $uri ) );
                 $link->author_id($author_id);
-                $link->save() or die "Error saving link: $!";
+                $link->uri($uri);
+                $link->label( URI->new($uri)->canonical->authority); #_lookup_service_name( $app, $uri ) );
+                $link->save or die "Error saving link: " . $link->errstr;
                 _log( "made new link: " . Dumper($link) );
             }
         }
@@ -568,50 +568,32 @@ sub import_pending_contacts {
 sub import_contacts {
     my $app = shift;
 
-    my @uris = $app->param("id");
+    my @contact_ids = $app->param("id");
+    my @link_ids = $app->param("links");
+    
+    _log ('import contacts -- contact ids: ' . Dumper (@contact_ids));
+    _log ('import contacts -- link ids: ' . Dumper (@link_ids));
+    
     my $author_id = $app->param('author_id') || 1;
-
+    
     my $friend_class = MT->model('friend');
     my $link_class   = MT->model('link');
-
-    my $i;
-    for ( $i = 0 ; $i < scalar @uris ; $i++ ) {
-        _log( $uris[$i] );
-        my ( $n, $u, $dup ) = split( /\|/, $uris[$i] );
-        _log("$n: $u $dup");
-
-        # 1) is there a Friend already?
-        my ( $link, $friend );
-        if ($dup) {
-            _log("loading uri for: $dup");
-            $link = $link_class->load( { uri => $dup } );
-            unless ($link) {
-                die "Cannot load link for: $dup";
-            }
-            _log( "dup link: " . Dumper($link) );
-            $friend = $friend_class->load( $link->friend_id );
-            _log( "friend for dup link: " . Dumper($friend) );
-        }
-        else {
-
-            # 1) create Friend
-            $friend = $friend_class->new();
-            $friend->init();
-            $friend->name($n);
-            $friend->author_id($author_id);
-            $friend->save() or die "Error saving friend: $!";
-            _log( "made new friend: " . Dumper($friend) );
-        }
-
-        # 2) create Link
-        $link = $link_class->new();
-        $link->init();
-        $link->uri($u);
-        $link->label($n);
-        $link->friend_id( $friend->id );
-        $link->author_id($author_id);
-        $link->save() or die "Error saving link: $!";
+    
+    for my $cid (@contact_ids) {
+        my $friend = $friend_class->load($cid);
+        $friend->pending(0);
+        $friend->visible(1);
+        $friend->save or die ("Could not save contact! $!");
     }
+    
+    for my $lid (@link_ids) {
+        my $link = $link_class->load($lid);
+        $link->pending(0);
+        $link->save or die ("Could not save link! $!");
+    }
+    
+    #$friend_class->remove({pending=>1});
+    #$link_class->remove({pending=>1});
 }
 
 sub itemset_import_contacts {

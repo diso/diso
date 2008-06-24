@@ -28,8 +28,9 @@ __PACKAGE__->install_properties(
 
 sub links {
     my $self = shift;
+    my $params = shift || {};
     my $link_class = MT->model('link');
-    my @links = $link_class->load( { friend_id => $self->id } );
+    my @links = $link_class->load( { friend_id => $self->id, %{$params} } );
     MT->log(Dumper(\@links));
     return \@links;
 }

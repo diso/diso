@@ -36,6 +36,8 @@
     <style type="text/css">
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
+        .pending, .pending a:link, .pending a:visited { color: #888; }
+        .pending a:hover, .pending a:active { color: #7F8833; }
     </style>
 </mt:setvarblock>
 
@@ -110,11 +112,11 @@
         <td class="status si status-<mt:if name="visible">publish<mt:else>pending</mt:if>">
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
         </td>
-        <td class="name"><a href="<$mt:var name="script_url"$>?__mode=view_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="author_id"$>&amp;friend_id=<$mt:var name="id"$>"><$mt:var name="name"$></a></td>
+        <td class="name"><span class="<mt:if name="pending">pending</mt:if>"><a href="<$mt:var name="script_url"$>?__mode=view_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="author_id"$>&amp;friend_id=<$mt:var name="id"$>"><$mt:var name="name"$></a></span></td>
         <td class="uri">
             <ul>
             <mt:loop name="links">
-                <li><input type="checkbox" name="links" value="<mt:var name="id">" class="" /> <a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></li>
+                <li><input type="checkbox" name="links" value="<mt:var name="id">" class="" /> <span class="<mt:if name="pending">pending</mt:if>"><a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></span></li>
             </mt:loop>
             </ul>
         </td>
