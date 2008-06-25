@@ -295,7 +295,7 @@ sub _lookup_service_name {
         #_log( "profile service: " . Dumper($svc) );
         my $svc_host = URI->new( $svc->{url} )->canonical->authority;
 		_log ("$svc_host, $host");
-        return $svc->{name} if ( $svc_host eq $host );
+        return $svc->{name} if ( $host =~ m/$svc_host/ );
     }
     return "Blog";
 }
