@@ -116,7 +116,7 @@
         <td class="uri">
             <ul>
             <mt:loop name="links">
-                <li><input type="checkbox" name="links" value="<mt:var name="id">" class="" /> <span class="<mt:if name="pending">pending</mt:if>"><a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></span></li>
+                <li><mt:if name="pending"><input type="checkbox" name="links" value="<mt:var name="id">" class="" /></mt:if> <span class="<mt:if name="pending">pending</mt:if>"><a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></span></li>
             </mt:loop>
             </ul>
         </td>
