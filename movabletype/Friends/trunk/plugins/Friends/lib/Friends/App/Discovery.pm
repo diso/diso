@@ -276,20 +276,25 @@ sub _lookup_service_name {
     my $app = shift;
     my $uri = shift;
 
-    return URI->new($uri)->canonical->authority;
+	_log ("_lookup_service_name: $uri");
+
+    #return URI->new($uri)->canonical->authority;
 
     my $host      = URI->new($uri)->canonical->authority;
+	$host =~ s/^(www|\%s)\.//;
+	_log ($host);
     my $as_plugin = MT->component('ActionStreams');
 
     if ( !$as_plugin ) {
         return "Blog";
     }
 
-    my %profile_services = %{ $app->registry('profile_services')};
+    my $profile_services = $app->registry('profile_services');
 
-    for my $svc ( values %profile_services ) {
-        _log( "profile service: " . Dumper($svc) );
+    for my $svc ( values %{ $profile_services } ) {
+        #_log( "profile service: " . Dumper($svc) );
         my $svc_host = URI->new( $svc->{url} )->canonical->authority;
+		_log ("$svc_host, $host");
         return $svc->{name} if ( $svc_host eq $host );
     }
     return "Blog";
@@ -555,7 +560,7 @@ sub import_pending_contacts {
                 $link->friend_id( $friend->id );
                 $link->author_id($author_id);
                 $link->uri($uri);
-                $link->label( URI->new($uri)->canonical->authority); #_lookup_service_name( $app, $uri ) );
+                $link->label( _lookup_service_name( $app, $uri ) );
                 $link->save or die "Error saving link: " . $link->errstr;
                 _log( "made new link: " . Dumper($link) );
             }

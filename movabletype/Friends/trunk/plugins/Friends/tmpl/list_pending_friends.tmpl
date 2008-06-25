@@ -107,7 +107,7 @@
     <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
         <$mt:setvar name="friend_id" value="${id}"$>
         <td class="cb">
-            <input type="checkbox" name="id" value="<mt:var name="id">" class="select" />
+            <mt:if name="pending"><input type="checkbox" name="id" value="<mt:var name="id">" class="select" /></mt:if>
         </td>
         <td class="status si status-<mt:if name="visible">publish<mt:else>pending</mt:if>">
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
@@ -116,7 +116,7 @@
         <td class="uri">
             <ul>
             <mt:loop name="links">
-                <li><mt:if name="pending"><input type="checkbox" name="links" value="<mt:var name="id">" class="" /></mt:if> <span class="<mt:if name="pending">pending</mt:if>"><a target="_blank" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></span></li>
+                <li><mt:if name="pending"><input type="checkbox" name="links" value="<mt:var name="id">" class="" /></mt:if> <span class="<mt:if name="pending">pending</mt:if>"><a target="_blank" title="<$mt:var name="uri"$>" href="<$mt:var name="uri"$>"><$mt:var name="label"$></a></span></li>
             </mt:loop>
             </ul>
         </td>
