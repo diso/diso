@@ -131,7 +131,7 @@
  	    select.name="id";
 
  	    var contacts = [
- 	    	<mt:loop name="all_contacts">'<mt:var ltrim="1" rtrim="1" name="name">',
+ 	    	<mt:loop name="all_contacts">'<mt:var ltrim="1" rtrim="1" encode_js="1" name="name">',
  	    	</mt:loop>
  	    ];
 
@@ -209,7 +209,7 @@
                 if (c.status==200) {                
                     resp_obj = eval("("+c.responseText+")");
                     //console.log(resp_obj);
-                    for each (contact in resp_obj.contacts) {
+                    for (contact in resp_obj.contacts) {
                         contact_data.push(contact);
                     }
                     if (contacts.length) {
