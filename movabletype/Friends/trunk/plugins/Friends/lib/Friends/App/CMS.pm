@@ -348,7 +348,13 @@ sub list_friends {
             listing_screen => 1,
             template =>
               MT->component('Friends')->load_tmpl('list_friends.tmpl'),
-            terms => { author_id => $author_id, pending => 0 },
+            terms => {
+				author_id => $author_id,
+				pending => 1,
+			},
+			args => {
+				not => { pending => 1 },
+			},
             code  => sub {
                 my ( $obj, $row ) = @_;
                 $row->{links} = $obj->links({pending=>0});
@@ -539,10 +545,11 @@ sub save_friend {
 
     return $app->return_to_dashboard( permission => 1 )
       unless _permission_check();
-
+	
+	my $new_object = $app->param('new_object') || 0;
     my $author_id = $app->param('author_id');
     my $friend_id = $app->param('id') || 0;
-
+	
     my $friend_class = MT->model('friend');
     my $link_class   = MT->model('link');
 
@@ -550,20 +557,30 @@ sub save_friend {
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
 
     my $friend;
-    if ($friend_id) {
-        $friend = $pkg->load($friend_id)
-          or return $app->error('Invalid friend ID');
-    }
-    else {
+
+	if ($new_object) {	
         $friend = $pkg->new;
         $friend->init();
         $friend->visible(1);
+		$friend->pending(0);
+		if ( !$author_id ) {
+	        return $app->error('Author ID required!');
+	    }
+		$friend->author_id($author_id);
+		_log ("friend: " . Dumper($friend_id));
+    }    
+	else {
+        $friend = $pkg->load($friend_id)
+          or return $app->error('Invalid friend ID');
+		if ( !$author_id ) {
+	        $author_id = $friend->author_id;
+	    }
     }
-    if ( !$author_id ) {
-        $author_id = $friend->author_id;
-    }
-    else { $friend->author_id($author_id); }
-
+    
+	if (!$friend) {
+		return $app->error("Could not get/make friend with friend_id: $friend_id " . $friend);
+	}
+	
     for my $field (qw( name rel notes)) {
         $friend->$field( $app->param($field) );
     }
@@ -588,6 +605,7 @@ sub save_friend {
         $link->uri( $app->param("uri") );
         $link->label( $app->param("label") );
         $link->author_id($author_id);
+        $link->pending(0);
         $link->save or die "Saving Link failed: ", $link->errstr;
 
         _log( "created first link: " . Dumper($link) );
