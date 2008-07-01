@@ -62,6 +62,7 @@
 <form name="friend_form" id="frend_form" target="_top" method="post" action="<$mt:var name="script_url"$>" mt:once="1" mt:auto-save="1" mt:auto-save-delay="<$mt:var name="autosave_frequency"$>000">
     <mt:if name="new_object">
         <input type="hidden" name="author_id" value="<$mt:var name="id"$>" />
+        <input type="hidden" name="new_object" value="1" />
     <mt:else>
         <input type="hidden" name="id" value="<$mt:var name="friend_id"$>" />
     </mt:if>
