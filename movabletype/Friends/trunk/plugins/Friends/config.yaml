@@ -4,8 +4,8 @@ key: Friends
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provides a blogroll-like means of managing and displaying a friends list on your site
-schema_version: 0.937
-version: 0.9
+schema_version: 0.94
+version: 0.91
 plugin_link: http://diso-project.org/
 object_types:
     friend: Friends::Friend
