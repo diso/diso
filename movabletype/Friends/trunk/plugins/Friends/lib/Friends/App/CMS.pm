@@ -23,9 +23,7 @@ sub _log {
 
 sub _permission_check {
     my $app = MT->instance;
-    return ( $app->user
-          && $app->user->blog_perm( $app->param('blog_id') )
-          ->can_edit_templates );
+    return ( $app->user );
 }
 
 sub users_content_nav {
