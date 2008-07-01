@@ -20,6 +20,9 @@ __PACKAGE__->install_properties(
             'visible'   => 'integer',
             'pending'   => 'integer',
         },
+		defaults => {
+			pending => 0,
+		},
         class_type  => 'friend',
         primary_key => 'id',
         audit       => 1,
