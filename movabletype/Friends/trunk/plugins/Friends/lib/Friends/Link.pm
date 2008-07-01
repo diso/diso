@@ -20,6 +20,9 @@ __PACKAGE__->install_properties(
             'hcard'        => 'integer',
             'pending'      => 'integer',
         },
+		defaults => {
+			pending => 0,
+		},
         class_type  => 'link',
         primary_key => 'id',
         audit       => 1,
