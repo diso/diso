@@ -1,0 +1,47 @@
+Basic Usage information for Gnip Perl module:
+
+SUBSCRIBER:
+
+* The Perl subscriber class is called ‘GnipSubscriber’.
+
+* The subscriber class may be instantiated with the following line of code:
+    subscriber = new GnipSubscriber(<username>, <password>);
+
+* The subscriber class provides the following public methods (see details in
+the module):
+    - subscriber->get()
+       - Returns the publisher activity for a specific time
+    - subscriber->create_collection()
+       - Creates a collection of userids from pre-created XML
+    - subscriber->find_collection()
+       - Gets the collection information
+    - subscriber->get_collection()
+       - Gets the activity of a collection
+    - subscriber->update_collection()
+       - Updates a collection from pre-created XML
+    - subscriber->delete_collection()
+       - Deletes a collection
+
+PUBLISHER:
+
+* The Perl publisher class is called ‘GnipPublisher’.
+
+* The publisher class may be instantiated with the following line of code:
+    publisher = new GnipPublisher(<username>, <password>, <publisher>)
+
+* The publisher class provides the following public methods (see details in
+the module):
+    - publisher->publish()
+       - Publishes activities to the Gnip server
+
+ADDITIONAL NOTES:
+
+* There are some minimal test cases included in the file "GnipTester.pl".
+The test cases also provide examples of usage. Note that you'll need to fill 
+in the information for the TEST_* constants at the top of the class, in order 
+for the test cases to work properly.
+
+* Docstrings are also included for each class and method.
+
+* The Gnip module requires the third party libraries "DateTime" and 
+"DateTime::Format::Strptime".
