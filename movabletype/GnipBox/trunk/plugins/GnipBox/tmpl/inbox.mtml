@@ -1,0 +1,23 @@
+<mtapp:widget class="widget inbox-widget"
+    label="Inbox (Powered by <a href=\"http://gnipcentral.com\">Gnip</a>)"
+    can_close="1">
+    <ol>
+    <mt:loop name="activity_loop">
+        <li>
+            <div class="activity">
+                <h2><mt:var name="uid"> at <mt:var name="at"></h2>
+                <a href="<mt:var name="guid">">link</a>
+            </div>
+        </li>
+    </mt:loop>
+    </ol>
+</mtapp:widget>
+
+
+
+
+
+
+
+
+  
