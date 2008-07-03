@@ -87,10 +87,10 @@ class ActionStream {
 				if(!$url) {//feed autodetect
 					$raw = get_raw_actionstream(str_replace('%s',$id,$this->config['profile_services'][$service]['url']));
 
-					preg_match('/<[\s]*link[^\f]+?atom[^\f]+?href="(.+?)"/', $raw, $match);
+					preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
 					$aurl = html_entity_decode($match[1]);
 
-					preg_match('/<[\s]*link[^\f]+?rss[^\f]+?href="(.+?)"/', $raw, $match);
+					preg_match('/<[\s]*link.+\/rss\+xml[^\f]+?href="(.+)"/', $raw, $match);
 					$rurl = html_entity_decode($match[1]);
 
 					if(($stream['atom'] && $aurl) || !$rurl) {
