@@ -103,6 +103,7 @@ function actionstream_page() {
 
 	echo '	<h2>Action Stream Services</h2>';
 	echo '	<ul style="padding:0px;">';
+	ksort($userdata->actionstream);
 	foreach($userdata->actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
 		if(function_exists('register_diso_permission_field')) register_diso_permission_field($setup['name'] ? $setup['name'] : ucwords($service), $service);
@@ -126,6 +127,7 @@ function actionstream_page() {
 	echo '<h3>Add/Update a Service</h3>';
 	echo '<form method="post" action=""><div>';
 	echo '<select id="add-service" name="service" onchange="update_ident_form();">';
+	ksort($actionstream_yaml['action_streams']);
 	foreach($actionstream_yaml['action_streams'] as $service => $setup) {
 		if($setup['scraper']) continue;//FIXME: we don't support scraper yet
 		$setup = $actionstream_yaml['profile_services'][$service];
