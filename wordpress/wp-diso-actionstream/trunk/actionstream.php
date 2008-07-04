@@ -35,10 +35,12 @@ function actionstream_plugin_activation() {
 }//end actionstream_plugin_activation
 
 function actionstream_poll() {
-	$streams = get_option('actionstreams');
-	foreach($streams as $stream_user) {
-		$userdata = get_userdata($stream_user);
-		$actionstream = new ActionStream($userdata->actionstream, $stream_user);
+	global $wpdb;
+	$users = $wpdb->get_results("SELECT user_id, meta_value from $wpdb->usermeta WHERE meta_key='actionstream'");
+	foreach($users as $user) {
+		$actionstream = unserialize($user->meta_value);
+		if (!is_array($actionstream) || empty($actionstream)) { continue; }
+		$actionstream = new ActionStream($actionstream, $user->user_id);
 		$actionstream->update();
 	}//end foreach streams
 }//end actionstream_poll
@@ -60,11 +62,6 @@ function actionstream_page() {
 	require_once ABSPATH . WPINC . '/pluggable.php';
 	get_currentuserinfo();
 	$actionstream_yaml = get_actionstream_config();
-
-	$streams = get_option('actionstreams');
-	if(!$streams) $streams = array();
-	$streams[$userdata->ID] = $userdata->ID;
-	update_option('actionstreams', $streams);
 
 	if(!$userdata->actionstream) {
 		$userdata->actionstream = ActionStream::from_urls($userdata->user_url, $userdata->urls);
@@ -195,18 +192,6 @@ function actionstream_wordpress_post($post_id) {
 	$obj->save();
 }//end function actionstream_wordpress_post
 add_action('publish_post', 'actionstream_wordpress_post');
-
-function register_actionstream_service($name, $profile_definition, $stream_definition) {
-	$services = get_option('actionstream_streams');
-	if(!is_array($services)) $services = array();
-	$services[$name] = $stream_definition;
-	update_option('actionstream_streams', $services);
-
-	$services = get_option('actionstream_services');
-	if(!is_array($services)) $services = array();
-	$services[$name] = $profile_definition;
-	update_option('actionstream_services', $services);
-}//end function actionstream_service_register
 
 function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=true) {
    if(!$userid) {//get administrator
