@@ -57,7 +57,7 @@ add_action('admin_head', 'actionstream_styles');
 
 function actionstream_page() {
 	global $userdata;
-	require_once dirname(__FILE__).'/../../../wp-includes/pluggable.php';
+	require_once ABSPATH . WPINC . '/pluggable.php';
 	get_currentuserinfo();
 	$actionstream_yaml = get_actionstream_config();
 
@@ -287,6 +287,12 @@ function widget_actionstreamwidget_init() {
 	register_widget_control('Actionstream', 'widget_actionstreamwidget_control', 270, 270);
 }
 add_action('plugins_loaded', 'widget_actionstreamwidget_init');
+
+function do_feed_action_stream() {
+	global $wpdb;
+	require_once(dirname(__FILE__) . '/feed.php');
+}
+add_action('init', create_function('', 'global $wp_rewrite; add_feed("action_stream", "do_feed_action_stream"); $wp_rewrite->flush_rules();'));
 
 /*end wordpress */
 
