@@ -208,11 +208,42 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
 	return $rtrn;
 }//end function actionstream_render
 
+function actionstream_services($userid=false) {
+   if(!$userid) {//get administrator
+      global $wpdb;
+      $userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
+   }//end if ! userid
+   if(is_numeric($userid)) {
+      $userdata = get_userdata($userid);
+   } else {
+      $userdata = get_userdatabylogin($userid);
+   }
+   $actionstream = $userdata->actionstream;
+   ksort($actionstream);
+
+   $actionstream_yaml = get_actionstream_config(); 
+   $rtrn = '<ul class="actionstream_services">' . "\n";
+   foreach ($actionstream as $service => $username) {
+	   $setup = $actionstream_yaml['profile_services'][$service];
+	   $url = sprintf($setup['url'], $username);
+	   $rtrn .= '<li class="service-icon service-'.$service.'"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n";
+   }
+   $rtrn .= '</ul>' . "\n";
+
+   return $rtrn;
+}
+
 function diso_actionstream_parse_page_token($content) {
-	if(preg_match('/<!--actionstream[\(]*(.*?)[\)]*-->/',$content,$matches)) {
-		$parameter1 = $matches[1];
-		$content = preg_replace('/<!--actionstream(.*?)-->/',actionstream_render($parameter1,10,false,false), $content);
+	if(preg_match('/<!--actionstream(\((.*)\))?-->/',$content,$matches)) {
+		$user = $matches[2];
+		$content = preg_replace('/<!--actionstream(\((.*)\))?-->/',actionstream_render($user,10,false,false), $content);
 	}//end if match
+
+	if(preg_match('/<!--actionstream_services(\((.*)\))?-->/',$content,$matches)) {
+		$user = $matches[2];
+		$content = preg_replace('/<!--actionstream_services(\((.*)\))?-->/', actionstream_services($user), $content);
+	}//end if match
+
 	return $content;
 }//end function diso_profile_parse_page_token
 add_filter('the_content', 'diso_actionstream_parse_page_token');
@@ -272,6 +303,64 @@ function widget_actionstreamwidget_init() {
 	register_widget_control('Actionstream', 'widget_actionstreamwidget_control', 270, 270);
 }
 add_action('plugins_loaded', 'widget_actionstreamwidget_init');
+
+
+//### Begin ActionStream Services Widget ###
+
+function widget_actionstream_services_widget_init() {
+
+	if (!function_exists('register_sidebar_widget'))
+		return;
+	
+	function widget_actionstream_services_widget($args) {
+		extract($args);
+				
+		$options = get_option('widget_actionstream_services_widget');
+		$title = $options['title'];
+
+		echo $before_widget;
+		echo $before_title . $title . $after_title;
+		echo actionstream_services($options['userid']);
+		echo $after_widget;
+	}
+	
+	function widget_actionstream_services_widget_control() {
+		global $wpdb;
+		$options = get_option('widget_actionstream_services_widget');
+		if ( !is_array($options) )
+			$options = array('title'=>'ActionStream Services', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
+		if ( $_POST['actionstream_services_widget-submit'] ) {
+			$options['title'] = strip_tags(stripslashes($_POST['actionstream_services_widget-title']));
+			$options['userid'] = strip_tags(stripslashes($_POST['actionstream_services_widget-userid']));
+			$options['num'] = strip_tags(stripslashes($_POST['actionstream_services_widget-num']));
+			$options['hide_user'] = strip_tags(stripslashes($_POST['actionstream_services_widget-hide_user']));
+			update_option('widget_actionstream_services_widget', $options);
+		}
+
+		$title = htmlspecialchars($options['title'], ENT_QUOTES);
+
+		echo '<p style="text-align:right;"><label for="actionstream_services_widget-title">Title:</label><br /> <input style="width: 200px;" id="actionstream_services_widget-title" name="actionstream_services_widget-title" type="text" value="'.$title.'" /></p>';
+
+		echo '<p style="text-align:right;"><label for="actionstream_services_widget-userid">User:</label><br /> ';
+		echo '	<select style="width: 200px;" id="actionstream_services_widget-userid" name="actionstream_services_widget-userid">';
+		$users = $wpdb->get_results("SELECT display_name,ID FROM $wpdb->users ORDER BY user_registered,ID");
+		foreach($users as $user)
+			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
+		echo '	</select>';
+		echo '</p>';
+		
+		echo '<p style="text-align:right;"><label for="actionstream_services_widget-num">Max Items:</label><br /> <input style="width: 200px;" id="actionstream_services_widget-num" name="actionstream_services_widget-num" type="text" value="'.$options['num'].'" /></p>';
+		echo '<p style="text-align:right;"><label for="actionstream_services_widget-hide_user">Hide Usernames?</label> <input id="actionstream_services_widget-hide_user" name="actionstream_services_widget-hide_user" type="checkbox" '.($options['hide_user'] ? 'checked="checked"' : '').' /></p>';
+
+		echo '<input type="hidden" id="actionstream_services_widget-submit" name="actionstream_services_widget-submit" value="1" />';
+	}
+	
+			
+	register_sidebar_widget('Actionstream Services', 'widget_actionstream_services_widget');
+	register_widget_control('Actionstream Services', 'widget_actionstream_services_widget_control', 270, 270);
+}
+add_action('plugins_loaded', 'widget_actionstream_services_widget_init');
+
 
 function do_feed_action_stream() {
 	global $wpdb;
