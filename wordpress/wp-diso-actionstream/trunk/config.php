@@ -1,8 +1,6 @@
 <?php
 
 global $wpdb;
-if(!$wpdb)
-	require_once dirname(__FILE__).'/../../../wp-config.php';
 
 function get_actionstream_config() {
 	if(!class_exists('Spcy'))
