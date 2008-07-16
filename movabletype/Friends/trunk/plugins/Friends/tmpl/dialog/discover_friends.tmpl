@@ -4,7 +4,7 @@
 <mt:setvar name="position_actions_bottom" value="true">
 <mt:if name="step" eq="start">
     <mt:setvar name="submitbutton" value="Next">
-    <mt:setvar name="indicatoronclick" value="onclick='getContactsList(); return false;'">
+    <mt:setvar name="indicatoronclick" value="onclick='return indicatoronclick();'">
 <mt:elseif name="step" eq="find">
     <mt:setvar name="submitbutton" value="Import">
 </mt:if>
@@ -94,15 +94,27 @@
         }
     }
 
+    function indicatoronclick () {
+        var f = getByID('discover_form');
+        var args = DOM.getFormData(f);
+        if (args.source_uri==null ||args.source_uri=='') {
+            alert('Don\'t know where to look for contacts!');
+            return false;
+        }
+        showSpinner();
+        getContactsList();
+        return false;
+    }
+
     function getContacts () {
         var f = getByID('discover_form');
         //console.log("getContacts");
         var args = DOM.getFormData(f);
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
-            'loading': function(c) { showSpinner (c) },
-            'loaded': function(c) { showSpinner (c) },
-            'interactive': function(c) { showSpinner (c) },
+            //'loading': function(c) { showSpinner (c) },
+            //'loaded': function(c) { showSpinner (c) },
+            //'interactive': function(c) { showSpinner (c) },
             'load': function(c) { loadResults (c) },
             'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
             'method': 'POST',
@@ -111,7 +123,8 @@
         });
     }
     
-    function showSpinner(c) {
+    function showSpinner() {
+        if (getByID('msg')) return;
         var content = getByID('main-content-inner');
         getByID('discover_form').style.height = 0;
         getByID('discover_form').style.opacity = 0;
@@ -149,11 +162,6 @@
         //console.log("getContacts");
         var args = DOM.getFormData(f);
         
-        if (!args.source_uri) {
-            alert("Don't know where to look for contacts!");
-            return false;
-        }
-        
         args.__mode = 'get_contacts_list';
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
@@ -166,22 +174,26 @@
                 if (c.status==200) {
                     contacts = eval("("+c.responseText+")");
                     console.log(contacts);
-                    getByID('msg').innerHTML += "<p>Found " + contacts.length + " contacts!" + "</p>"
+                    updateMsg ("Found " + contacts.length + " contacts!");
                     if (contacts.length) {
                         getDataForContacts({contacts:contacts.splice(0,10)});
                     } else {
+                        updateMsg ("<a href='<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">'>Back</a>");
                         hideSpinner ();
                     }
                 } else {
                     console.log ("getContactsList: non-200 response: " + c.status + " - " + c.responseText);
                 }
-                
             },
             'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
             'method': 'POST',
             'uri': ScriptURI,
             'arguments': args
         });
+    }
+    
+    function updateMsg(msg){
+        getByID('msg').innerHTML += "<p>" + msg + "</p>";
     }
     
     function getDataForContacts(contacts_obj) {
@@ -214,8 +226,8 @@
                     }
                     if (contacts.length) {
                         var nextCount = (contacts.length > 10) ? nextN+9 : nextN + contacts.length;
-                        getByID('msg').innerHTML += "<p>" + "getting information for contacts " + 
-                            nextN + "-" + nextCount + "...</p>";
+                        updateMsg("getting information for contacts " + 
+                            nextN + "-" + nextCount + "...");
                         nextN += 10;
                         getDataForContacts({contacts:contacts.splice(0,10)});
                     } else {
@@ -252,10 +264,9 @@
     <input type="hidden" name="id" value="<mt:var name="id">" />
     <input type="hidden" name="__mode" value="discover_friends" />
     <input type="hidden" name="_type" value="<mt:var name="object_type">" />
-    <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html"/>
+    <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html" />
     <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
     <input type="hidden" name="action_name" value="" />
-        
 <mt:if name="blog_id">
 <input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
 </mt:if>
@@ -277,6 +288,8 @@
     </mtapp:setting>
     <input type="hidden" name="step" value="find" />
 </mt:if>
+
+<p style="font-style: italic">Some profile pages do not provide a contact list. If your search returns with no contacts, you may want to find the "friends" or "contacts" page from the remote site, copy the URL, and paste it into the "Other" field above.</p>
 
 <mt:setvartemplate name="action_buttons">
     <button
