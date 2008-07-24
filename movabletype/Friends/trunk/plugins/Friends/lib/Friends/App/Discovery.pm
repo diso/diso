@@ -276,11 +276,9 @@ sub _lookup_service_name {
 	my $uri = shift;
 
 	_log("_lookup_service_name: $uri");
-
-	#return URI->new($uri)->canonical->authority;
-
+	
 	my $host = URI->new($uri)->canonical->authority;
-	$host =~ s/^(www|\%s)\.//;
+	#$host =~ s/^(www|\%s)\.//;
 	_log($host);
 	my $as_plugin = MT->component('ActionStreams');
 
@@ -292,14 +290,16 @@ sub _lookup_service_name {
 	
 	_log("profile_services: " . Dumper($profile_services));
 	
-	for my $svc ( values %{$profile_services} ) {
-		#_log( "profile service: " . Dumper($svc) );
-		my $svc_host = URI->new( $svc->{url} )->canonical->authority;
-		_log("$svc_host, $host");
-		my $svc_name = $svc->{name} if ( $host =~ m/$svc_host/ );
-		return $svc_name if ( $svc_name !~ m/Website/ );
-	}
-	return "Blog";
+	SERVICE: for my $svc (values %$profile_services) {
+	       #_log( "profile service: " . Dumper($svc) );
+	       my $svc_host = URI->new( $svc->{url} )->canonical->authority
+	           or next SERVICE;
+	       $svc_host =~ s/ \A (?: www | \%s | {{ident}} ) \. //xms;
+	       _log("$svc_host, $host");
+	       next SERVICE if $host !~ m/\Q$svc_host\E/;
+	       return $svc->{name};
+	   }
+   return "Blog";
 }
 
 =item discover_friends:
