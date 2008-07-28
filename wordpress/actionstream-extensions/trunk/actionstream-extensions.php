@@ -99,7 +99,78 @@ function actionstream_ext_services($services, $streams) {
 		'name' => 'eBay',
 		'url' => 'http://myworld.ebay.com/%s',
 	);
-	$streams['ebay'] = array();
+	$streams['ebay'] = array(); 
+
+	// Facebook
+	$services['facebook'] = array(
+		'name' => 'Facebook',
+		'url' => 'http://facebook.com/profile.php?id=%s',
+		'ident_example' => '123456789',
+	);
+	$streams['facebook'] = array();
+
+	// LinkedIn
+	$services['linkedin'] = array(
+		'name' => 'LinkedIn',
+		'url' => 'http://www.linkedin.com/in/%s',
+	);
+	$streams['linkedin'] = array();
+
+	// Ohloh
+	$services['ohloh'] = array(
+		'name' => 'Ohloh',
+		'url' => 'http://www.ohloh.com/accounts/%s',
+	);
+	$streams['ohloh'] = array();
+
+	// Slashdot
+	$services['slashdot'] = array(
+		'name' => 'Slashdot',
+		'url' => 'http://slashdot.org/~%s',
+	);
+	$streams['slashdot'] = array(); 
+
+	// MySpace
+	$services['myspace'] = array(
+		'name' => 'MySpace',
+		'url' => 'http://www.myspace.com/%s',
+	);
+	$streams['myspace'] = array(); // TODO
+	
+	// 43 Things
+	$services['43things'] = array(
+		'name' => '43 Things',
+		'url' => 'http://43things.com/person/%s',
+	);
+	$streams['43things'] = array(); // TODO
+	
+	// Technorati
+	$services['technorati'] = array(
+		'name' => 'Technorati',
+		'url' => 'http://technorati.com/people/technorati/%s',
+	);
+	$streams['technorati'] = array();
+	
+	// Cork'd
+	$services['corkd'] = array(
+		'name' => 'Cork\'d',
+		'url' => 'http://corkd.com/people/%s',
+	);
+	$streams['corkd'] = array();
+
+	// Jyte
+	$services['jyte'] = array(
+		'name' => 'Jyte',
+		'url' => 'http://jyte.com/profile/%s',
+	);
+	$streams['jyte'] = array(); // TODO
+	
+	// Yahoo!
+	$services['yahoo'] = array(
+		'name' => 'Yahoo!',
+		'url' => 'http://profiles.yahoo.com/%s',
+	);
+	$streams['yahoo'] = array();
 
 	// Get Satisfaction
 	$services['getsatisfaction'] = array(
