@@ -1,0 +1,314 @@
+<mt:setvar name="edit_author" value="1">
+<mt:setvar name="page_title" value="<__trans phrase="Import Contacts">">
+<mt:setvar name="discover_friends" value="1">
+<mt:setvar name="position_actions_bottom" value="true">
+<mt:if name="step" eq="start">
+    <mt:setvar name="submitbutton" value="Next">
+    <mt:setvar name="indicatoronclick" value="onclick='return indicatoronclick();'">
+<mt:elseif name="step" eq="find">
+    <mt:setvar name="submitbutton" value="Import">
+</mt:if>
+
+<mt:setvarblock name="html_head" append="1">
+    <script type="text/javascript" src="<mt:var name="static_uri">js/tc/client.js"></script>
+    <script type="text/javascript" src="<mt:var name="static_uri">js/tc/json.js"></script>
+    <link rel="stylesheet" type="text/css" href="<mt:var name="static_uri">plugins/ActionStreams/css/action-streams.css" />
+    
+    <style type="text/css">
+    .content-nav #main-content .msg { margin-left: 0px; }
+    #main-content {
+        padding-top:5px;
+    }
+    <mt:loop name="service_styles">
+    .service-<mt:var name="service_type"> {
+        background-image: url(<mt:var name="service_icon">); 
+    }
+    </mt:loop>
+    
+    .disabled td, .disabled td a {
+        color: #999;
+    }
+    
+    #indicator {
+        position: relative;
+        background: url(images/indicator.gif) no-repeat;
+        width: 66px;
+        height: 66px;
+        margin: 0 auto;
+        display: none;
+    }
+    #msg {
+        margin-top: 10px;
+    }
+    </style>
+    
+    <script type="text/javascript">
+    
+    var ScriptURI;
+    var ScriptBaseURI;
+    var StaticURI;
+    
+    var tableSelect;
+    function init() {
+        // set up table select awesomeness
+        tableSelect = new TC.TableSelect("contact-listing-table");
+        tableSelect.rowSelect = true;
+    }
+
+    TC.attachLoadEvent(init);
+
+    function finishPluginActionAll(f, action) {
+        var select_all = getByID('select-all-checkbox')
+        if (select_all) {
+            select_all.checked = true;
+            tableSelect.select(select_all);
+        }
+        return doForMarkedInThisWindow(f, '', 'contacts', 'id', 'itemset_action',
+            {'action_name': action}, 'to act upon');
+    }
+
+    // -->
+    
+    function changeState(el, idNum) {
+        var hasDupe = document.getElementById('dupuri'+idNum) ? true : false;
+        var dupState = (el.value.indexOf("duplicate")!=-1);
+        document.getElementById('cb'+idNum).disabled=dupState;
+        
+        if (dupState) {
+            document.getElementById('row'+idNum).className='disabled';
+            document.getElementById('cb'+idNum).checked=false;
+            //document.getElementById('duplabel'+idNum).innerHTML = "(duplicate link)";
+        }
+        else
+        {
+            document.getElementById('row'+idNum).className='';
+            var newUri = el.value;
+            var name = document.getElementById('cb'+idNum).value.split('|')[0];
+            var oldUri = document.getElementById('dupuri'+idNum) ? document.getElementById('dupuri'+idNum).value : null;
+            if (oldUri) {
+                document.getElementById('cb'+idNum).value = name + "|"+ newUri + "|" + oldUri;
+            } else {
+                document.getElementById('cb'+idNum).value = name + "|"+ newUri;
+            }
+            //document.getElementById('duplabel'+idNum).innerHTML = "(will be added to existing Friend)";
+        }
+    }
+
+    function indicatoronclick () {
+        var f = getByID('discover_form');
+        var args = DOM.getFormData(f);
+        if (args.source_uri==null ||args.source_uri=='') {
+            alert('Don\'t know where to look for contacts!');
+            return false;
+        }
+        showSpinner();
+        getContactsList(args);
+        return false;
+    }
+
+    function getContacts () {
+        var f = getByID('discover_form');
+        //console.log("getContacts");
+        var args = DOM.getFormData(f);
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            //'loading': function(c) { showSpinner (c) },
+            //'loaded': function(c) { showSpinner (c) },
+            //'interactive': function(c) { showSpinner (c) },
+            'load': function(c) { loadResults (c) },
+            'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
+    }
+    
+    function showSpinner() {
+        if (getByID('msg')) return;
+        var content = getByID('main-content-inner');
+        getByID('discover_form').style.height = 0;
+        getByID('discover_form').style.opacity = 0;
+        content.innerHTML += "<div style='text-align:center;'><img id='spinner-img' src='/mt/mt-static/images/indicator.gif' /><div id='msg'>Please wait while we find your contacts...</div></div>";
+        return true;
+    }
+    
+    function hideSpinner () {
+        getByID("spinner-img").style.display = 'none';
+    }
+    
+    function add_contact_selector(id) {
+	    var nameCell = getByID("name"+id);
+
+ 	    var select = document.createElement("select");
+ 	    select.id = "contact-select"+id;
+ 	    select.name="id";
+
+ 	    var contacts = [
+ 	    	<mt:loop name="all_contacts">'<mt:var ltrim="1" rtrim="1" encode_js="1" name="name">',
+ 	    	</mt:loop>
+ 	    ];
+
+ 	    for (var i; i < contacts.length; i++) {
+
+ 	    }
+ 	}
+    
+    var contacts;
+    var startN=0;
+    var contact_data=[];
+    
+    function getContactsList (args) {
+        
+        args.__mode = 'get_contacts_list';
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            'loading': function(c) { 
+                console.log ('loading: '); 
+                showSpinner ();
+            },
+            'load': function(c) {
+                console.log ('load: ' + c.responseText);
+                if (c.status==200) {
+                    contacts = eval("("+c.responseText+")");
+                    console.log(contacts);
+                    updateMsg ("Found " + contacts.length + " contacts!");
+                    if (contacts.length) {
+                        getDataForContacts(args,startN,(contacts.length>10?10:contacts.length));
+                    } else {
+                        updateMsg ("<a href='<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">'>Back</a>");
+                        hideSpinner ();
+                    }
+                } else {
+                    console.log ("getContactsList: non-200 response: " + c.status + " - " + c.responseText);
+                }
+            },
+            'error': function() { showMsg("Error getting contacts.", "msg-block", "alert"); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
+    }
+    
+    function updateMsg(msg){
+        getByID('msg').innerHTML += "<p>" + msg + "</p>";
+    }
+    
+    function getDataForContacts(args, start, count) {
+        console.log(start + ", " + count);
+        var contacts_obj = {contacts:contacts.slice(start, start+count)};
+        if(contacts_obj.contacts.length > start)
+        {
+            updateMsg("getting information for contacts " + 
+                (start+1) + "-" + (start+count) + "...");
+        }
+        
+        console.log('getDataForContacts: ');
+        console.log(contacts_obj);
+        
+        var f = getByID('discover_form');
+
+        var targs = DOM.getFormData(f);
+
+        args.author_id = args.id;
+        //args.source_uri = targs.source_uri;
+        args.__mode = 'get_contact_data';
+        args.contacts_json = contacts_obj.toJSON();
+        
+        console.log(args.contacts_json);
+        
+        TC.Client.call({
+            // loading function is not getting called on Safari/Mac
+            'loading': function(c) { 
+                console.log ('getDataForContacts loading: ');
+            },
+            'load': function(c) {
+                console.log ('getDataForContacts load: ' + c.responseText);
+                if (c.status==200) {
+                    resp_obj = eval("("+c.responseText+")");
+                    //console.log(resp_obj);
+                    for (contact in resp_obj.contacts) {
+                        contact_data.push(contact);
+                    }
+                    var remainder = contacts.length-startN;
+                    if (remainder>0) {
+                        console.log("remainder: " + remainder);
+                        var nextCount = (remainder > 10) ? 10 : remainder;
+                        startN += 10;
+                        getDataForContacts(args,startN,10);
+                    } else {
+                        hideSpinner();
+                        getContactListView (contact_data, targs.source_uri);
+                    }
+                } else {
+                    console.log ("getDataForContacts: non-200 response: " + c.status + " - " + c.responseText);
+                }
+            },
+            'error': function(c) { console.log("Error getting contacts: " + c.responseText); },
+            'method': 'POST',
+            'uri': ScriptURI,
+            'arguments': args
+        });
+    }
+    
+    function getContactListView (contact_list_data, uri) {
+        console.log ("getContactListView");
+        console.log (ScriptBaseURI + ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">");
+        window.location = ScriptBaseURI + ScriptURI + "?__mode=list_pending&amp;id=<mt:var name="author_id">";
+    }
+    
+    </script>
+</mt:setvarblock>
+
+<mt:setvarblock name="content_nav">
+    <mt:include name="include/users_content_nav.tmpl">
+</mt:setvarblock>
+
+<mt:include name="include/header.tmpl" id="header_include">
+
+<form name="discover_form" id="discover_form" method="post" action="<mt:var name="script_url">" mt:once="1" mt:auto-save="0">
+    <input type="hidden" name="id" value="<mt:var name="id">" />
+    <input type="hidden" name="__mode" value="discover_friends" />
+    <input type="hidden" name="_type" value="<mt:var name="object_type">" />
+    <input type="hidden" name="return_args" value="<mt:var name="return_args">" escape="html" />
+    <input type="hidden" name="magic_token" value="<mt:var name="magic_token">" id="m_t" />
+    <input type="hidden" name="action_name" value="" />
+<mt:if name="blog_id">
+<input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
+</mt:if>
+
+<mt:if name="step" eq="start">
+    <mtapp:setting
+        id="source_uri"
+        label="<__trans phrase="Import From:">">
+        <ul>
+        <mt:loop name="profiles">
+            <li style="height:20px;"><input type="radio" name="source_uri" class="select" 
+                    value="<mt:var name="uri">" escape="html"/>
+                    <span style="display:inline;" class="service-icon service-<mt:var name="type">"> <a target="_blank" href="<mt:var name="uri">"><mt:var name="ident"></a></span></li>
+        </mt:loop>
+        </ul>
+        <input type="radio" name="source_uri" class="select" 
+                    value="other" /> <__trans phrase="Other:">
+        <input name="source_uri_other" id="source_uri_other" size="40" value="" style="border:1px solid #ccc;" />
+    </mtapp:setting>
+    <input type="hidden" name="step" value="find" />
+</mt:if>
+
+<p style="font-style: italic">Some profile pages do not provide a contact list. If your search returns with no contacts, you may want to find the "friends" or "contacts" page from the remote site, copy the URL, and paste it into the "Other" field above.</p>
+
+<mt:setvartemplate name="action_buttons">
+    <button
+        mt:mode="discover_friends"
+        type="submit"
+        accesskey="s"
+        title="<mt:var name="submitbutton">"
+        class="primary-button"
+        <mt:var name="indicatoronclick" />
+        ><mt:var name="submitbutton"></button>
+</mt:setvartemplate>
+
+<mt:include name="include/actions_bar.tmpl" bar_position="bottom" hide_pager="1" settings_bar="0">
+     
+</form>
+
+<mt:include name="include/footer.tmpl" id="footer_include">
