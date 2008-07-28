@@ -102,7 +102,7 @@
             return false;
         }
         showSpinner();
-        getContactsList();
+        getContactsList(args);
         return false;
     }
 
@@ -154,20 +154,17 @@
  	}
     
     var contacts;
-    var nextN=1;
+    var startN=0;
     var contact_data=[];
     
-    function getContactsList () {
-        var f = getByID('discover_form');
-        //console.log("getContacts");
-        var args = DOM.getFormData(f);
+    function getContactsList (args) {
         
         args.__mode = 'get_contacts_list';
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
             'loading': function(c) { 
                 console.log ('loading: '); 
-                showSpinner(c);
+                showSpinner ();
             },
             'load': function(c) {
                 console.log ('load: ' + c.responseText);
@@ -176,7 +173,7 @@
                     console.log(contacts);
                     updateMsg ("Found " + contacts.length + " contacts!");
                     if (contacts.length) {
-                        getDataForContacts({contacts:contacts.splice(0,10)});
+                        getDataForContacts(args,startN,(contacts.length>10?10:contacts.length));
                     } else {
                         updateMsg ("<a href='<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">'>Back</a>");
                         hideSpinner ();
@@ -196,20 +193,28 @@
         getByID('msg').innerHTML += "<p>" + msg + "</p>";
     }
     
-    function getDataForContacts(contacts_obj) {
+    function getDataForContacts(args, start, count) {
+        console.log(start + ", " + count);
+        var contacts_obj = {contacts:contacts.slice(start, start+count)};
+        if(contacts_obj.contacts.length > start)
+        {
+            updateMsg("getting information for contacts " + 
+                (start+1) + "-" + (start+count) + "...");
+        }
+        
         console.log('getDataForContacts: ');
         console.log(contacts_obj);
         
         var f = getByID('discover_form');
-                //console.log("getContacts");
+
         var targs = DOM.getFormData(f);
 
-        var args = {};
-        args.author_id = targs.id;
-        args.source_uri = targs.source_uri;
+        args.author_id = args.id;
+        //args.source_uri = targs.source_uri;
         args.__mode = 'get_contact_data';
         args.contacts_json = contacts_obj.toJSON();
         
+        console.log(args.contacts_json);
         
         TC.Client.call({
             // loading function is not getting called on Safari/Mac
@@ -218,18 +223,18 @@
             },
             'load': function(c) {
                 console.log ('getDataForContacts load: ' + c.responseText);
-                if (c.status==200) {                
+                if (c.status==200) {
                     resp_obj = eval("("+c.responseText+")");
                     //console.log(resp_obj);
                     for (contact in resp_obj.contacts) {
                         contact_data.push(contact);
                     }
-                    if (contacts.length) {
-                        var nextCount = (contacts.length > 10) ? nextN+9 : nextN + contacts.length;
-                        updateMsg("getting information for contacts " + 
-                            nextN + "-" + nextCount + "...");
-                        nextN += 10;
-                        getDataForContacts({contacts:contacts.splice(0,10)});
+                    var remainder = contacts.length-startN;
+                    if (remainder>0) {
+                        console.log("remainder: " + remainder);
+                        var nextCount = (remainder > 10) ? 10 : remainder;
+                        startN += 10;
+                        getDataForContacts(args,startN,10);
                     } else {
                         hideSpinner();
                         getContactListView (contact_data, targs.source_uri);
