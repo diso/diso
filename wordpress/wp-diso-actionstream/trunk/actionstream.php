@@ -50,8 +50,7 @@ function get_raw_actionstream($url) {
 }//end function get_raw_actionstream
 
 function actionstream_styles() {
-	$url = get_bloginfo('wpurl');
-	$url = $url . '/wp-content/plugins/wp-diso-actionstream/css/action-streams.css';
+	$url = trailingslashit(get_option('siteurl')) . PLUGINDIR . '/wp-diso-actionstream/css/action-streams.css';
 	echo '<link rel="stylesheet" type="text/css" href="' . $url . '" />';
 }//end function actionstream_styles
 add_action('wp_head', 'actionstream_styles');
@@ -83,6 +82,10 @@ function actionstream_page() {
 		unset($userdata->actionstream[$_POST['remove_service']]);
 		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
 	}//end if ident
+
+	if(isset($_REQUEST['update'])) {
+		actionstream_poll();
+	}
 
 	if($_POST['ident']) {
 		$userdata->actionstream[$_POST['service']] = $_POST['ident'];
@@ -166,6 +169,7 @@ function actionstream_page() {
 
 	echo '<h2>Stream Preview</h2>';
 	echo '<p><b>Next Update:</b> '.round((wp_next_scheduled('actionstream_poll') - time())/60,2).' minutes</p>';
+	echo '<p><a href="?page=wp-diso-actionstream&update=1">Update Now</a></p>';
 	actionstream_render($userdata->ID, 10);
 
 	echo '</div>';
@@ -173,7 +177,7 @@ function actionstream_page() {
 }//end function actionstream_page
 
 function actionstream_tab($s) {
-	add_submenu_page('profile.php', 'Action Stream', 'Action Stream', 'read', __FILE__, 'actionstream_page');
+	add_submenu_page('profile.php', 'Action Stream', 'Action Stream', 'read', 'wp-diso-actionstream', 'actionstream_page');
 	return $s;
 }//end function actionstream_tab
 add_action('admin_menu', 'actionstream_tab');

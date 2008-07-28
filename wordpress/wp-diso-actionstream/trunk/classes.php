@@ -150,6 +150,9 @@ class ActionStream {
 							$value = $value[0].'';
 							if($service == 'twitter') {
 								$value = preg_replace('/^'.$id.'\: /','',$value);
+								if ($k == 'tweet') {
+									$value = preg_replace('/(http:\/\/[a-z0-9_%\/\.+-]+)/i','<a href="$1">$1</a>', $value);
+								}
 								$value = preg_replace('/@([a-zA-z0-9_]+)/','<span class="reply vcard tag">@<a class="url fn" href="http://twitter.com/$1">$1</a></span>',$value);
 								$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
 							}//end if twitter
