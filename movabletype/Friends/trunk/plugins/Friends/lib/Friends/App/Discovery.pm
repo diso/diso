@@ -345,7 +345,7 @@ sub discover_friends {
 			@all_contacts = $friend_class->load( { author_id => $author_id } );
 
 			return $app->build_page(
-				'dialog/discover_friends.tmpl',
+				'discover_friends.tmpl',
 				{
 					step         => $step,
 					id           => $author_id,
