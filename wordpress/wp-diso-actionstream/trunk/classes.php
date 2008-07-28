@@ -219,7 +219,8 @@ class ActionStream {
 		}//end foreach
 
 		$wpurl = get_bloginfo('wpurl');
-		$siteurl = get_bloginfo('siteurl');
+		$feedlink = get_feed_link('action_stream');
+		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
 
 		$rtrn = <<<JS
 <script type="text/javascript">
@@ -242,7 +243,7 @@ class ActionStream {
 </script>
 $rtrn
 <div style="text-align:right;">
-	<a id="actionstream_feed" href="$siteurl/feed/action_stream?user={$this->user_id}" rel="alternate" type="application/rss+xml">
+	<a id="actionstream_feed" href="$feedlink" rel="alternate" type="application/rss+xml">
 		<img src="$wpurl/wp-content/plugins/wp-diso-actionstream/images/feed.png" alt="ActionStream Feed" />
 	</a>
 </div>
