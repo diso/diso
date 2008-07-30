@@ -183,11 +183,12 @@ class ActionStream {
 		$previous_day = false;
 		$c = 0;
 		if(count($items) <= $num) $num = count($items);
+		$gmt_offset = get_option('gmt_offset') * 3600;
 		foreach($items as $item) {
 
 			if(function_exists('user_is') && !user_is($permissions[$item['service']])) continue;
 
-			if($item['service'] == $previous_service && date(get_option('date_format'),$item['created_on']+get_option('gmt_offset')) == $previous_day) {
+			if($item['service'] == $previous_service && date(get_option('date_format'),$item['created_on']+$gmt_offset) == $previous_day) {
 
 				$after_service[] = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
 
@@ -209,9 +210,9 @@ class ActionStream {
 
 				if($c > $num) {$rtrn .= '</ul>'; break;}
 
-				if(date(get_option('date_format'),$item['created_on']+get_option('gmt_offset')) != $previous_day) {//new day
+				if(date(get_option('date_format'),$item['created_on']+$gmt_offset) != $previous_day) {//new day
 					if($previous_day) $rtrn .= '</ul>';
-					$previous_day = date(get_option('date_format'),$item['created_on']+get_option('gmt_offset'));
+					$previous_day = date(get_option('date_format'),$item['created_on']+$gmt_offset);
 					$rtrn .= '<h3 class="action-stream-header">On '.$previous_day.'</h3>';
 					$rtrn .= '<ul class="hfeed action-stream-list">';
 				}//end if new day
