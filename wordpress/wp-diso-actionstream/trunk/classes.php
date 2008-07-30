@@ -173,7 +173,7 @@ class ActionStream {
 		return $items;
 	}//end function items
 
-	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse_off=false) {
+	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
 		$items = $this->items($num);
 		if(!$items || !count($items))
 			return 'No items to display in actionstream.';
@@ -200,12 +200,12 @@ class ActionStream {
 
 				if($during_service) {
 					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.'">'.$during_service->__toString($hide_user);
-					if(count($after_service) && !$collapse_off) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
+					if(count($after_service) && $collapse) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
 					$rtrn .= '</li>';
 				}//end if during service
 
 				foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id. ($collapse_off ? '' : ' actionstream-hidden') . '">'.$cnt->__toString($hide_user).($collapse_off?'':'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script>') . '</li>';
+					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id. ($collapse ? ' actionstream-hidden' : '') . '">'.$cnt->__toString($hide_user).($collapse?'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script>':'') . '</li>';
 				$after_service = array();
 
 				if($c > $num) {$rtrn .= '</ul>'; break;}

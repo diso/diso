@@ -57,60 +57,74 @@ add_action('wp_head', 'actionstream_styles');
 add_action('admin_head', 'actionstream_styles');
 
 function actionstream_page() {
-	global $userdata;
 	require_once ABSPATH . WPINC . '/pluggable.php';
-	get_currentuserinfo();
 	$actionstream_yaml = get_actionstream_config();
+	$user = wp_get_current_user();
 
-	if(!$userdata->actionstream) {
-		$userdata->actionstream = ActionStream::from_urls($userdata->user_url, $userdata->urls);
-		unset($userdata->actionstream['website']);
-		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
+	$actionstream = get_usermeta($user->ID, 'actionstream');
+	if(!$actionstream) {
+		$actionstream = ActionStream::from_urls(get_usermeta($user->ID, 'user_url'), get_usermeta($user->ID, 'urls'));
+		unset($actionstream['website']);
+		update_usermeta($user->ID, 'actionstream', $actionstream);
 	}//end if ! actionstream
 
-	if(isset($_POST['toggle_local_updates'])) {
-		$userdata->actionstream_local_updates_off = !$userdata->actionstream_local_updates_off;
-		update_usermeta($userdata->ID, 'actionstream_local_updates_off', $userdata->actionstream_local_updates_off);
-	}//end if toggle_local_updates
-	
-	if(isset($_POST['toggle_collapse'])) {
-		$userdata->actionstream_collapse_off = !$userdata->actionstream_collapse_off;
-		update_usermeta($userdata->ID, 'actionstream_collapse_off', $userdata->actionstream_collapse_off);
-	}//end if toggle_collapse
-	
-	if(isset($_POST['remove_service'])) {
-		unset($userdata->actionstream[$_POST['remove_service']]);
-		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
-	}//end if ident
+	if ($_POST['submit']) {
+		check_admin_referer('actionstream-update-services');
+		update_usermeta($user->ID, 'actionstream_local_updates', isset($_POST['enable_local_updates']) ? true : false);
+		update_usermeta($user->ID, 'actionstream_collapse_similar', isset($_POST['enable_collapse_similar']) ? true : false);
+
+
+		if($_POST['ident']) {
+			$actionstream[$_POST['service']] = $_POST['ident'];
+			update_usermeta($user->ID, 'actionstream', $actionstream);
+			actionstream_poll();
+		}//end if ident
+
+		if($_POST['sgapi_import']) {
+			require_once dirname(__FILE__).'/sgapi.php';
+			$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
+			$xfn = $sga->get($_POST['sgapi_import']);
+			$actionstream = array_merge($actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
+			unset($actionstream['website']);
+			update_usermeta($user->ID, 'actionstream', $actionstream);
+		}//end if sgapi_import
+
+	}
+	get_currentuserinfo();
 
 	if(isset($_REQUEST['update'])) {
+		check_admin_referer('actionstream-update-now');
 		actionstream_poll();
 	}
 
-	if($_POST['ident']) {
-		$userdata->actionstream[$_POST['service']] = $_POST['ident'];
-		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
-		actionstream_poll();
-	}//end if ident
+	if(isset($_REQUEST['remove'])) {
+		check_admin_referer('actionstream-remove-' . $_REQUEST['remove']);
+		unset($actionstream[$_REQUEST['remove']]);
+		update_usermeta($user->ID, 'actionstream', $actionstream);
+	}
 
-	if($_POST['sgapi_import']) {
-		require_once dirname(__FILE__).'/sgapi.php';
-		$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
-		$xfn = $sga->get($_POST['sgapi_import']);
-		$userdata->actionstream = array_merge($userdata->actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
-		unset($userdata->actionstream['website']);
-		update_usermeta($userdata->ID, 'actionstream', $userdata->actionstream);
-	}//end if sgapi_import
+	echo '<div class="wrap" style="max-width: 99%;">';
 
-	echo '<div class="wrap">';
+	echo '	<h2>Action Stream</h2>';
 
-	echo '	<h2>Action Stream Services</h2>';
+	// Action Stream Preview
+	echo '<div class="highlight" style="float: right; width: 47.5%; color: #333; padding: 0 1em 1em; margin: 1em; border: 1px solid #dadada; ">';
+	echo '<h3>Stream Preview</h3>';
+	echo '<p><b>Next Update:</b> '.round((wp_next_scheduled('actionstream_poll') - time())/60,2).' minutes';
+	echo ' <small>(<a href="'.wp_nonce_url('?page=wp-diso-actionstream&update=1', 'actionstream-update-now').'">Update Now</a>)</small></p>';
+	actionstream_render($user->ID, 10);
+	echo' </div>';
+
+
+	echo '<div style="width: 47.5%">';
 	echo '	<ul style="padding:0px;">';
-	ksort($userdata->actionstream);
-	foreach($userdata->actionstream as $service => $id) {
+	ksort($actionstream);
+	$plugin_url = trailingslashit(get_option('siteurl')) . PLUGINDIR . '/wp-diso-actionstream';
+	foreach($actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
 		if(function_exists('register_diso_permission_field')) register_diso_permission_field($setup['name'] ? $setup['name'] : ucwords($service), $service);
-		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><form method="post" action="" style="display:inline;vertical-align:bottom;"><input type="hidden" name="remove_service" value="'.htmlspecialchars($service).'" /><input type="image" alt="Remove Service" src="'.get_bloginfo('wpurl').'/wp-content/plugins/wp-diso-actionstream/images/delete.gif" /></form> ';
+		$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
+		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="' . $plugin_url . '/images/delete.gif" /></a> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
 			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
 			echo htmlspecialchars($id);
@@ -119,16 +133,15 @@ function actionstream_page() {
 	}//end foreach actionstream
 	echo '	</ul>';
 
-	echo '<form method="post" action="">';
-	echo '<input type="submit" name="toggle_local_updates" value="'.($userdata->actionstream_local_updates_off ? 'Show updates from this blog' : 'Hide updates from this blog').'" />';
-	echo '</form>';
 	
-	echo '<form method="post" action="">';
-	echo '<input type="submit" name="toggle_collapse" value="'.($userdata->actionstream_collapse_off ? 'Collapse similar items' : 'Show all similar items').'" />';
-	echo '</form>';
-
-	echo '<h3>Add/Update a Service</h3>';
-	echo '<form method="post" action=""><div>';
+	echo '<br />';
+	echo '<h3>Update Services</h3>';
+	echo '<form method="post" action="?page='.$_REQUEST['page'].'">';
+	wp_nonce_field('actionstream-update-services');
+	echo '<p><input type="checkbox" id="enable_local_updates" name="enable_local_updates" '.(get_usermeta($user->ID, 'actionstream_local_updates') ? 'checked="checked"' : '').'" /> <label for="enable_local_updates">Show Local Updates</a></label> </p>';
+	echo '<p><input type="checkbox" id="enable_collapse_similar" name="enable_collapse_similar" '.(get_usermeta($user->ID, 'actionstream_collapse_similar') ? 'checked="checked"' : '').'" /> <label for="enable_collapse_similar">Collapse Similar Items</a></label> </p>';
+	echo '<h4>Add/Update Service</h4>';
+	echo '<div style="margin-left: 2em;">';
 	echo '<select id="add-service" name="service" onchange="update_ident_form();">';
 	ksort($actionstream_yaml['action_streams']);
 	foreach($actionstream_yaml['action_streams'] as $service => $setup) {
@@ -142,8 +155,7 @@ function actionstream_page() {
 	echo ' <span id="add-ident-pre"></span> ';
 	echo '<input type="text" id="add-ident" name="ident" /> ';
 	echo ' <span id="add-ident-post"></span> <br />';
-	echo '<input style="margin-left:3em;margin-top:5px;" type="submit" value="Add / Update &raquo;" />';
-	echo '</div></form>';
+	echo '</div>';
 
 ?>
 <script type="text/javascript">
@@ -161,17 +173,15 @@ function actionstream_page() {
 </script>
 <?php
 
-	echo '<h3 title="For geeks: this is rel=me">Import List from Another Service</h3>';
-	echo '<form method="post" action=""><div>';
+	echo '<h4>Import List from Another Service</h4>';
+	echo '<div style="margin-left: 2em;">';
+	echo '<p>Any supported urls with <code>rel="me"</code> will be imported</p>';
 	echo '<input type="text" name="sgapi_import" />';
-	echo '<input type="submit" value="Go &raquo;" />';
-	echo '</div></form>';
+	echo '</div>';
+	echo '<p class="submit"><input type="submit" name="submit" value="Save Changes" /></p>';
+	echo '</form>';
 
-	echo '<h2>Stream Preview</h2>';
-	echo '<p><b>Next Update:</b> '.round((wp_next_scheduled('actionstream_poll') - time())/60,2).' minutes</p>';
-	echo '<p><a href="?page=wp-diso-actionstream&update=1">Update Now</a></p>';
-	actionstream_render($userdata->ID, 10);
-
+	echo '</div>';
 	echo '</div>';
 
 }//end function actionstream_page
@@ -192,7 +202,7 @@ function actionstream_wordpress_post($post_id) {
 	if(!$item['description']) $item['description'] = substr(html_entity_decode(strip_tags($post->post_content)),0,200);
 	$item['created_on'] = strtotime($post->post_date_gmt.'Z');
 	$item['ident'] = get_userdata($post->post_author);
-	if($item['ident']->actionstream_local_updates_off) return;
+	if($item['ident']->actionstream_local_updates) return;
 	$item['ident'] = $item['ident']->display_name;
 	$obj = new ActionStreamItem($item, 'website', 'posted', $post->post_author);
 	$obj->save();
@@ -209,7 +219,7 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
    else
       $userdata = get_userdatabylogin($userid);
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_off);
+	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }//end function actionstream_render
