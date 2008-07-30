@@ -120,6 +120,38 @@ sub itemset_delete_friends {
     $app->call_return;
 }
 
+sub itemset_merge_friends {
+    my ($app) = @_;
+    $app->validate_magic or return;
+
+    my @friends_to_merge = $app->param('id');
+	
+	# get lowest # id and assume that's the one to merge into
+	@friends_to_merge = sort(@friends_to_merge);
+	_log ("merging: " . Dumper(@friends_to_merge));
+	
+	my $lowest_id = shift @friends_to_merge;
+	_log ("lowest id: " . Dumper($lowest_id));
+	
+    for my $friend_id (@friends_to_merge) {
+        my $friend = MT->model('friend')->load($friend_id)
+          or next;
+        next
+          if $app->user->id != $friend->author_id
+              && !$app->user->is_superuser();
+        my @links = MT->model('link')->load({friend_id=>$friend_id});
+		_log ("links to merge: " . Dumper(@links));
+		
+        for my $link (@links)
+        {
+            $link->friend_id($lowest_id);
+			$link->save();
+        }
+        $friend->remove();
+    }
+    $app->call_return;
+}
+
 sub _itemset_hide_show_all_friends {
     my ( $app, $new_visible ) = @_;
     $app->validate_magic or return;

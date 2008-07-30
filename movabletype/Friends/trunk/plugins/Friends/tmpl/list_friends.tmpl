@@ -65,6 +65,11 @@
         accesskey="d"
         title="<__trans phrase="Delete selected friends (h)">"
         ><__trans phrase="Delete"></a>
+    <a href="javascript:void(0)"
+        onclick="if (confirm('Merge selected friends?')) doForMarkedInThisWindow(getByID('friend-listing-form'), '<__trans phrase="friend">', '<__trans phrase="friends">', 'id', 'itemset_merge_friends'); return false"
+        accesskey="d"
+        title="<__trans phrase="Merge selected friends (h)">"
+        ><__trans phrase="Merge Selected"></a>
 </mt:setvarblock>
 
 <mt:var name="position_actions_top" value="1">
