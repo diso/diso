@@ -106,7 +106,7 @@ class ActionStream {
 				if(!$raw) continue;
 
 				if(isset($stream['atom'])) {
-					if(!$stream['atom']) $stream['atom'] = array();
+					if(!is_array($stream['atom'])) $stream['atom'] = array();
 					$stream['xpath'] = array(
 							'foreach' => '//entry',
 							'get' => array_merge(array(
@@ -120,7 +120,7 @@ class ActionStream {
 				}//end if atom
 
 				if(isset($stream['rss2'])) {
-					if(!$stream['rss2']) $stream['rss2'] = array();
+					if(!is_array($stream['rss2'])) $stream['rss2'] = array();
 					$stream['xpath'] = array(
 							'foreach' => '//item',
 							'get' => array_merge(array(
@@ -143,6 +143,14 @@ class ActionStream {
 						$items = $doc->xpath($stream['xpath']['foreach']);
 					if(!$items) $items = array();
 
+					if(!is_array($stream['xpath']['get'])) {//DEBUG: this should never happen
+						echo '<p>Invalid definition of '.$service;
+						echo '<pre>';
+						var_dump($stream);
+						echo '</pre>';
+						'</p>';
+						continue;
+					}
 					foreach($items as $item) {
 						$update = new ActionStreamItem(array('ident' => $id), $service, $setup_idx, $this->user_id);
 						foreach($stream['xpath']['get'] as $k => $p) {
