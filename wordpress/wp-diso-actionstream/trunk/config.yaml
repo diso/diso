@@ -137,6 +137,9 @@ profile_services:
     bebo:
         name: Bebo
         url: http://www.bebo.com/Profile.jsp?MemberId=%s
+    brightkite:
+        name: Brightkite
+        url: http://brightkite.com/people/%s
     catster:
         name: Catster
         url: http://www.catster.com/cats/%s
@@ -167,6 +170,9 @@ profile_services:
         name: Flickr
         url: http://flickr.com/photos/%s/
         ident_example: 36381329@N00
+    getsatisfaction:
+        name: Get Satisfaction
+        url: http://getsatisfaction.com/people/%s
     goodreads:
         name: Goodreads
         url: http://www.goodreads.com/user/show/%s
@@ -319,6 +325,61 @@ profile_services:
        url: http://www.zooomr.com/photos/%s
 
 action_streams:
+    brightkite:
+        checkins:
+            name: Checkins
+            description: Your most recent checkins
+            html_form: '[_1] <a href="[_2]">checked in</a> @ <a class="entry-title" href="[_3]">[_4]</a>'
+            html_params:
+                - url
+                - placeLink
+                - placeName
+            url: 'http://brightkite.com/people/{{ident}}/objects.rss'
+            xpath:
+                foreach: //item[bk:eventType='checkin']
+                get:
+                    created_on: pubDate/child::text()
+                    url: link/child::text()
+                    placeLink: bk:placeLink/child::text()
+                    placeName: bk:placeName/child::text()
+        photos:
+            name: Photos
+            description: Your most recent photos
+            html_form: '[_1] posted a photo @ <a class="entry-title" href="[_3]">[_4]</a><p><a title="[_5]" href="[_2]"><img src="[_6]" alt="[_5]" /></a></p>'
+            html_params:
+                - url
+                - placeLink
+                - placeName
+                - caption
+                - thumbnail
+            url: 'http://brightkite.com/people/{{ident}}/objects.rss'
+            xpath:
+                foreach: //item[bk:eventType='photo']
+                get:
+                    created_on: pubDate/child::text()
+                    url: link/child::text()
+                    placeLink: bk:placeLink/child::text()
+                    placeName: bk:placeName/child::text()
+                    caption: bk:photoCaption/child::text()
+                    thumbnail: media:thumbnail/@url
+        messages:
+            name: Messages
+            description: Your most recent messages
+            html_form: '[_1] <a href="[_2]">posted a text message</a> @ <a class="entry-title" href="[_3]">[_4]</a><p>[_5]</p>'
+            html_params:
+                - url
+                - placeLink
+                - placeName
+                - message
+            url: 'http://brightkite.com/people/{{ident}}/objects.rss'
+            xpath:
+                foreach: //item[bk:eventType='message']
+                get:
+                    created_on: pubDate/child::text()
+                    url: link/child::text()
+                    placeLink: bk:placeLink/child::text()
+                    placeName: bk:placeName/child::text()
+                    message: description/child::text()
     cocomment:
         comments:
             name: Comments
@@ -644,6 +705,17 @@ action_streams:
                 - thumbnail
             rss2:
                 thumbnail: media:thumbnail/@url
+    getsatisfaction:
+        activity:
+            name: Activity
+            description: Your most recent activity
+            html_form: '<a class="entry-title" href="[_2]">[_3]</a>'
+            html_params:
+                - url
+                - title
+                - thumbnail
+            url: 'http://getsatisfaction.com/people/{{ident}}.rss'
+            rss2: ''
     lastfm:
         scrobbles:
             name: Scrobbles
