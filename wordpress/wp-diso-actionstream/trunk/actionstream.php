@@ -66,6 +66,8 @@ function actionstream_page() {
 		$actionstream = ActionStream::from_urls(get_usermeta($user->ID, 'user_url'), get_usermeta($user->ID, 'urls'));
 		unset($actionstream['website']);
 		update_usermeta($user->ID, 'actionstream', $actionstream);
+		update_usermeta($user->ID, 'actionstream_local_updates', true);
+		update_usermeta($user->ID, 'actionstream_collapse_similar', true);
 	}//end if ! actionstream
 
 	if ($_POST['submit']) {
