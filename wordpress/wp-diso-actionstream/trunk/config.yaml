@@ -709,7 +709,7 @@ action_streams:
         activity:
             name: Activity
             description: Your most recent activity
-            html_form: '<a class="entry-title" href="[_2]">[_3]</a>'
+            html_form: '[_1] <a class="entry-title" href="[_2]">[_3]</a>'
             html_params:
                 - url
                 - title
