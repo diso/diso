@@ -36,15 +36,20 @@ sub users_content_nav {
           || $app->mode eq 'view_friend'
           || $app->mode eq 'list_pending';
 
+	my $id = $app->param('id');
+
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
     my ( $open_bold, $close_bold ) = ( $1, $2 );
 
     my $html = <<"EOF";
     <mt:if var="USER_VIEW">
-        <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-        <li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-        <li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+        <li<mt:if name="friends"> class="active"</mt:if>><a 
+			href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
+        <li<mt:if name="discover_friends"> class="active"</mt:if>><a 
+			href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+        <li<mt:if name="list_pending"> class="active"</mt:if>><a 
+			href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
     </mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
@@ -465,6 +470,7 @@ sub view_friend {
     return $app->return_to_dashboard( permission => 1 )
       unless _permission_check();
 
+	_log("view_friend: id param: " . $app->param('id'));
     my $author_id = $app->param('id');
     if ( !$author_id ) {
         $author_id = $app->param('author_id');
@@ -488,7 +494,10 @@ sub view_friend {
     #$param->{object_type}    = 'link';
     #$param->{listing_screen} = 1;
     #$param->{object_loop}    = $obj ? $obj->links : [];
-
+	
+	my $column_values = $obj->column_values();
+	delete $column_values->{id};
+	
     return $app->listing(
         {
             type           => 'link',
@@ -499,7 +508,7 @@ sub view_friend {
                 object_type => 'link',
                 id          => $author_id,
                 friend_id   => $friend_id,
-                %{ $obj->column_values() },
+                %{ $column_values },
             }
         }
     );
