@@ -65,6 +65,10 @@ function oauth_xrds_service($xrds) {
 }
 add_filter('xrds_simple', 'oauth_xrds_service');
 
+
+/**
+ * Register OAuth basic services
+ */
 function oauth_basic_services($services) {
 	$services['Post Comments'] = array('wp-comments-post.php');
 	$services['Edit and Create Entries and Categories'] = array('wp-app.php');
@@ -73,44 +77,10 @@ function oauth_basic_services($services) {
 }
 add_filter('oauth_services', 'oauth_basic_services');
 
-function oauth_accept() {
 
-	set_include_path( dirname(__FILE__) . PATH_SEPARATOR . get_include_path() );
-
-	require_once dirname(__FILE__).'/common.inc.php';
-	
-	$services = array();
-	$services = apply_filters('oauth_services', $services);
-
-	$store = new OAuthWordpressStore();
-	$server = new OAuthServer($store);
-	$sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
-	$plaintext_method = new OAuthSignatureMethod_PLAINTEXT();
-	$server->add_signature_method($sha1_method);
-	$server->add_signature_method($plaintext_method);
-
-	try {
-		$req = OAuthRequest::from_request();
-		list($consumer, $token) = $server->verify_request($req);
-		$userid = $store->user_from_token($consumer->key, $token->key);
-		$authed = get_usermeta($userid, 'oauth_consumers');
-		$authed = $authed[$consumer->key];
-		if($authed && $authed['authorized']) {
-			$allowed = false;
-			foreach($authed as $ends)
-				if(is_array($ends))
-					foreach($ends as $end)
-						if(strstr($_SERVER['SCRIPT_URI'], $end))
-							$allowed = true;
-			if($allowed)
-				set_current_user($userid);
-		}//end if
-	} catch (OAuthException $e) {/* We may not be doing OAuth at all.  */}
-
-}//end function oauth_accept
-//if(!$NO_oauth)
-	//oauth_accept();
-
+/**
+ * OAuth configuration page
+ */
 function oauth_page() {
 	global $wpdb;
 	if($_POST['new_consumer']) {
@@ -156,12 +126,20 @@ function oauth_page() {
 .'">Click here for a test page &raquo;</a>';
 }//end function oauth_page
 
+
+/**
+ * Add OAuth configuration page.
+ */
 function oauth_tab($s) {
 	add_submenu_page('options-general.php', 'OAuth', 'OAuth', 1, 'wp-oauth', 'oauth_page');
 	return $s;
-}//end function
+}
 add_action('admin_menu', 'oauth_tab');
 
+
+/**
+ * Output all OAuth services.
+ */
 function oauth_services_render() {
 	global $userdata;
 	get_currentuserinfo();
@@ -194,24 +172,73 @@ function oauth_services_render() {
 	echo '		<p><input type="submit" name="save" value="Save &raquo;" /></p>';
 	echo '	</form>';
 	echo '</div>';
-}//end function oauth_services_render
+}
+
+
+/**
+ * Add OAuth profile configuration page
+ */
 function oauth_services_tab($s) {
 	add_submenu_page('profile.php', 'Services', 'Services', 1, __FILE__, 'oauth_services_render');
 	return $s;
-}//end function
+}
 add_action('admin_menu', 'oauth_services_tab');
 
+
+/**
+ * Parse the incoming WordPress request.  If it is an OAuth request, handle it accordingly.
+ */
 function oauth_parse_request($wp) {
 	if (array_key_exists('_oauth_endpoint', $_REQUEST) && function_exists('oauth_endpoint_' . $_REQUEST['_oauth_endpoint'])) {
 		call_user_func('oauth_endpoint_' . $_REQUEST['_oauth_endpoint']);
 	}
+
+	// if we have an oauth_token but no _oauth_endpoint, this must be an oauth request for a protected resource
+	if (array_key_exists('oauth_token', $_REQUEST)) {
+		oauth_protected_resource();
+	}
 }
 add_action('parse_request', 'oauth_parse_request');
 
-function oauth_init_server() {
+
+/**
+ * Process an OAuth request for a protected resource.
+ */
+function oauth_protected_resource() {
 	require_once dirname(__FILE__).'/common.inc.php';
 
+	$services = apply_filters('oauth_services', array());
+
 	$store = new OAuthWordpressStore();
+	$server = oauth_init_server($store);
+
+	try {
+		$req = OAuthRequest::from_request();
+		list($consumer, $token) = $server->verify_request($req);
+		$userid = $store->user_from_token($consumer->key, $token->key);
+		$authed = get_usermeta($userid, 'oauth_consumers');
+		$authed = $authed[$consumer->key];
+		if($authed && $authed['authorized']) {
+			$allowed = false;
+			foreach($authed as $ends)
+				if(is_array($ends))
+					foreach($ends as $end)
+						if(strstr($_SERVER['SCRIPT_URI'], $end))
+							$allowed = true;
+			if($allowed)
+				set_current_user($userid);
+		}//end if
+	} catch (OAuthException $e) {/* We may not be doing OAuth at all.  */}
+}
+
+
+/**
+ * Initialize an OAuth Server instance.
+ */
+function oauth_init_server($store = null) {
+	require_once dirname(__FILE__).'/common.inc.php';
+
+	if (!$store) $store = new OAuthWordpressStore();
 	$server = new OAuthServer($store);
 	$sha1_method = new OAuthSignatureMethod_HMAC_SHA1();
 	$plaintext_method = new OAuthSignatureMethod_PLAINTEXT();
@@ -221,14 +248,19 @@ function oauth_init_server() {
 	return $server;
 }
 
+
+/**
+ * Process request for an OAuth request token.
+ */
 function oauth_endpoint_request() {
-	$server = oauth_init_server();
+	require_once dirname(__FILE__).'/common.inc.php';
+	$store = new OAuthWordpressStore();
+	$server = oauth_init_server($store);
 
 	try {
 	  $req = OAuthRequest::from_request();
 	  $token = $server->fetch_request_token($req);
-	  print $token;
-	  //print $token.'&xoauth_token_expires='.urlencode($store->token_expires($token));
+	  print $token.'&xoauth_token_expires='.urlencode($store->token_expires($token));
 	  exit;
 	} catch (OAuthException $e) {
 	  header('Content-type: text/plain;', true, 400);
@@ -238,6 +270,10 @@ function oauth_endpoint_request() {
 	}
 }
 
+
+/**
+ * Proces request for OAuth token authorization.
+ */
 function oauth_endpoint_authorize() {
 	global $wpdb;
 
@@ -332,14 +368,19 @@ function oauth_endpoint_authorize() {
 	exit;
 }
 
+
+/**
+ * Process request for an OAuth access token.
+ */
 function oauth_endpoint_access() {
-	$server = oauth_init_server();
+	require_once dirname(__FILE__).'/common.inc.php';
+	$store = new OAuthWordpressStore();
+	$server = oauth_init_server($store);
 
 	try {
 	  $req = OAuthRequest::from_request();
 	  $token = $server->fetch_access_token($req);
-	  print $token;
-	  //print $token.'&xoauth_token_expires='.urlencode($store->token_expires($token));
+	  print $token.'&xoauth_token_expires='.urlencode($store->token_expires($token));
 	  exit;
 	} catch (OAuthException $e) {
 	  header('Content-type: text/plain;', true, 400);
