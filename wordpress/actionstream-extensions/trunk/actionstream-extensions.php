@@ -8,14 +8,15 @@
  License: Dual GPL (http://www.fsf.org/licensing/licenses/info/GPLv2.html) and Modified BSD (http://www.fsf.org/licensing/licenses/index_html#ModifiedBSD)
  */
 
-function actionstream_ext_services($services, $streams) {
+function actionstream_ext_services($services) {
+
 	// Yelp
-	$services['yelp'] = array(
+	$services['services']['yelp'] = array(
 		'name' => 'Yelp',
 		'url' => 'http://%s.yelp.com/',
 	);
 
-	$streams['yelp'] = array(
+	$services['streams']['yelp'] = array(
 		'reviews' => array(
 			'name' => 'Reviews',
 			'description' => 'Your most recent reviews',
@@ -26,94 +27,94 @@ function actionstream_ext_services($services, $streams) {
 
 	
 	// Dopplr
-	$services['dopplr'] = array(
+	$services['services']['dopplr'] = array(
 		'name' => 'Dopplr',
 		'url' => 'http://www.dopplr.com/traveller/%s',
 	);
-	$streams['dopplr'] = array();
+	$services['streams']['dopplr'] = array();
 
 	// Ebay
-	$services['ebay'] = array(
+	$services['services']['ebay'] = array(
 		'name' => 'eBay',
 		'url' => 'http://myworld.ebay.com/%s',
 	);
-	$streams['ebay'] = array(); 
+	$services['streams']['ebay'] = array(); 
 
 	// Facebook
-	$services['facebook'] = array(
+	$services['services']['facebook'] = array(
 		'name' => 'Facebook',
 		'url' => 'http://facebook.com/profile.php?id=%s',
 		'ident_example' => '123456789',
 	);
-	$streams['facebook'] = array();
+	$services['streams']['facebook'] = array();
 
 	// LinkedIn
-	$services['linkedin'] = array(
+	$services['services']['linkedin'] = array(
 		'name' => 'LinkedIn',
 		'url' => 'http://www.linkedin.com/in/%s',
 	);
-	$streams['linkedin'] = array();
+	$services['streams']['linkedin'] = array();
 
 	// Ohloh
-	$services['ohloh'] = array(
+	$services['services']['ohloh'] = array(
 		'name' => 'Ohloh',
 		'url' => 'http://www.ohloh.com/accounts/%s',
 	);
-	$streams['ohloh'] = array();
+	$services['streams']['ohloh'] = array();
 
 	// Slashdot
-	$services['slashdot'] = array(
+	$services['services']['slashdot'] = array(
 		'name' => 'Slashdot',
 		'url' => 'http://slashdot.org/~%s',
 	);
-	$streams['slashdot'] = array(); 
+	$services['streams']['slashdot'] = array(); 
 
 	// MySpace
-	$services['myspace'] = array(
+	$services['services']['myspace'] = array(
 		'name' => 'MySpace',
 		'url' => 'http://www.myspace.com/%s',
 	);
-	$streams['myspace'] = array(); // TODO
+	$services['streams']['myspace'] = array(); // TODO
 	
 	// 43 Things
-	$services['43things'] = array(
+	$services['services']['43things'] = array(
 		'name' => '43 Things',
 		'url' => 'http://43things.com/person/%s',
 	);
-	$streams['43things'] = array(); // TODO
+	$services['streams']['43things'] = array(); // TODO
 	
 	// Technorati
-	$services['technorati'] = array(
+	$services['services']['technorati'] = array(
 		'name' => 'Technorati',
 		'url' => 'http://technorati.com/people/technorati/%s',
 	);
-	$streams['technorati'] = array();
+	$services['streams']['technorati'] = array();
 	
 	// Cork'd
-	$services['corkd'] = array(
+	$services['services']['corkd'] = array(
 		'name' => 'Cork\'d',
 		'url' => 'http://corkd.com/people/%s',
 	);
-	$streams['corkd'] = array();
+	$services['streams']['corkd'] = array();
 
 	// Jyte
-	$services['jyte'] = array(
+	$services['services']['jyte'] = array(
 		'name' => 'Jyte',
 		'url' => 'http://jyte.com/profile/%s',
 	);
-	$streams['jyte'] = array(); // TODO
+	$services['streams']['jyte'] = array(); // TODO
 	
 	// Yahoo!
-	$services['yahoo'] = array(
+	$services['services']['yahoo'] = array(
 		'name' => 'Yahoo!',
 		'url' => 'http://profiles.yahoo.com/%s',
 	);
-	$streams['yahoo'] = array();
+	$services['streams']['yahoo'] = array();
 
 
-	return array($services, $streams);
+	return $services;
 }
-add_filter('actionstream_services', 'actionstream_ext_services', 5, 2);
+add_filter('actionstream_services', 'actionstream_ext_services', 5);
 
 
 function actionstream_ext_styles() {
