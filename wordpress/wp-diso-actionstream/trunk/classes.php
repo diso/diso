@@ -140,6 +140,7 @@ class ActionStream {
 						$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
 					}
 					if($doc && $stream['xpath']['foreach'])
+						$stream['xpath']['foreach'] = str_replace('%s', $id, $stream['xpath']['foreach']);
 						$items = $doc->xpath($stream['xpath']['foreach']);
 					if(!$items) $items = array();
 
