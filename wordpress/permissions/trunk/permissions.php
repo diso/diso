@@ -1,4 +1,11 @@
 <?php
+/*
+Plugin Name: DiSo Permissions
+Description: Provides a permissions framework for other DiSo components.
+Version: 0.1
+Author: DiSo Development Team
+Author URI: http://diso-project.org/
+*/
 
 if( !function_exists( 'normalize_uri' ) ) {
   function normalize_uri ($url) {
@@ -22,52 +29,103 @@ if( !function_exists( 'normalize_uri' ) ) {
   }
 }//end if
 
-function user_is($taxonomies) {//is the current user associated with the given XFN values on the contact list?
-	global $userdata;
+
+/**
+ * Check if the current logged-in user contains any of the specified XFN 
+ * relationships with this blog.
+ *
+ * @return boolean true if the current user has any of the specified relatinoships
+ */
+function diso_user_is($taxonomies) {
 	static $ids, $bookmarks;
-	if(!$taxonomies || (is_array($taxonomies) && (!count($taxonomies) || !$taxonomies[0]))) return true;
-	get_currentuserinfo();
-	if($user_level > 9) return true;
-	if(is_string($taxonomies)) $taxonomies = array($taxonomies);
-	if(!$ids) {
-		if(function_exists('is_user_openid') && is_user_openid()) {
-			global $wpdb, $userdata;//this really should go in wp-openid
-			$ids = $wpdb->get_results("SELECT url FROM {$wpdb->prefix}openid_identities WHERE user_id=".$userdata->ID);
-		} else if(function_exists('is_user_facebook') && is_user_facebook()) {
-			if(function_exists('facebook_from_user'))
-				$ids = array(facebook_from_user());
-		}//end if-elses
-		if(!$ids || !count($ids)) return false;
-		require_once dirname(__FILE__).'/sgapi.php';
-		$sga = new SocialGraphApi(array('edgesout'=>0,'edgesin'=>0,'followme'=>1,'sgn'=>0));
-		$ids2 = array();
-		foreach($ids as $id) {//sgapi
-			if(is_object($id)) $id = $id->url;
-			if(!$id) continue;
-			$data = $sga->get($id);
-			if(!$data || !count($data)) continue;
-			$ids2 = array_merge($ids2, array_keys($data['nodes']));
-		}//end foreach
-		$ids = $ids2; unset($ids2);
+
+	if (empty($taxonomies)) { return true; } 
+	if (!is_array($taxonomies)) { $taxonomies = array($taxonomies); }
+
+	$user = wp_get_current_user();
+
+	if ($user->user_level > 9) return true;
+
+	if (!$ids) {
+		$ids = apply_filters('diso_current_user_urls', array());
+		if (empty($ids)) return false;
+
+		$ids = diso_get_sgapi_urls($ids);
 		$bookmarks = get_bookmarks();
-	}//end if ! ids
-	if(!$ids || !count($ids)) return false;
+	}
+
+	if (empty($ids)) return false;
+
 	foreach($ids as $id) {
 		foreach($bookmarks as $bookmark) {
 			if(normalize_uri($bookmark->link_url) == normalize_uri($id)) {
+
+				// check link rel tags
 				$rels = explode(' ',$bookmark->link_rel);
-				foreach($taxonomies as $val)
-					if(in_array($val,$rels))
+				foreach($taxonomies as $val) {
+					if(in_array($val,$rels)) {
 						return true;
+					}
+				}
+
+				// check link categories
 				$cats = wp_get_object_terms($bookmark->link_id, 'link_category');
-				foreach($taxonomies as $val)
-					if(in_array($val->name,$cats))
+				foreach($taxonomies as $val) {
+					if(in_array($val->name,$cats)) {
 						return true;
-			}//end if link matches	
-		}//end foreach bookmarks
-	}//end foreach
+					}
+				}
+			}
+		}
+	}
+
 	return false;
-}//end function user_is
+}
+
+
+/**
+ * Get current user URLs from OpenID and Facebook plugins.  These should be moved to their respective plugins in the future.
+ */
+function diso_current_user_urls($urls) {
+	global $wpdb;
+	$user = wp_get_current_user();
+	
+	if(function_exists('is_user_openid') && is_user_openid()) {
+		$urls = array_merge($urls, $wpdb->get_results("SELECT url FROM {$wpdb->prefix}openid_identities WHERE user_id=".$user->ID));
+	} 
+	
+	if(function_exists('is_user_facebook') && is_user_facebook()) {
+		if(function_exists('facebook_from_user'))
+			$urls = array_merge($urls, array(facebook_from_user()));
+	}
+
+	return $urls;
+}
+add_filter('diso_current_user_urls', 'diso_current_user_urls');
+
+
+/**
+ * Use Google's Social Graph API to get all equivalent URLs for the specified URLs.
+ */
+function diso_get_sgapi_urls($urls) {
+
+	$new = array();
+
+	if (!empty($urls)) { 
+		require_once dirname(__FILE__).'/sgapi.php';
+		$sga = new SocialGraphApi(array('edgesout'=>0,'edgesin'=>0,'followme'=>1,'sgn'=>0));
+
+		foreach($urls as $url) {
+			if(is_object($url)) $url = $url->url;
+			if(!$url) continue;
+			$data = $sga->get($url);
+			if(!$data || !count($data)) continue;
+			$new = array_merge($new, array_keys($data['nodes']));
+		}
+	}
+
+	return $new;
+}
 
 function register_diso_permission_field($label, $field) {
 	$fields = get_option('diso_permission_fields');
@@ -134,62 +192,48 @@ function diso_permissions_page() {
 		$userdata->profile_permissions_level = $_POST['permissions_level'];
 	}//end if saving
 
-	$fields = array(
-		'First Name' => 'given-name',
-		'Middle Name(s)' => 'additional-name',
-		'Last Name' => 'family-name',
-		'Nickname' => 'nickname',
-		1 => '----',
-		'Website(s)' => 'urls',
-		'E-mail Address' => 'email',
-		'AIM' => 'aim',
-		'Y!IM' => 'yim',
-		'Jabber' => 'jabber',
-		2 => '----',
-		'About Me' => 'note',
-		'Photo' => 'photo',
-		'Organization' => 'org',
-		3 => '----',
-		'Street Address' => 'street-address',
-		'City' => 'locality',
-		'Province/State' => 'region',
-		'Postal Code' => 'postal-code',
-		'Country' => 'country-name',
-		'Telephone Number' => 'tel',
-		4 => '----',
-	);
-	$fields += get_option('diso_permission_fields') ? get_option('diso_permission_fields') : array();
+	$permission_fields = apply_filters('diso_permission_fields', array());
 
 	echo '<div class="wrap">';
-	echo '<h2>Change Profile Permissions</h2>';
+	echo '<h2>Change Permissions</h2>';
 	echo '<b>Field &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; People who can view</b>';
 	echo '<form method="post" action="">';
-	foreach($fields as $label => $field) {
-		if($field == '----') {echo '<hr style="marign:2em;clear:both;" />'; continue;}
-		echo '<div style="margin-bottom:1em;clear:both;">';
-		echo ' <label style="float:left;width:10em;" for="'.$field.'">'.$label.':</label> ';
-		echo '	<select id="'.$field.'-basic" name="permissions_level['.$field.']" onchange="if(this.value == \'custom\') { document.getElementById(\''.$field.'-custom\').style.display = \'block\';  } else { document.getElementById(\''.$field.'-custom\').style.display = \'none\'; }">';
-		echo '		<option '.($userdata->profile_permissions_level[$field] == 'public' ? 'selected="selected" ' : '').'value="public">Public</option>';
-		echo '		<option '.($userdata->profile_permissions_level[$field] == 'any' ? 'selected="selected" ' : '').'value="any">Any Contact</option>';
-		echo '		<option '.($userdata->profile_permissions_level[$field] == 'family' ? 'selected="selected" ' : '').'value="family">Family</option>';
-		echo '		<option '.($userdata->profile_permissions_level[$field] == 'family,friends' ? 'selected="selected" ' : '').'value="family,friends">Family and Friends</option>';
-		echo '		<option '.($userdata->profile_permissions_level[$field] == 'custom' ? 'selected="selected" ' : '').'value="custom">Custom</option>';
-		echo '	</select>';
-		echo '	<div id="'.$field.'-custom" '.($userdata->profile_permissions_level[$field] != 'custom' ? 'style="display:none;" ' : '' ).'>';
-		$c = 0;
-		echo '<div style="float:left;clear:left;width:10em;">&nbsp;</div>';
-		foreach($taxonomies as $ilabel => $term) {
-			echo '<div style="float:left;width:11em;">';
-			echo '<input type="checkbox" name="permissions['.htmlentities($field).']['.htmlentities($term).']"'.(@in_array($term, $userdata->profile_permissions[$field]) ? ' checked="checked"' : '').' />&nbsp;'.$ilabel.'</div>';
-			$c++;
-			if($c > 4) {
-				$c = 0;
-				echo '<div style="float:left;clear:left;width:10em;">&nbsp;</div>';
+
+	usort($permission_fields, create_function('$a,$b', 'return ($a["order"] == $b["order"] ? 0 : ($a["order"] > $b["order"] ? 1 : -1));'));
+	foreach($permission_fields as $set) {
+		echo '<h3>'.$set['name'].'</h3>';
+		foreach ($set['fields'] as $field => $label) {
+
+			if($label == '-') {
+				echo '<hr style="marign:2em;clear:both;" />'; 
+				continue;
 			}
-		}//end
-		echo '	</div>';
-		echo '</div>';
-	}//end foreach fields
+
+			echo '<div style="margin-bottom:1em;clear:both;">';
+			echo ' <label style="float:left;width:10em;" for="'.$field.'">'.$label.':</label> ';
+			echo '	<select id="'.$field.'-basic" name="permissions_level['.$field.']" onchange="if(this.value == \'custom\') { document.getElementById(\''.$field.'-custom\').style.display = \'block\';  } else { document.getElementById(\''.$field.'-custom\').style.display = \'none\'; }">';
+			echo '		<option '.($userdata->profile_permissions_level[$field] == 'public' ? 'selected="selected" ' : '').'value="public">Public</option>';
+			echo '		<option '.($userdata->profile_permissions_level[$field] == 'any' ? 'selected="selected" ' : '').'value="any">Any Contact</option>';
+			echo '		<option '.($userdata->profile_permissions_level[$field] == 'family' ? 'selected="selected" ' : '').'value="family">Family</option>';
+			echo '		<option '.($userdata->profile_permissions_level[$field] == 'family,friends' ? 'selected="selected" ' : '').'value="family,friends">Family and Friends</option>';
+			echo '		<option '.($userdata->profile_permissions_level[$field] == 'custom' ? 'selected="selected" ' : '').'value="custom">Custom</option>';
+			echo '	</select>';
+			echo '	<div id="'.$field.'-custom" '.($userdata->profile_permissions_level[$field] != 'custom' ? 'style="display:none;" ' : '' ).'>';
+			$c = 0;
+			echo '<div style="float:left;clear:left;width:10em;">&nbsp;</div>';
+			foreach($taxonomies as $ilabel => $term) {
+				echo '<div style="float:left;width:11em;">';
+				echo '<input type="checkbox" name="permissions['.htmlentities($field).']['.htmlentities($term).']"'.(@in_array($term, $userdata->profile_permissions[$field]) ? ' checked="checked"' : '').' />&nbsp;'.$ilabel.'</div>';
+				$c++;
+				if($c > 4) {
+					$c = 0;
+					echo '<div style="float:left;clear:left;width:10em;">&nbsp;</div>';
+				}
+			}//end
+			echo '	</div>';
+			echo '</div>';
+		}//end foreach fields
+	}
 	echo ' <input style="clear:both;margin-top:1em;" type="submit" value="Save &raquo;" /> ';
 	echo '</form>';
 
@@ -201,8 +245,10 @@ function diso_permissions_tab($s) {
 	return $s;
 }//end function
 
+/*
 get_currentuserinfo();
 if($user_level > 9)
+ */
 	add_action('admin_menu', 'diso_permissions_tab');
 
 ?>
