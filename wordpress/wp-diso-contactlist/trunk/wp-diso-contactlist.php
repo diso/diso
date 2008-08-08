@@ -156,12 +156,14 @@ add_action('admin_menu', 'cl_add_pages');
 /*
   For comparing URLs
 */
+if (!function_exists('normalize_uri')) {
 function normalize_uri ($uri) {
 	if (substr($uri,0,7)=='http://')
 		$uri = substr($uri,7);
 	if (substr($uri,-1)=='/')
     $uri = substr($uri,0,-1);
 	return $uri;
+}
 }
 
 /*
