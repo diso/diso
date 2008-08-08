@@ -228,8 +228,10 @@ function diso_profile_extend_save($userid) {
 		update_usermeta($userdata->ID, 'n', $n);
 		$urls = preg_split('/[\s]+/',$_POST['urls']);
 		update_usermeta($userdata->ID, 'urls', $urls);
-		foreach($_POST['hcard'] as $key => $val)
-			update_usermeta($userdata->ID, $key, $val);
+		if (is_array($_POST['hcard'])) {
+			foreach($_POST['hcard'] as $key => $val)
+				update_usermeta($userdata->ID, $key, $val);
+		}
 		update_usermeta($userdata->ID, 'user_url', $_POST['url']);
 		update_usermeta($userdata->ID, 'display_name', $_POST['display_name']);
 	}//end else
@@ -247,47 +249,47 @@ function diso_profile($userid='', $echo=true) {
 	else
 		$userdata = get_userdatabylogin($userid);
 	$template = '<div class="vcard diso diso-profile">';
-	if($userdata->photo && user_is($userdata->profile_permissions['photo'])) $template .= '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />'."\n";
+	if($userdata->photo && diso_user_is($userdata->profile_permissions['photo'])) $template .= '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />'."\n";
 	$template .= '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
 	if( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
 		if($userdata->user_url)
 			$template .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
 		else
 			$template .= '<span class="n">';
-		if($userdata->last_name && user_is($userdata->profile_permissions['family-name'])) $template .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
-		if($userdata->first_name && user_is($userdata->profile_permissions['given-name'])) $template .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
-		if($userdata->n['additional-name'] && user_is($userdata->profile_permissions['additional-name'])) $template .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
+		if($userdata->last_name && diso_user_is($userdata->profile_permissions['family-name'])) $template .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
+		if($userdata->first_name && diso_user_is($userdata->profile_permissions['given-name'])) $template .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
+		if($userdata->n['additional-name'] && diso_user_is($userdata->profile_permissions['additional-name'])) $template .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
 		if($userdata->user_url)
 			$template .= '</a>';
 		else
 			$template .= '</span>';
 	}//end if name
-	if($userdata->nickname && user_is($userdata->profile_permissions['nickname'])) $template .= '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"'."\n";
-	if($userdata->org && user_is($userdata->profile_permissions['org'])) $template .= '(<span class="org">'.htmlentities($userdata->org).'</span>)'."\n";
-	if($userdata->description && user_is($userdata->profile_permissions['note'])) $template .= '<p class="note">'.htmlentities($userdata->description).'</p>'."\n";
+	if($userdata->nickname && diso_user_is($userdata->profile_permissions['nickname'])) $template .= '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"'."\n";
+	if($userdata->org && diso_user_is($userdata->profile_permissions['org'])) $template .= '(<span class="org">'.htmlentities($userdata->org).'</span>)'."\n";
+	if($userdata->description && diso_user_is($userdata->profile_permissions['note'])) $template .= '<p class="note">'.htmlentities($userdata->description).'</p>'."\n";
 
 	$template .= '<h3>Contact Information</h3>';
 	$template .= '<dl class="contact">';
 	if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-	if(count($userdata->urls) && user_is($userdata->profile_permissions['urls'])) {
+	if(count($userdata->urls) && diso_user_is($userdata->profile_permissions['urls'])) {
 		$template .= '<dt>On the web:</dt> <dd> <ul>';
 		foreach($userdata->urls as $url)
 			$template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities($url).'</a></li>';
 		$template .= '</ul> </dd>'."\n";
 	}//end if urls
-	if($userdata->aim && user_is($userdata->profile_permissions['aim'])) $template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
-	if($userdata->yim && user_is($userdata->profile_permissions['yim'])) $template .= '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>'."\n";
-	if($userdata->jabber && user_is($userdata->profile_permissions['jabber'])) $template .= '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>'."\n";
-	if($userdata->user_email && user_is($userdata->profile_permissions['email'])) $template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
-	if($userdata->tel && user_is($userdata->profile_permissions['tel'])) $template .= '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>'."\n";
+	if($userdata->aim && diso_user_is($userdata->profile_permissions['aim'])) $template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
+	if($userdata->yim && diso_user_is($userdata->profile_permissions['yim'])) $template .= '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>'."\n";
+	if($userdata->jabber && diso_user_is($userdata->profile_permissions['jabber'])) $template .= '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>'."\n";
+	if($userdata->user_email && diso_user_is($userdata->profile_permissions['email'])) $template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
+	if($userdata->tel && diso_user_is($userdata->profile_permissions['tel'])) $template .= '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>'."\n";
 	if( ($userdata->streetaddress || $userdata->locality || $userdata->region || $userdata->postalcode || $userdata->countryname)  &&
-	 (user_is($userdata->profile_permissions['street-address']) || user_is($userdata->profile_permissions['locality']) || user_is($userdata->profile_permissions['region']) || user_is($userdata->profile_permissions['postal-code']) || user_is($userdata->profile_permissions['country-name']) ) ) {
+	 (diso_user_is($userdata->profile_permissions['street-address']) || diso_user_is($userdata->profile_permissions['locality']) || diso_user_is($userdata->profile_permissions['region']) || diso_user_is($userdata->profile_permissions['postal-code']) || diso_user_is($userdata->profile_permissions['country-name']) ) ) {
 		$template .= '<dt>Current Address:</dt> <dd class="adr">';
-		if($userdata->streetaddress && user_is($userdata->profile_permissions['street-address'])) $template .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
-		if($userdata->locality && user_is($userdata->profile_permissions['locality'])) $template .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
-		if($userdata->region && user_is($userdata->profile_permissions['region'])) $template .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
-		if($userdata->postalcode && user_is($userdata->profile_permissions['postal-code'])) $template .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
-		if($userdata->countryname && user_is($userdata->profile_permissions['country-name'])) $template .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
+		if($userdata->streetaddress && diso_user_is($userdata->profile_permissions['street-address'])) $template .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
+		if($userdata->locality && diso_user_is($userdata->profile_permissions['locality'])) $template .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
+		if($userdata->region && diso_user_is($userdata->profile_permissions['region'])) $template .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
+		if($userdata->postalcode && diso_user_is($userdata->profile_permissions['postal-code'])) $template .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
+		if($userdata->countryname && diso_user_is($userdata->profile_permissions['country-name'])) $template .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
 		$template .= '</dd>';
 	}//end if adr
 	$template .= '</dl>';
