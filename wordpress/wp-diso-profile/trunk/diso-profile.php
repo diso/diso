@@ -11,6 +11,7 @@ Author URI: http://singpolyma.net/
 //Licensed under an MIT-style licence
 
 require_once dirname(__FILE__).'/recent-visitors.php';
+require_once dirname(__FILE__).'/profile-widget.php';
 require_once dirname(__FILE__).'/permissions.php';
 
 $hkit;
