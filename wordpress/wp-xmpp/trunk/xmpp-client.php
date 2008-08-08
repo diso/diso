@@ -212,7 +212,7 @@ class XMPP_Jabber_Client {
 												 			 $subject, $thread, $id, $extended, $data)
 	{
 		do_action ('xmpp_message_chat', $this, $from, $to, $body, 
-														 			 		$subject, $thread, $id, $extended, $data);
+                    $subject, $thread, $id, $extended, $data);
 	}
 	
 	#$this->_call_handler("message_groupchat",$packet);
@@ -230,12 +230,12 @@ class XMPP_Jabber_Client {
 	}
 	
 	#$this->_call_handler("message_normal", $from, $to, $body, 
-	#														$subject,$thread,$id,$extended,$packet);
+	#                     $subject,$thread,$id,$extended,$packet);
 	function handle_message_normal($from, $to, $body, 
-												 			 		 $subject, $thread, $id, $extended, $data)
+			 			 		 $subject, $thread, $id, $extended, $data)
 	{
 		do_action ('xmpp_message_normal', $this, $from, $to, $body, 
-														 			 		 	$subject, $thread, $id, $extended, $data);
+										  $subject, $thread, $id, $extended, $data);
 	}
 	
 	#$this->_call_handler("msgevent_composing_start",$from);
@@ -625,8 +625,8 @@ if (basename($argv[0]) == basename(__FILE__)) {
 
   $options = array (
   		'xmpp_server' => 'diso-project.org',
-  		'xmpp_username' => 'steve',
-  		'xmpp_password' => 'jophilli',
+  		'xmpp_username' => '',
+  		'xmpp_password' => '',
   		'xmpp_port' => '5222',
   		//'xmpp_server' => '',
   		//'xmpp_server' => '',
