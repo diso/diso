@@ -29,7 +29,7 @@ $c = 0;
 
 foreach($stream as $item) {
 
-	if(function_exists('user_is') && !user_is($userdata->profile_permissions[$item['service']])) continue;
+	if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$item['service']])) continue;
 
 	if($item['service'] == $previous_service) {
 
