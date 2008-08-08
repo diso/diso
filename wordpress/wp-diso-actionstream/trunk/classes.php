@@ -54,6 +54,7 @@ class ActionStreamItem {
 	}//end function toString
 
 	protected static function interpolate($data, $fields, $template, $service, $hide_user) {
+		if (!is_array($fields)) return;
 		array_unshift($fields, 'ident');
 		if($data['ident'] && $service) {
 			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '').'><a class="url fn nickname" href="'.htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'.htmlspecialchars($data['ident']).'</a></span>';
@@ -193,9 +194,11 @@ class ActionStream {
 		$c = 0;
 		if(count($items) <= $num) $num = count($items);
 		$gmt_offset = get_option('gmt_offset') * 3600;
+		$yaml = get_actionstream_config();
 		foreach($items as $item) {
+			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 
-			if(function_exists('user_is') && !user_is($permissions[$item['service']])) continue;
+			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
 
 			if($item['service'] == $previous_service && date(get_option('date_format'),$item['created_on']+$gmt_offset) == $previous_day) {
 
