@@ -97,14 +97,13 @@ function diso_profile_extend() {
 	global $profileuser;
 	$userdata = $profileuser;
 	//PHOTO
-	echo '<fieldset>';
-	echo '	<legend>Photo</legend>';
+	echo '<h3>Photo</h3>';
+	echo '<table class="form-table">';
+		echo '	<tr><th><label for="photo">Photo URL</label></th><td>'; 
 	if($userdata->photo)
-		echo '	<img src="'.$userdata->photo.'" alt="Avatar" class="photo" />';
-	else
-		echo '	You currently have no photo set.';
-	echo '	<br /><label for="photo">Enter a URL to change your photo:</label><br /> <input type="text" id="photo" name="hcard[photo]" value="'.htmlentities($userdata->photo).'" onchange="preview_hcard();" />';
-	echo '</fieldset>';
+		echo'<a href="'.$userdata->photo.'"><img src="'.$userdata->photo.'" alt="Avatar" class="photo" style="float: right; max-height: 200px" /></a>';
+	echo '<input type="text" id="photo" name="hcard[photo]" value="'.htmlentities($userdata->photo).'" onchange="preview_hcard();" />';
+	echo '</td></tr></table>';
 
 	//ORGANIZATION AND ADDRESS
 	$fieldset = array(
@@ -121,17 +120,17 @@ function diso_profile_extend() {
 			),
 		);
 	foreach($fieldset as $legend => $fields) {
-		echo '<fieldset>';
-		echo '	<legend>'.$legend.'</legend>';
+		echo '<h3>'.$legend.'</h3>';
+		echo '<table class="form-table">';
 		if($legend == 'Miscellaneous') {
-			echo '	<label for="additional-name">Middle Name(s)</label> <input type="text" id="additional-name" name="additional-name" value="'.$userdata->n['additional-name'].'" onkeyup="preview_hcard();" />';
+			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="additional-name" value="'.$userdata->n['additional-name'].'" onkeyup="preview_hcard();" /></td></tr>';
 			if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
 			if(!is_array($userdata->urls) || !count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-			echo '	<label for="urls">Website(s) (one per line)</label> <textarea id="urls" name="urls" onkeyup="preview_hcard();">'.htmlentities(implode("\n",$userdata->urls)).'</textarea>';
+			echo '	<tr><th><label for="urls">Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls" onkeyup="preview_hcard();">'.htmlentities(implode("\n",$userdata->urls)).'</textarea></td></tr>';
 		}//end if Miscellaneous
 		foreach($fields as $key => $label)
-			echo '	<label for="'.$key.'">'.$label.'</label> <input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.$userdata->$key.'" onkeyup="preview_hcard();" />';
-		echo '</fieldset>';
+			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.$userdata->$key.'" onkeyup="preview_hcard();" /></td></tr>';
+		echo '</table>';
 	}//end foreach fieldset
 ?>
 	<fieldset style="clear:both;width:90%;">
@@ -205,6 +204,14 @@ function diso_profile_extend() {
 		//]]>
 		</script>
 	</fieldset>
+	<script type="text/javascript">
+		jQuery(function() {
+			jQuery("#hcard_link").click(function() {
+				jQuery("#do_manual_hcard").val("1");
+				jQuery("input[type=submit]").click();
+			});
+		});
+	</script>
 <?php
 
 }//end function diso_profile_extend
@@ -213,12 +220,12 @@ add_action('edit_user_profile', 'diso_profile_extend');
 
 function diso_profile_extend_top() {
 	global $profileuser;
-	echo '<input type="submit" name="do_manual_hcard" value="Import hCard &raquo;" />';
+	echo '<p><input type="hidden" id="do_manual_hcard" name="do_manual_hcard" /><a href="#" id="hcard_link">Import hCard</a></p>';
 }//end finction diso_profile_extend_top
 add_action('profile_personal_options', 'diso_profile_extend_top');
 
 function diso_profile_extend_save($userid) {
-	if(isset($_POST['do_manual_hcard'])) {
+	if($_POST['do_manual_hcard']) {
 		diso_profile_hcard_import($userid, true);
 	} else {
 		$userdata = get_userdata($userid);
@@ -235,7 +242,7 @@ function diso_profile_extend_save($userid) {
 		}
 		update_usermeta($userdata->ID, 'user_url', $_POST['url']);
 		update_usermeta($userdata->ID, 'display_name', $_POST['display_name']);
-	}//end else
+	}
 }//end function diso_profile_extend_save
 add_action('profile_update', 'diso_profile_extend_save');
 
