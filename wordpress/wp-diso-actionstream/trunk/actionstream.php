@@ -244,6 +244,7 @@ function actionstream_services($userid=false) {
    $rtrn = '<ul class="actionstream_services">' . "\n";
    foreach ($actionstream as $service => $username) {
 	   $setup = $actionstream_yaml['profile_services'][$service];
+	   if (empty($setup)) { continue; }
 	   $url = sprintf($setup['url'], $username);
 	   $rtrn .= '<li class="service-icon service-'.$service.'"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n";
    }
