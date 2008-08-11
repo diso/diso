@@ -37,6 +37,9 @@ sub users_content_nav {
           || $app->mode eq 'list_pending';
 
 	my $id = $app->param('id');
+	
+	# how many pending contacts?
+	my $p_contacts = pending_contacts_for_author ($id);
 
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
@@ -46,20 +49,34 @@ sub users_content_nav {
     <mt:if var="USER_VIEW">
         <li<mt:if name="friends"> class="active"</mt:if>><a 
 			href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-        <li<mt:if name="discover_friends"> class="active"</mt:if>><a 
+		<li<mt:if name="discover_friends"> class="active"</mt:if>><a 
 			href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-        <li<mt:if name="list_pending"> class="active"</mt:if>><a 
-			href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-    </mt:if>
-    <mt:if var="edit_author">
-        <li<mt:if name="friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-        <li<mt:if name="discover_friends"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-        <li<mt:if name="list_pending"> class="active"</mt:if>><a href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-        </mt:if>
 EOF
-
-#<a href="javascript:void(0)"
-#    onclick="openDialog(null,'edit_link','&amp;_type=friend&amp;id=<$mt:var name="id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;">
+    if ($p_contacts) {
+		$html .= <<"EOF";
+    	<li<mt:if name="list_pending"> class="active"</mt:if>><a 
+			href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+EOF
+	}
+	    
+	$html .= <<"EOF";
+	</mt:if>
+    <mt:if var="edit_author">
+        <li<mt:if name="friends"> class="active"</mt:if>><a 
+				  href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
+        <li<mt:if name="discover_friends"> class="active"</mt:if>><a 
+				  href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
+EOF
+    if ($p_contacts) {
+	    $html .= <<"EOF";
+		<li<mt:if name="list_pending"> class="active"</mt:if>><a 
+				  href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
+EOF
+	}
+	$html .= <<"EOF";
+	</mt:if>
+EOF
+	
     $$html_ref =~ s{(?=</ul>)}{$html}xmsg;
 }
 
@@ -402,6 +419,16 @@ sub list_friends {
             }
         }
     );
+}
+
+sub pending_contacts_for_author {
+	my $author_id = shift;
+	
+	my $friend_class = MT->model('friend');
+	
+    my @p_contacts = $friend_class->load( { author_id => $author_id, pending=>1 } );
+	#_log ("pending: ". Dumper(@p_contacts));
+	return @p_contacts;
 }
 
 # lazy copy-paste implementation of the "review pending" controller
