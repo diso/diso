@@ -7,16 +7,17 @@
     }
     .listing-header {
     	margin-top: 5px;
+    	padding: 10px 8px 6px;
     	background-color: #fff;
     }
-    h2.name {
-        margin: 0px 0pt 10px 5px;
+    .listing-header h3 {
+        margin: 6px 0 0;
     }
-    .field-content .visible {
-        font-size: 110%;
-        font-weight: bold;
+    h3 span.edit-contact,
+    h3 span.listed-blogroll {
+        font-weight: normal;
+        font-size: 12px;
     }
-    
     </style>
 </mt:setvarblock>
 
@@ -48,15 +49,8 @@
 </mt:setvarblock>
 
 <mt:setvarblock name="listing_header">
-<div class="listing-header">
-    <h2 class="name"><mt:var name="name"> (<a href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Edit"></a>)</h2>
-    <mtapp:setting
-        id="visible"
-        label="<__trans phrase="List In Blogroll">">
-        <span class="visble"><mt:if name="visible" ne="0">Yes<mt:else></mt:if></span>   
-    </mtapp:setting>
+    <h3 class="name"><mt:var name="name"> <mt:if name="visible" ne="0"><span class="listed-blogroll"><__trans phrase="Listed In Blogroll"></span><mt:else></mt:if> <span class="edit-contact">(<a href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Edit"></a>)</span></h3>
     <p id="create-uri"><a href="javascript:void(0)" onclick="openDialog(null,'edit_link','&amp;_type=<mt:var name="object_type">&amp;friend_id=<$mt:var name="friend_id"$>&amp;author_id=<$mt:var name="author_id"$>');return false;" class="icon-left icon-create"><__trans phrase="Add Profile"></a></p>
-</div>
 </mt:setvarblock>
 
 <mt:include name="include/header.tmpl" id="header_include">
