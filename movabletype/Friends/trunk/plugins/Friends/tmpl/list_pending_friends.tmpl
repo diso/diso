@@ -112,7 +112,7 @@
         <td class="status si status-<mt:if name="visible">publish<mt:else>pending</mt:if>">
             <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="visible"><__trans phrase="Shown"><mt:else><__trans phrase="Hidden"></mt:if>" />
         </td>
-        <td class="name"><span class="<mt:if name="pending">pending</mt:if>"><a href="<$mt:var name="script_url"$>?__mode=view_friend&amp;_type=<mt:var name="object_type">&amp;id=<$mt:var name="author_id"$>&amp;friend_id=<$mt:var name="id"$>"><$mt:var name="name"$></a></span></td>
+        <td class="name"><span class="<mt:if name="pending">pending</mt:if>"><$mt:var name="name"$></span></td>
         <td class="uri">
             <ul>
             <mt:loop name="links">
