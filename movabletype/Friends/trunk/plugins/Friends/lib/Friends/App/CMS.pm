@@ -11,7 +11,7 @@ use URI;
 
 sub _log_params {
     my $app = shift;
-    for my $p ( $app->param ) {
+    PARAM: for my $p ( $app->param ) {
         _log( $p . ": " . $app->param($p) );
     }
 }
@@ -86,9 +86,9 @@ sub itemset_hide_friends {
 
     my @friends = $app->param('id');
 
-    for my $friend_id (@friends) {
+    FRIEND: for my $friend_id (@friends) {
         my $friend = MT->model('friend')->load($friend_id)
-          or next;
+          or next FRIEND;
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
@@ -106,9 +106,9 @@ sub itemset_show_friends {
 
     my @friends = $app->param('id');
 
-    for my $friend_id (@friends) {
+    FRIEND: for my $friend_id (@friends) {
         my $friend = MT->model('friend')->load($friend_id)
-          or next;
+          or next FRIEND;
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
@@ -126,9 +126,9 @@ sub itemset_delete_friends {
 
     my @friends = $app->param('id');
 
-    for my $friend_id (@friends) {
+    FRIEND: for my $friend_id (@friends) {
         my $friend = MT->model('friend')->load($friend_id)
-          or next;
+          or next FRIEND;
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
@@ -155,16 +155,16 @@ sub itemset_merge_friends {
 	my $lowest_id = shift @friends_to_merge;
 	_log ("lowest id: " . Dumper($lowest_id));
 	
-    for my $friend_id (@friends_to_merge) {
+    FRIEND: for my $friend_id (@friends_to_merge) {
         my $friend = MT->model('friend')->load($friend_id)
-          or next;
+          or next FRIEND;
         next
           if $app->user->id != $friend->author_id
               && !$app->user->is_superuser();
         my @links = MT->model('link')->load({friend_id=>$friend_id});
 		_log ("links to merge: " . Dumper(@links));
 		
-        for my $link (@links)
+        LINK: for my $link (@links)
         {
             $link->friend_id($lowest_id);
 			$link->save();
@@ -315,7 +315,7 @@ sub save_link {
         $obj->friend_id($friend_id);
     }
 
-    for my $field (qw( uri label author_id)) {
+    FIELD: for my $field (qw( uri label author_id)) {
         $obj->$field( $app->param($field) );
     }
     MT->log( Dumper($obj) );
@@ -649,7 +649,7 @@ sub save_friend {
 		return $app->error("Could not get/make friend with friend_id: $friend_id " . $friend);
 	}
 	
-    for my $field (qw( name rel notes)) {
+    FIELD: for my $field (qw( name rel notes)) {
         $friend->$field( $app->param($field) );
     }
     if ( !$app->param('visible') ) {
@@ -789,11 +789,11 @@ sub ua {
     if ( !$ua ) {
         my %agent_params = ();
         my @classes      = (qw( LWPx::ParanoidAgent LWP::UserAgent ));
-        while ( my $maybe_class = shift @classes ) {
+        CLASS: while ( my $maybe_class = shift @classes ) {
             if ( eval "require $maybe_class; 1" ) {
                 $ua = $maybe_class->new(%agent_params);
                 $ua->timeout(10);
-                last;
+                last CLASS;
             }
         }
     }
@@ -896,8 +896,8 @@ sub tag_friend_links_block {
         my @links = $link_class->load( { friend_id => $friend->id } );
 
         # _log( "links: " . Dumper(@links) );
-      Link: for my $link (@links) {
-            next Link unless ( $link && $link->uri );
+      LINK: for my $link (@links) {
+            next LINK unless ( $link && $link->uri );
             local $ctx->{__stash}{link} = $link;
 
             defined( my $out = $builder->build( $ctx, $tokens, $cond ) )
