@@ -485,7 +485,7 @@ sub get_contacts_data {
 
 	my @contacts;
 
-	for my $contact_uri ( @{$contact_uris} ) {
+	URI: for my $contact_uri ( @{$contact_uris} ) {
 		_log( 'for ' . Dumper($contact_uri) );
 		my $meta = _get_meta_for_uri($contact_uri);
 		$meta->{uri} = $contact_uri;
@@ -502,7 +502,7 @@ sub get_contacts_data {
 sub import_pending_contacts {
 	_log("import_pending_contacts");
 	my $app  = shift;
-	my @data = @_;
+	my @contacts = @_;
 
 	_log( "author_id: " . $app->param('author_id') );
 	my $author_id = $app->param('author_id') || die('author_id required!');
@@ -510,7 +510,7 @@ sub import_pending_contacts {
 	my $friend_class = MT->model('friend');
 	my $link_class   = MT->model('link');
 
-	for my $contact (@data) {
+	CONTACT: for my $contact (@contacts) {
 		_log( "check contact: " . Dumper($contact) );
 
 # do we have a link already?
@@ -552,7 +552,7 @@ sub import_pending_contacts {
 			_log( "made new friend: " . Dumper($friend) );
 		}
 
-		for my $uri (@uris) {
+		URI: for my $uri (@uris) {
 
 	   # FIXME: there are more efficient ways to do this, but my brain is tired.
 			if ( !$link_class->load( { uri => $uri } ) ) {
