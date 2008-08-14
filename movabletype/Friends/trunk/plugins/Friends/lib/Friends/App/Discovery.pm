@@ -20,6 +20,16 @@ sub _log {
 	MT->log($msg);
 }
 
+sub _pending_contacts_for_author {
+	my $author_id = shift;
+	
+	my $friend_class = MT->model('friend');
+	
+    my @p_contacts = $friend_class->load( { author_id => $author_id, pending=>1 } );
+	#_log ("pending: ". Dumper(@p_contacts));
+	return @p_contacts;
+}
+
 ##
 # _get_contacts uses Google's Social Graph API L<http://code.google.com/apis/socialgraph/> to find
 #   other URLs that the user has identified as contacts or friends
@@ -323,7 +333,8 @@ sub discover_friends {
 	my @source_data;
 
 	my $user = $app->user;
-
+	my $p_contacts = _pending_contacts_for_author ($author_id);
+	
 	my $as_plugin = MT->component('ActionStreams');
 
 	##
@@ -351,7 +362,8 @@ sub discover_friends {
 					id           => $author_id,
 					object_type  => 'friend',
 					profiles     => \@$profiles,
-					all_contacts => \@all_contacts
+					all_contacts => \@all_contacts,
+					has_pending  => ($p_contacts > 0),
 				}
 			);
 			last STEP;

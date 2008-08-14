@@ -36,6 +36,13 @@
     <style type="text/css">
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
+        .action-link-list ul {
+            height: 15px;
+        } 
+        .action-link-list li {
+            float: left;
+            margin-right: 10px;
+        }
     </style>
 </mt:setvarblock>
 
@@ -45,7 +52,15 @@
 
 <mt:setvarblock name="content_header">
     <ul class="action-link-list">
-        <li><a class="icon-left icon-create" href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Add Contact"></a></li>
+        <li><a class="icon-left icon-create" 
+               href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Add Contact"></a></li>
+        <li><a class="icon-left icon-create"
+			   href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="author_id">"><__trans phrase="Import Contacts"></a></li>
+        <mt:if name="has_pending">
+        	<li><a class="icon-left icon-future" 
+        	       href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="author_id">"><__trans phrase="Pending Contacts"></a>
+    		</li>
+		</mt:if>
     </ul>
 </mt:setvarblock>
 

@@ -26,6 +26,16 @@ sub _permission_check {
     return ( $app->user );
 }
 
+sub _pending_contacts_for_author {
+	my $author_id = shift;
+	
+	my $friend_class = MT->model('friend');
+	
+    my @p_contacts = $friend_class->load( { author_id => $author_id, pending=>1 } );
+	#_log ("pending: ". Dumper(@p_contacts));
+	return @p_contacts;
+}
+
 sub users_content_nav {
     my ( $cb, $app, $html_ref ) = @_;
 
@@ -38,9 +48,6 @@ sub users_content_nav {
 
 	my $id = $app->param('id');
 	
-	# how many pending contacts?
-	my $p_contacts = pending_contacts_for_author ($id);
-
     $$html_ref =~
       m{ "> ((?:<b>)?) <__trans \s phrase="Permissions"> ((?:</b>)?) </a> }xms;
     my ( $open_bold, $close_bold ) = ( $1, $2 );
@@ -49,32 +56,11 @@ sub users_content_nav {
     <mt:if var="USER_VIEW">
         <li<mt:if name="friends"> class="active"</mt:if>><a 
 			href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-		<li<mt:if name="discover_friends"> class="active"</mt:if>><a 
-			href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-EOF
-    if ($p_contacts) {
-		$html .= <<"EOF";
-    	<li<mt:if name="list_pending"> class="active"</mt:if>><a 
-			href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="EDIT_AUTHOR_ID">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-EOF
-	}
-	    
-	$html .= <<"EOF";
-	</mt:if>
+		</mt:if>
     <mt:if var="edit_author">
         <li<mt:if name="friends"> class="active"</mt:if>><a 
 				  href="<mt:var name="SCRIPT_URL">?__mode=list_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="People I Know">$close_bold</a></li>
-        <li<mt:if name="discover_friends"> class="active"</mt:if>><a 
-				  href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Import Contacts">$close_bold</a></li>
-EOF
-    if ($p_contacts) {
-	    $html .= <<"EOF";
-		<li<mt:if name="list_pending"> class="active"</mt:if>><a 
-				  href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="id">">$open_bold<__trans phrase="Pending Contacts">$close_bold</a></li>
-EOF
-	}
-	$html .= <<"EOF";
-	</mt:if>
+        </mt:if>
 EOF
 	
     $$html_ref =~ s{(?=</ul>)}{$html}xmsg;
@@ -391,7 +377,7 @@ sub list_friends {
     my $friend_class = MT->model('friend');
     my $type = $param->{type} || 'friend';
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
-
+	my $p_contacts = _pending_contacts_for_author ($author_id);
     ## TODO: Include list of URLs (or first few?)
     ## I can't seem to figure out how to do this so that in the listing, i can list the Links
     ## for that friend.
@@ -416,19 +402,10 @@ sub list_friends {
             params => {
                 object_type => 'friend',
                 id          => $author_id,
+				has_pending => ($p_contacts > 0),
             }
         }
     );
-}
-
-sub pending_contacts_for_author {
-	my $author_id = shift;
-	
-	my $friend_class = MT->model('friend');
-	
-    my @p_contacts = $friend_class->load( { author_id => $author_id, pending=>1 } );
-	#_log ("pending: ". Dumper(@p_contacts));
-	return @p_contacts;
 }
 
 # lazy copy-paste implementation of the "review pending" controller
@@ -451,6 +428,7 @@ sub list_pending_friends {
     my $link_class = MT->model('link');
     my $type = $param->{type} || 'friend';
     my $pkg = $app->model($type) or return $app->error("Invalid request.");
+	my $p_contacts = _pending_contacts_for_author ($author_id);
 
     ## TODO: Include list of URLs (or first few?)
     ## I can't seem to figure out how to do this so that in the listing, i can list the Links
@@ -476,6 +454,7 @@ sub list_pending_friends {
             params => {
                 object_type => 'friend',
                 id          => $author_id,
+				has_pending => ($p_contacts > 0),
             }
         }
     );

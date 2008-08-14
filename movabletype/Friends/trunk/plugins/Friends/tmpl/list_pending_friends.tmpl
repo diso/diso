@@ -38,6 +38,13 @@
         .content-nav #main-content .msg { margin-left: 0px; }
         .pending, .pending a:link, .pending a:visited { color: #888; }
         .pending a:hover, .pending a:active { color: #7F8833; }
+        .action-link-list ul {
+            height: 15px;
+        } 
+        .action-link-list li {
+            float: left;
+            margin-right: 10px;
+        }
     </style>
 </mt:setvarblock>
 
@@ -47,7 +54,16 @@
 
 <mt:setvarblock name="content_header">
     <ul class="action-link-list">
-        <li style="list-style-type: none"><p>This is a list of contacts imported from <$mt:var name="contacts_source" default="your other profiles"$>. Review the list, and select those contacts you'd like to import. Non-selected contacts will be deleted.</p></li>
+        <li style="margin-bottom:10px;"><p>This is a list of contacts imported from <$mt:var name="contacts_source" default="your other profiles"$>. Review the list, and select those contacts you'd like to import. Non-selected contacts will be deleted.</p></li>
+        <li style="clear:left;"><a class="icon-left icon-create" 
+               href="javascript:void(0)" onclick="openDialog(null,'edit_friend','&amp;_type=friend&amp;author_id=<$mt:var name="author_id"$>');return false;"><__trans phrase="Add Contact"></a></li>
+        <li><a class="icon-left icon-create"
+			   href="<mt:var name="SCRIPT_URL">?__mode=discover_friends&amp;id=<mt:var name="author_id">"><__trans phrase="Import Contacts"></a></li>
+        <mt:if name="has_pending">
+        	<li><a class="icon-left icon-future" 
+        	       href="<mt:var name="SCRIPT_URL">?__mode=list_pending&amp;id=<mt:var name="author_id">"><__trans phrase="Pending Contacts"></a>
+    		</li>
+		</mt:if>
     </ul>
 </mt:setvarblock>
 
