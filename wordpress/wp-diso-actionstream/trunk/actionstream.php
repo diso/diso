@@ -416,4 +416,6 @@ add_filter('diso_permission_fields', 'diso_actionstream_permissions');
 
 /*end wordpress */
 
+add_action( 'wp_head', create_function('', 'wp_enqueue_script("jquery");'), 9);
+
 ?>
