@@ -111,6 +111,31 @@ function actionstream_ext_services($services) {
 	);
 	$services['streams']['yahoo'] = array();
 
+	// Slideshare
+	$services['services']['slideshare'] = array(
+		'name' => 'SlideShare',
+		'url' => 'http://www.slideshare.net/%s',
+	);
+
+	$services['streams']['slideshare'] = array(
+		'slidedecks' => array(
+			'name' => 'Slide Decks',
+			'description' => 'Your most recent slide decks',
+			'html_form' => '[_1] posted a slide deck titled <a class="entry-title" href="[_2]">[_3]</a><p><a href="[_2]"><img src="[_4]" alt="[_3]" /></a></p>',
+			'html_params' => array('url', 'title', 'thumbnail'),
+			'url' => 'http://www.slideshare.net/rss/user/{{ident}}',
+			'xpath' => array(
+				'foreach' => '//item', 
+				'get' => array(
+                    'created_on' => 'pubDate/child::text()',
+                    'title' => 'title/child::text()',
+                    'url' => 'link/child::text()',
+					'thumbnail' => 'media:group/media:thumbnail/@url',
+				),
+			),
+		),
+	);
+
 
 	return $services;
 }
