@@ -195,11 +195,13 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 		$group_counter = 0;
 		$gmt_offset = get_option('gmt_offset') * 3600;
 		$yaml = get_actionstream_config();
+		$count = 0;
 
 		// build sorted_items array
 		foreach ($items as $item) {
 			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
+			if ($count++ >= $num) break;
 
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
@@ -236,7 +238,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 							$rtrn .= ' (and <a href="#">'.(count($items) - 1).' more &#8230;</a>)';
 							$rtrn .= '<script type="text/javascript">jQuery(function() {
 								jQuery(".'.$group_id.':not(:first)").hide();
-								jQuery(".'.$group_id.':first").click(function() {
+								jQuery(".'.$group_id.':first a").click(function() {
 									jQuery(".'.$group_id.':not(:first)").toggle();
 									return false;
 								})
