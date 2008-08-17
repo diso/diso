@@ -183,87 +183,80 @@ class ActionStream {
 		return $items;
 	}//end function items
 
-	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
+function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
 		$items = $this->items($num);
-		if(!$items || !count($items))
+		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
-		$previous_service = false;
-		$during_service = '';
-		$after_service = array();
-		$previous_day = false;
-		$c = 0;
-		if(count($items) <= $num) $num = count($items);
+		}
+
+		$sorted_items = array();
+		$last_service;
+		$group;
+		$group_counter = 0;
 		$gmt_offset = get_option('gmt_offset') * 3600;
 		$yaml = get_actionstream_config();
-		foreach($items as $item) {
-			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 
+		// build sorted_items array
+		foreach ($items as $item) {
+			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
 
-			if($item['service'] == $previous_service && date(get_option('date_format'),$item['created_on']+$gmt_offset) == $previous_day) {
 
-				$after_service[] = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
 
-			} else {
+			if (!array_key_exists($current_day, $sorted_items)) {
+				$sorted_items[$current_day] = array();
+			}
 
-				$c++;
+			if (($item['service'] != $last_service) || empty($sorted_items[$current_day])) {
+				$group = 'as_group-' . ++$group_counter;
+			}
 
-				$group_id = 'actionstream-group-'.md5(microtime(true)) . $c;
+			$sorted_items["$current_day"][$group][] = $item;
+			$last_service = $item['service'];
+		}
 
-				if($during_service) {
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id.'">'.$during_service->__toString($hide_user);
-					if(count($after_service) && $collapse) $rtrn .= ' (and <a href="#" class="block" onclick="actionstream_group_toggle(\''.$group_id.'\', this.className); this.className = this.className == \'block\' ? \'none\' : \'block\'; return false;">'.count($after_service).' more</a>...)';
-					$rtrn .= '</li>';
-				}//end if during service
+		// walk sorted_items array and build output string
+		foreach ($sorted_items as $day => $group) {
+			$rtrn .= '<h3 class="action-stream-header">On '.$day.'</h3>';
+			$rtrn .= '<ul class="hfeed action-stream-list">';
 
-				foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-					$rtrn .= '<li class="hentry service-icon service-'.$previous_service.' '.$group_id. ($collapse ? ' actionstream-hidden' : '') . '">'.$cnt->__toString($hide_user).($collapse?'<script type="text/javascript">actionstream_group_toggle(\''.$group_id.'\', \'none\');</script>':'') . '</li>';
-				$after_service = array();
+			foreach ($group as $group_id => $items) {
+				$first_item = true;
+				foreach ($items as $item) {
 
-				if($c > $num) {$rtrn .= '</ul>'; break;}
+					$as_item = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
 
-				if(date(get_option('date_format'),$item['created_on']+$gmt_offset) != $previous_day) {//new day
-					if($previous_day) $rtrn .= '</ul>';
-					$previous_day = date(get_option('date_format'),$item['created_on']+$gmt_offset);
-					$rtrn .= '<h3 class="action-stream-header">On '.$previous_day.'</h3>';
-					$rtrn .= '<ul class="hfeed action-stream-list">';
-				}//end if new day
-				$during_service = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+					$rtrn .= '<li class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
+					$rtrn .= "\n\t".$as_item->__toString($hide_user);
 
-			}//end if-else service
-			$previous_service = $item['service'];
-		}//end foreach
+					// javascript magic to toggle collapsable items
+					if (sizeof($items)>1 && $collapse) {
+						if ($first_item) {
+							$rtrn .= ' (and <a href="#">'.(count($items) - 1).' more &#8230;</a>)';
+							$rtrn .= '<script type="text/javascript">jQuery(function() {
+								jQuery(".'.$group_id.':not(:first)").hide();
+								jQuery(".'.$group_id.':first").click(function() {
+									jQuery(".'.$group_id.':not(:first)").toggle();
+									return false;
+								})
+							});</script>';
+							$first_item = false;
+						}
+					}
+
+					$rtrn .= "\n</li>\n";
+
+				}
+			}
+
+			$rtrn .= "</ul>\n";
+		}
+
 
 		$wpurl = get_bloginfo('wpurl');
 		$feedlink = get_feed_link('action_stream');
 		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
-
-		$rtrn = <<<JS
-<script type="text/javascript">
-	function actionstream_group_toggle(id, display) {
-
-		var ua = navigator.userAgent.toLowerCase();
-		var isIE = (/msie/.test(ua)) && !(/opera/.test(ua)) && (/win/.test(ua));
-	
-		if(!isIE) {
-			var head = document.getElementsByTagName('head')[0];
-			var css = document.createElement('style');
-			css.type = 'text/css';
-			css.appendChild(document.createTextNode('.'+id+'.actionstream-hidden {display:'+display+';}'));
-			head.appendChild(css);
-		} else {
-      	var last_style_node = document.styleSheets[document.styleSheets.length - 1];
-         if (typeof(last_style_node.addRule) == "object") last_style_node.addRule('.'+id+'.actionstream-hidden', 'display:'+display+';');
-      }
-	}
-</script>
-$rtrn
-<div style="text-align:right;">
-	<a id="actionstream_feed" href="$feedlink" rel="alternate" type="application/rss+xml">
-		<img src="$wpurl/wp-content/plugins/wp-diso-actionstream/images/feed.png" alt="ActionStream Feed" />
-	</a>
-</div>
-JS;
 
 		return $rtrn;
 	}//end function toString
