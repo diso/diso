@@ -74,7 +74,16 @@ function actionstream_ext_services($services) {
 		'name' => 'MySpace',
 		'url' => 'http://www.myspace.com/%s',
 	);
-	$services['streams']['myspace'] = array(); // TODO
+	$services['streams']['myspace'] = array(
+		'entries' => array(
+			'name' => 'Entries',
+			'description' => 'Your most recent blog entries',
+			'html_form' => '[_1] posted a blog entry, <a class="entry-title" href="[_2]">[_3]</a>',
+			'html_params' => array('url', 'title'),
+			'url' => 'http://blog.myspace.com/blog/rss.cfm?friendID={{ident}}',
+			'rss2' => '',
+		),
+	);
 	
 	// 43 Things
 	$services['services']['43things'] = array(
@@ -111,7 +120,24 @@ function actionstream_ext_services($services) {
 		'name' => 'Jyte',
 		'url' => 'http://jyte.com/profile/%s',
 	);
-	$services['streams']['jyte'] = array(); // TODO
+	$services['streams']['jyte'] = array(
+		'claims_about' => array(
+			'name' => 'Claims About',
+			'description' => 'The most recent claims about you',
+			'html_form' => 'A claim about [_1] was made, <a class="entry-title" href="[_2]">[_3]</a>',
+			'html_params' => array('url', 'title'),
+			'url' => 'http://jyte.com/rss/claims?about={{ident}}',
+			'rss2' => '',
+		),
+		'claims_by' => array(
+			'name' => 'Claims By',
+			'description' => 'Your most recent claims',
+			'html_form' => '[_1] made a claim, <a class="entry-title" href="[_2]">[_3]</a>',
+			'html_params' => array('url', 'title'),
+			'url' => 'http://jyte.com/rss/claims?by={{ident}}',
+			'rss2' => '',
+		),
+	);
 	
 	// Yahoo!
 	$services['services']['yahoo'] = array(
