@@ -81,7 +81,16 @@ function actionstream_ext_services($services) {
 		'name' => '43 Things',
 		'url' => 'http://43things.com/person/%s',
 	);
-	$services['streams']['43things'] = array(); // TODO
+	$services['streams']['43things'] = array(); 
+	$services['streams']['43things'] = array(
+		'things' => array(
+			'name' => 'Things',
+			'description' => 'Your most recent things',
+			'html_form' => '[_1] is doing things: <a class="entry-title" href="[_2]">[_3]</a>',
+			'html_params' => array('url', 'title'),
+			'rss2' => '',
+		),
+	);
 	
 	// Technorati
 	$services['services']['technorati'] = array(
@@ -124,14 +133,8 @@ function actionstream_ext_services($services) {
 			'html_form' => '[_1] posted a slide deck titled <a class="entry-title" href="[_2]">[_3]</a><p><a href="[_2]"><img src="[_4]" alt="[_3]" /></a></p>',
 			'html_params' => array('url', 'title', 'thumbnail'),
 			'url' => 'http://www.slideshare.net/rss/user/{{ident}}',
-			'xpath' => array(
-				'foreach' => '//item', 
-				'get' => array(
-                    'created_on' => 'pubDate/child::text()',
-                    'title' => 'title/child::text()',
-                    'url' => 'link/child::text()',
-					'thumbnail' => 'media:group/media:thumbnail/@url',
-				),
+			'rss2' => array(
+				'thumbnail' => 'media:group/media:thumbnail/@url',
 			),
 		),
 	);
