@@ -243,6 +243,7 @@ function actionstream_services($userid=false) {
    $actionstream_yaml = get_actionstream_config(); 
    $rtrn = '<ul class="actionstream_services">' . "\n";
    foreach ($actionstream as $service => $username) {
+		if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$service])) continue;
 	   $setup = $actionstream_yaml['profile_services'][$service];
 	   if (empty($setup)) { continue; }
 	   $url = sprintf($setup['url'], $username);
