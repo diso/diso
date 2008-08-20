@@ -193,6 +193,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 		$last_service;
 		$group;
 		$group_counter = 0;
+		$an_id = md5(microtime(true));//in case there are multiple actionstreams on a page
 		$gmt_offset = get_option('gmt_offset') * 3600;
 		$yaml = get_actionstream_config();
 		$count = 0;
@@ -203,7 +204,6 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
 			if ($count++ >= $num) break;
 
-
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
 
 			if (!array_key_exists($current_day, $sorted_items)) {
@@ -211,7 +211,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 			}
 
 			if (($item['service'] != $last_service) || empty($sorted_items[$current_day])) {
-				$group = 'as_group-' . ++$group_counter;
+				$group = 'as_group-' . $an_id . ++$group_counter;
 			}
 
 			$sorted_items["$current_day"][$group][] = $item;
@@ -233,12 +233,12 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 					$rtrn .= "\n\t".$as_item->__toString($hide_user);
 
 					// javascript magic to toggle collapsable items
-					if (sizeof($items)>1 && $collapse) {
+					if (sizeof($items) > 1 && $collapse) {
 						if ($first_item) {
-							$rtrn .= ' (and <a href="#">'.(count($items) - 1).' more &#8230;</a>)';
+							$rtrn .= ' (and <a class="expand" href="#">'.(count($items) - 1).' more &hellip;</a>)';
 							$rtrn .= '<script type="text/javascript">jQuery(function() {
 								jQuery(".'.$group_id.':not(:first)").hide();
-								jQuery(".'.$group_id.':first a").click(function() {
+								jQuery(".'.$group_id.':first a.expand").click(function() {
 									jQuery(".'.$group_id.':not(:first)").toggle();
 									return false;
 								})
@@ -259,6 +259,11 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 		$wpurl = get_bloginfo('wpurl');
 		$feedlink = get_feed_link('action_stream');
 		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
+		$rtrn .= '<div style="text-align:right;">
+        <a id="actionstream_feed" href="'.htmlspecialchars($feedlink).'" rel="alternate" type="application/rss+xml">
+                <img src="'.htmlspecialchars($wpurl).'/wp-content/plugins/wp-diso-actionstream/images/feed.png" alt="ActionStream Feed" />
+        </a>
+		</div>';
 
 		return $rtrn;
 	}//end function toString
