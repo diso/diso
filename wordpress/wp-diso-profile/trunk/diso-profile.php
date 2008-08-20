@@ -246,7 +246,7 @@ function diso_profile_extend_save($userid) {
 }//end function diso_profile_extend_save
 add_action('profile_update', 'diso_profile_extend_save');
 
-function diso_profile($userid='', $echo=true) {
+function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 	$time = microtime(true);
 	if(!$userid) {//get administrator
 		global $wpdb;
@@ -281,8 +281,11 @@ function diso_profile($userid='', $echo=true) {
 	if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
 	if(count($userdata->urls) && diso_user_is($userdata->profile_permissions['urls'])) {
 		$template .= '<dt>On the web:</dt> <dd> <ul>';
-		foreach($userdata->urls as $url)
-			$template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities($url).'</a></li>';
+      if($actionstream_aware) $actionstream = actionstream_services($userdata->ID, true);
+      foreach($userdata->urls as $url) {
+         if($actionstream_aware && in_array($url,$actionstream)) continue;
+         $template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities(preg_replace('/^www\./','',preg_replace('/^http:\/\//','',$url))).'</a></li>';
+      }//end foreach
 		$template .= '</ul> </dd>'."\n";
 	}//end if urls
 	if($userdata->aim && diso_user_is($userdata->profile_permissions['aim'])) $template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
