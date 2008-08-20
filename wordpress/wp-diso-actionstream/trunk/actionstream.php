@@ -227,7 +227,7 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
 	return $rtrn;
 }//end function actionstream_render
 
-function actionstream_services($userid=false) {
+function actionstream_services($userid=false, $urls_only=false) {
    if(!$userid) {//get administrator
       global $wpdb;
       $userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
@@ -241,15 +241,22 @@ function actionstream_services($userid=false) {
    ksort($actionstream);
 
    $actionstream_yaml = get_actionstream_config(); 
-   $rtrn = '<ul class="actionstream_services">' . "\n";
+	$rtrn = array();
    foreach ($actionstream as $service => $username) {
 		if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$service])) continue;
 	   $setup = $actionstream_yaml['profile_services'][$service];
 	   if (empty($setup)) { continue; }
 	   $url = sprintf($setup['url'], $username);
-	   $rtrn .= '<li class="service-icon service-'.$service.'"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n";
+		if(!$urls_only) {
+			if($userdata->urls && count($userdata->urls) && in_array($url, $userdata->urls))
+			   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n");
+			else
+			   $rtrn[] = '<li class="service-icon service-'.$service.'"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n";
+		} else {
+			$rtrn[] = $url;
+		}
    }
-   $rtrn .= '</ul>' . "\n";
+   if(!$urls_only) $rtrn = '<ul class="actionstream_services">' . "\n" . implode("\n",$rtrn) . '</ul>' . "\n";
 
    return $rtrn;
 }
