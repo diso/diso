@@ -202,7 +202,6 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 		foreach ($items as $item) {
 			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
-			if ($count++ >= $num) break;
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
 
@@ -211,6 +210,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 			}
 
 			if (($item['service'] != $last_service) || empty($sorted_items[$current_day])) {
+				if ($count++ >= $num) break;
 				$group = 'as_group-' . $an_id . ++$group_counter;
 			}
 
@@ -220,6 +220,8 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 
 		// walk sorted_items array and build output string
 		foreach ($sorted_items as $day => $group) {
+			if (empty($group)) continue;
+
 			$rtrn .= '<h3 class="action-stream-header">On '.$day.'</h3>';
 			$rtrn .= '<ul class="hfeed action-stream-list">';
 
