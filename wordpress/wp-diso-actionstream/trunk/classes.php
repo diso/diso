@@ -183,7 +183,7 @@ class ActionStream {
 		return $items;
 	}//end function items
 
-function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
+	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
 		$items = $this->items($num);
 		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
@@ -202,6 +202,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 		foreach ($items as $item) {
 			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
+			if (!$collapse && ($count++ >= $num)) break;
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
 
@@ -210,7 +211,7 @@ function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=t
 			}
 
 			if (($item['service'] != $last_service) || empty($sorted_items[$current_day])) {
-				if ($count++ >= $num) break;
+				if ($collapse && ($count++ >= $num)) break;
 				$group = 'as_group-' . $an_id . ++$group_counter;
 			}
 
