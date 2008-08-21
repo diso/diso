@@ -140,9 +140,10 @@ class ActionStream {
 						$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
 						$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
 					}
-					if($doc && $stream['xpath']['foreach'])
+					if($doc && $stream['xpath']['foreach']) {
 						$stream['xpath']['foreach'] = str_replace('%s', $id, $stream['xpath']['foreach']);
 						$items = $doc->xpath($stream['xpath']['foreach']);
+					}
 					if(!$items) $items = array();
 
 					if(!is_array($stream['xpath']['get'])) {//DEBUG: this should never happen
