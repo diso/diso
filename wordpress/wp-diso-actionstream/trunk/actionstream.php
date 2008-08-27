@@ -50,11 +50,19 @@ function get_raw_actionstream($url) {
 }//end function get_raw_actionstream
 
 function actionstream_styles() {
-	$url = trailingslashit(get_option('siteurl')) . PLUGINDIR . '/wp-diso-actionstream/css/action-streams.css';
-	echo '<link rel="stylesheet" type="text/css" href="' . $url . '" />';
+	$url = actionstream_plugin_url() . '/css/action-streams.css';
+	echo '<link rel="stylesheet" type="text/css" href="' . clean_url($url) . '" />';
 }//end function actionstream_styles
 add_action('wp_head', 'actionstream_styles');
 add_action('admin_head', 'actionstream_styles');
+
+function actionstream_plugin_url() {
+	if (function_exists('plugins_url')) {
+		return plugins_url('wp-diso-actionstream');
+	} else {
+		return get_bloginfo('wpurl') . PLUGINDIR . '/wp-diso-actionstream';
+	}
+}
 
 function actionstream_page() {
 	$actionstream_yaml = get_actionstream_config();
@@ -120,11 +128,10 @@ function actionstream_page() {
 	echo '<div style="width: 47.5%">';
 	echo '	<ul style="padding:0px;">';
 	ksort($actionstream);
-	$plugin_url = trailingslashit(get_option('siteurl')) . PLUGINDIR . '/wp-diso-actionstream';
 	foreach($actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
 		$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
-		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="' . $plugin_url . '/images/delete.gif" /></a> ';
+		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(actionstream_plugin_url().'/images/delete.gif').'" /></a> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
 			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
 			echo htmlspecialchars($id);
