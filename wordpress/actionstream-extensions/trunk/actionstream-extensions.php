@@ -171,9 +171,16 @@ function actionstream_ext_services($services) {
 add_filter('actionstream_services', 'actionstream_ext_services', 5);
 
 
+function actionstream_ext_plugin_url() {
+	if (function_exists('plugins_url')) {
+		return plugins_url('actionstream-extensions');
+	} else {
+		return get_bloginfo('wpurl') . PLUGINDIR . '/actionstream-extensions';
+	}
+}
+
 function actionstream_ext_styles() {
-	$url = trailingslashit(get_option('siteurl')) . PLUGINDIR . '/actionstream-extensions/style.css';
-	echo '<link rel="stylesheet" type="text/css" href="'.$url.'" />';
+	echo '<link rel="stylesheet" type="text/css" href="'.clean_url(actionstream_ext_plugin_url() . '/style.css').'" />';
 }
 
 add_action('wp_head', 'actionstream_ext_styles', 11);
