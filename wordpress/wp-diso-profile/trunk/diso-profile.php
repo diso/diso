@@ -309,8 +309,16 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 	return $template;
 }//end function diso_profile
 
+function diso_profile_plugin_url() {
+	if (function_exists('plugins_url')) {
+		return plugins_url('wp-diso-profile');
+	} else {
+		return get_bloginfo('wpurl') . PLUGINDIR . '/wp-diso-profile';
+	}
+}
+
 function diso_profile_head() {
-	echo '		<link rel="stylesheet" type="text/css" href="'.get_bloginfo('wpurl').'/wp-content/plugins/wp-diso-profile/profile.css" />'."\n";
+	echo '		<link rel="stylesheet" type="text/css" href="'.clean_url(diso_profile_plugin_url() . '/profile.css').'" />'."\n";
 }//end function diso_profile_head
 add_action('wp_head', 'diso_profile_head');
 add_action('admin_head', 'diso_profile_head');
