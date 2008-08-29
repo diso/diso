@@ -60,7 +60,7 @@ function actionstream_plugin_url() {
 	if (function_exists('plugins_url')) {
 		return plugins_url('wp-diso-actionstream');
 	} else {
-		return get_bloginfo('wpurl') . PLUGINDIR . '/wp-diso-actionstream';
+		return get_bloginfo('wpurl') . '/' . PLUGINDIR . '/wp-diso-actionstream';
 	}
 }
 
