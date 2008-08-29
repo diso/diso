@@ -134,7 +134,7 @@ class ActionStream {
 				}//end if atom
 
 				if($stream['xpath']) {
-					@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw));
+					@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw), 'SimpleXMLElement', LIBXML_NOCDATA);
 					if($doc && method_exists($doc, 'registerXPathNamespace')) {
 						$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 						$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
@@ -167,6 +167,9 @@ class ActionStream {
 								$value = preg_replace('/@([a-zA-z0-9_]+)/','<span class="reply vcard tag">@<a class="url fn" href="http://twitter.com/$1">$1</a></span>',$value);
 								$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
 							}//end if twitter
+							if($service == 'backtype' && $k == 'description') {
+								$value = preg_replace('/<p><a href="http:\/\/www\.backtype\.com\/.*?">Read more comments by .*?<\/a><\/p>/','',$value);
+							}
 							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
 							$update->set($k, $value);
 						}//end get

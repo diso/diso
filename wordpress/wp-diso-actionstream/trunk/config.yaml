@@ -121,6 +121,9 @@ upgrade_functions:
             code: $ActionStreams::ActionStreams::Plugin::upgrade_enable_existing_streams
 
 profile_services:
+    backtype:
+        name: backtype
+        url: http://www.backtype.com/%s
     cocomment:
         name: coComment
         url: http://www.cocomment.com/comments/%s
@@ -380,6 +383,18 @@ action_streams:
                     placeLink: bk:placeLink/child::text()
                     placeName: bk:placeName/child::text()
                     message: description/child::text()
+    backtype:
+        comments:
+            name: Comments
+            description: Comments you've made
+            html_form: '[_1] posted <a rel="bookmark" href="[_2]">a comment</a> on <span class="entry-title">[_3]</span> <p class="entry-content">[_4]</p>'
+            html_params:
+                - url
+                - title
+                - description
+            url: 'http://feeds.backtype.com/{{ident}}'
+            rss2:
+                description: description/child::text()
     cocomment:
         comments:
             name: Comments
