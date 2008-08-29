@@ -169,6 +169,7 @@ class ActionStream {
 							}//end if twitter
 							if($service == 'backtype' && $k == 'description') {
 								$value = preg_replace('/<p><a href="http:\/\/www\.backtype\.com\/.*?">Read more comments by .*?<\/a><\/p>/','',$value);
+								$value = str_replace('<br>','<br />',$value);
 							}
 							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
 							$update->set($k, $value);

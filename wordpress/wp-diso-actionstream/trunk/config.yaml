@@ -387,7 +387,7 @@ action_streams:
         comments:
             name: Comments
             description: Comments you've made
-            html_form: '[_1] posted <a rel="bookmark" href="[_2]">a comment</a> on <span class="entry-title">[_3]</span> <p class="entry-content">[_4]</p>'
+            html_form: '[_1] posted <a rel="bookmark" href="[_2]">a comment</a> on <span class="entry-title">[_3]</span> <div class="entry-content">[_4]</div>'
             html_params:
                 - url
                 - title
