@@ -1,16 +1,16 @@
 <div class="widget-blogroll widget">
     <h3 class="widget-header">People I Know</h3>
     <div class="widget-content">
-        <ul class="blogroll xoxo">
-        <mt:friends>
-            <li class="vcard"><$mt:friendname$>
+        <ul class="widget-list blogroll-friends">
+        <MTFriends>
+            <li class="widget-list-item blogroll-friend vcard"><MTFriendName/>
                 <ul>
                     <mt:friendlinks>
-                        <li><a class="fn url" title="<$mt:friendlinknotes$>" rel="<$MTFriendRel$>" href="<$mt:friendlinkuri$>"><$mt:friendlinklabel$></a></li>
+                        <li class="widget-list-item blogroll-link-noicon"><a class="fn url <MTFriendLinkIconClass/>" title="<MTFriendLinkNotes/>" rel="<MTFriendRel/>" href="<MTFriendLinkUri/>"><MTFriendLinkLabel/></a></li>
                     </mt:friendlinks>
                 </ul>
             </li>
-        </mt:friends>
+        </MTFriends>
         <ul>
     </div>
 </div>

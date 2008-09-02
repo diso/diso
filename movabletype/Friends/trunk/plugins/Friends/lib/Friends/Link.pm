@@ -19,6 +19,7 @@ __PACKAGE__->install_properties(
             'openid'       => 'text',
             'hcard'        => 'integer',
             'pending'      => 'integer',
+	    'iconclass'	   => 'string(50)',
         },
 		defaults => {
 			pending => 0,
@@ -38,4 +39,7 @@ sub friend {
 
 sub class_label        { MT->translate('URL'); }
 sub class_label_plural { MT->translate('URLs'); }
+
+sub class_iconclass        { MT->translate('Icon'); }
+sub class_iconclass_plural { MT->translate('Icons'); }
 1;

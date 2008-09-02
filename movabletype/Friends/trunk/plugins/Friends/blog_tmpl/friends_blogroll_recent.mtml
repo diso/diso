@@ -1,0 +1,171 @@
+<script  type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAA6RXBTq_5L1DUTgQG_PdrNxRcTMWV69Vz9qLHNaTHEgF1vmbmfhTFFdJ2E5jPWcGvbnVjazWpysSgyA"></script>
+<script type="text/javascript">
+    google.load("feeds", "1");
+</script>
+<script type="text/javascript">
+
+//create onDomReady Event
+window.onDomReady = DomReady;
+
+//Setup the event
+function DomReady(fn)
+{
+	//W3C
+	if(document.addEventListener)
+	{
+		document.addEventListener("DOMContentLoaded", fn, false);
+	}
+	//IE
+	else
+	{
+		document.onreadystatechange = function(){readyState(fn)}
+	}
+}
+
+//IE execute function
+function readyState(fn)
+{
+	//dom is ready for interaction
+	if(document.readyState == "interactive")
+	{
+		fn();
+	}
+}
+
+window.onDomReady(onReady);
+
+//do on ready
+function onReady()
+{
+    loadfeeds();
+}
+
+
+function FeedSource(name,feedurl,user,css)
+{
+    this.name = name;
+    this.feedurl = feedurl;
+    this.user = user;
+    this.css = css;
+}
+function FeedEntry(entry,feedsource)
+{
+    this.entry = entry;
+    this.feedsource = feedsource;
+}
+
+var feedarray = new Array(
+    <MTFriends>
+        <MTFriendLinks>
+            new FeedSource("<MTFriendLinkLabel escape="html"/>","<MTFriendLinkUri/>","<MTFriendName escape="html" />","<MTFriendLinkIconClass/>"),
+        </MTFriendLinks>
+    </MTFriends>
+    undefined
+);
+
+var entriesarray = new Array();
+
+function clearentries()
+{
+    var fd = document.getElementById("feeddisplay");
+    fd.innerHTML = "";
+}
+
+function displayentries()
+{
+    clearentries();
+    
+    //alert("total size: " + entriesarray.length);
+    
+    for(var i = 0; i < entriesarray.length; i++)
+    {
+        //alert("displaying: " + entriesarray[i].title);
+        var holder = document.getElementById("feeddisplay");
+        var li = document.createElement("li");
+        li.setAttribute("class","widget-list-item blogroll-link");
+        
+        var text = "<a class=\""+entriesarray[i].feedsource.css+"\" href=\""+entriesarray[i].entry.link+"\" title=\""+entriesarray[i].entry.title+"\">" + entriesarray[i].feedsource.user + "</a>\n";
+        text += "<div class=\"friend-blogroll-post-title\">" + entriesarray[i].entry.title + "</div><div class=\"friend-blogroll-post\">" + entriesarray[i].entry.contentSnippet + "</div>";
+        
+        li.innerHTML = text;
+        
+        holder.appendChild(li);
+    }
+}
+
+function sortDate(a,b)
+{
+    var adate = new Date(a.entry.publishedDate);
+    var bdate = new Date(b.entry.publishedDate);
+    return bdate - adate;
+}
+
+function sortentries()
+{
+    entriesarray.sort(sortDate)
+}
+
+function loadFeedResult(result,feedsource)
+{
+    if (!result.error)
+    {
+        //alert("got results: " + result.feed.entries.length);
+        //alert("got " + feedname);
+        var temparr = result.feed.entries;
+        //entriesarray = entriesarray.concat(temparr);
+        for(var j = 0; j < result.feed.entries.length; j++)
+        {
+            entriesarray.push(new FeedEntry(result.feed.entries[j],feedsource));
+        }
+        sortentries();
+        displayentries(temparr);
+    }
+    else
+    {
+        alert("error " + feedsource.name + " " + result.error.message);
+    }
+}
+
+function loadfeeds()
+{
+    for(var i = 0; i < feedarray.length; i++)
+    {
+        if(feedarray[i] == undefined)
+        {
+            continue;
+        }
+        var feedurl = feedarray[i].feedurl;
+        var feedname = feedarray[i].name;
+        //alert("got " + feedname);
+        google.feeds.lookupFeed(feedurl, (function(){
+                var fs = feedarray[i];
+                return function(result){return loadfoundfeed(result,fs)};
+            })());   
+    }
+}
+
+function loadfoundfeed(result,fs)
+{
+    if (result.error || result.url == null) {
+        //showStatus('Could not locate feed for user');
+        return;
+    }
+
+    var feed = new google.feeds.Feed(result.url);
+    feed.setNumEntries(1);
+    feed.setResultFormat(google.feeds.Feed.MIXED_FORMAT);
+    feed.load((function(){
+            var fs2 = fs;
+            return function(result){return loadFeedResult(result,fs)};
+        })());
+    
+}
+
+</script>
+<div class="widget-blogroll widget">
+    <h3 class="widget-header">People I Know</h3>
+    <div class="widget-content">
+        <ul class="widget-list blogroll-friends" id="feeddisplay">
+        <ul>
+    </div>
+</div>

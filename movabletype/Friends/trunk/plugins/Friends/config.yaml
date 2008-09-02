@@ -4,9 +4,14 @@ key: Friends
 author_link: http://diso-project.org/
 author_name: Steve Ivy
 description: Provides a blogroll-like means of managing and displaying a friends list on your site
-schema_version: 0.94
+schema_version: 0.95
 version: 0.91
 plugin_link: http://diso-project.org/
+settings:
+    friends_google_jsapi_key:
+        Default: ''
+        Scope: blog
+blog_config_template: blog_config_template.tmpl
 object_types:
     friend: Friends::Friend
     link:    Friends::Link
@@ -43,6 +48,8 @@ tags:
         FriendLinkUri:          $Friends::Friends::App::CMS::tag_friend_link_uri
         FriendLinkNotes:        $Friends::Friends::App::CMS::tag_friend_link_notes
         FriendLinkLabel:        $Friends::Friends::App::CMS::tag_friend_link_label
+        FriendLinkIconClass:    $Friends::Friends::App::CMS::tag_friend_link_iconclass
+        FriendGoogleJsapiKey:   $Friends::Friends::App::CMS::tag_friend_google_jsapi_key
     block:
         BlogRoll:               $Friends::Friends::App::CMS::tag_blog_roll_block
         Friends:                $Friends::Friends::App::CMS::tag_friends_block
@@ -61,6 +68,20 @@ list_actions:
             js:                 "finishPluginActionAll"
             code:               $Friends::Friends::App::CMS::itemset_show_all_friends
             continue_prompt:    "Are you sure you want to show EVERY friend?"
+widget_sets:
+    friends:
+        label: 'Friends Blogroll'
+        base_path: 'blog_tmpl'
+        order: 100
+        templates:
+            widget:
+                friends_blogroll_list:
+                    label: Friends Blogroll List
+                friends_blogroll_icons:
+                    label: Friends Blogroll Icons
+                blogroll:
+                    label: People I Know
+                
 upgrade_functions:
     link_add_authorid:
         version_limit: 0.9
@@ -68,3 +89,205 @@ upgrade_functions:
             type: link
             label: 'Linking Links to authors...'
             code: $Friends::Friends::App::CMS::upgrade_link_add_authorid
+            
+friend_services:
+    blog:
+        name: Blog
+        css: blog
+    website:
+        name: Website
+        css: website
+    oneup:
+        name: 1up.com
+        css: oneup
+    fortythreethings:
+        name: 43Things
+        css: fortythreethings
+    aim:
+        name: AIM
+        css: aim
+    bebo:
+        name: Bebo
+        css: bebo
+    catster:
+        name: Catster
+        css: catster
+    delicious:
+        name: del.icio.us
+        css: delicious
+    digg:
+        name: Digg
+        css: digg
+    dodgeball:
+        name: Dodgeball
+        css: dodgeball
+    dogster:
+        name: Dogster
+        css: dogster
+    dopplr:
+        name: Dopplr
+        css: dopplr
+    facebook:
+        name: Facebook
+        css: facebook
+    flickr:
+        name: Flickr
+        css: flickr
+    goodreads:
+        name: Goodreads
+        css: goodreads
+    googlereader:
+        name: Google Reader
+        css: googlereader
+    hi5:
+        name: Hi5
+        css: hi5
+    iconbuffet:
+        name: IconBuffet
+        css: iconbuffet
+    icq:
+        name: ICQ
+        css: icq
+    iusethis:
+        name: IUseThis
+        css: iusethis
+    jabber:
+        name: Jabber
+        css: jabber
+    jaiku:
+        name: Jaiku
+        css: jaiku
+    lastfm:
+        name: Last.fm
+        css: lastfm
+    linkedin:
+        name: LinkedIn
+        css: linkedin
+    livejournal:
+        name: LiveJournal
+        css: livejournal
+    magnolia:
+        name: Ma.gnolia
+        css: magnolia
+    mog:
+        name: MOG
+        css: mog
+    movabletype:
+        name: MovableType
+        css: movabletype
+    msn:
+        name: MSN Messenger
+        css: msn
+    multiply:
+        name: Multiply
+        css: multiply
+    myspace:
+        name: MySpace
+        css: myspace
+    newsvine:
+        name: Newsvine
+        css: newsvine
+    ning:
+        name: Ning
+        css: ning
+    ohloh:
+        name: Ohloh
+        css: ohloh
+    orkut:
+        name: Orkut
+        css: orkut
+    pandora:
+        name: Pandora
+        css: pandora
+    pownce:
+        name: Pownce
+        css: pownce
+    reddit:
+        name: Reddit
+        css: reddit
+    skype:
+        name: Skype
+        css: skype
+    smugmug:
+        name: Smugmug
+        css: smugmug
+    sonicliving:
+        name: SonicLiving
+        css: sonicliving
+    steam:
+        name: Steam
+        css: steam
+    stumbleupon:
+        name: StumbleUpon
+        css: stumbleupon
+    tabblo:
+        name: Tabblo
+        css: tabblo
+    technorati:
+        name: Technorati
+        css: technorati
+    tribe:
+        name: Tribe
+        css: tribe
+    twitter:
+        name: Twitter
+        css: twitter
+    uncrate:
+        name: Uncrate
+        css: uncrate
+    upcoming:
+        name: Upcoming
+        css: upcoming
+    virb:
+        name: Virb
+        css: virb
+    vox:
+        name: Vox
+        css: vox
+    xboxlive:
+        name: 'Xbox Live'
+        css: xboxlive
+    yahoo:
+        name: 'Yahoo! Messenger'
+        css: yahoo
+    youtube:
+        name: YouTube
+        css: youtube
+    zooomr:
+        name: Zooomr
+        css: zooomr
+    netflix:
+        name: Netflix
+        css: netflix
+    colourlovers:
+        name: Colourlovers
+        css: colourlovers
+    corkd:
+        name: Corkd
+        css: corkd
+    istockphoto:
+        name: iStockPhoto
+        css: istockphoto
+    tumblr:
+        name: Tumblr
+        css: tumblr
+    picasaweb:
+        name: Picasa Web Albums
+        css: picasaweb
+    netvibes:
+        name: Netvibes
+        css: netvibes
+    jaiku:
+        name: Jaiku
+        css: jaiku
+    yelp:
+        name: Yelp
+        css: yelp
+    vimeo:
+        name: Vimeo
+        css: vimeo
+    viddler:
+        name: Viddler
+        css: viddler
+
+
