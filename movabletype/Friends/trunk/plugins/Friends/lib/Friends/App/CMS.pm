@@ -272,6 +272,8 @@ sub edit_link {
     $param->{object_type} = 'link';
     $param->{saved}       = $app->param('saved');
     $param->{deleted}     = $app->param('deleted');
+    
+    $param->{networks}       = _build_service_data($app->registry('friend_services'));
 
     _log( Dumper($param) );
 
@@ -301,7 +303,7 @@ sub save_link {
         $obj->friend_id($friend_id);
     }
 
-    FIELD: for my $field (qw( uri label author_id)) {
+    FIELD: for my $field (qw( uri label author_id iconclass)) {
         $obj->$field( $app->param($field) );
     }
     MT->log( Dumper($obj) );
@@ -571,6 +573,11 @@ sub edit_friend {
     $param->{object_type}    = 'friend';
     $param->{listing_screen} = 1;
     $param->{object_loop}    = $obj ? $obj->links : [];
+    
+    #require Data::Dumper;
+    #MT->log(Data::Dumper::Dumper( $app->registry('friend_services') ));
+    
+    $param->{networks}       = _build_service_data($app->registry('friend_services'));
 
     return $app->build_page( 'edit_friend.tmpl', $param );
 }
@@ -961,6 +968,64 @@ sub tag_friend_link_label {
     my $link = $ctx->stash('link')
       or return $ctx->error("Used FriendLinkLabel in a non-link context!");
     return $link->label ? $link->label : $link->uri;
+}
+
+=item <$mt:friendlinkiconclass$>
+
+Outputs either the iconclass, or label if the iconclass is empty.
+
+context: <MTBlogRoll>
+
+=cut
+
+sub tag_friend_link_iconclass {
+    my ( $ctx, $arg, $cond ) = @_;
+    my $link = $ctx->stash('link')
+      or return $ctx->error("Used FriendLinkIconClass in a non-link context!");
+    return $link->iconclass ? $link->iconclass : $link->label;
+}
+
+sub _build_service_data {
+    my ($networks) = @_;
+    my ( @networks);
+
+    my @network_keys = sort { lc $networks->{$a}->{name} cmp lc $networks->{$b}->{name} }
+        keys %$networks;
+    TYPE: for my $type (@network_keys) {
+        my $ndata = $networks->{$type}
+            or next TYPE;
+
+        
+        my $ret = {
+            type => $type,
+            %$ndata,
+        };
+        push @networks, $ret;
+
+    }
+
+    return \@networks;
+}
+
+=item <$mt:friendgooglejsapikey$>
+
+Outputs the Google AJAX API Key.
+
+context: <MTBlogRoll>
+
+=cut
+
+sub tag_friend_google_jsapi_key {
+    my ( $ctx, $arg, $cond ) = @_;
+    my $plugin = MT->component('friends');
+    my $blog = $ctx->stash('blog');
+    if(!$blog)
+    {
+        return $ctx->error('Used $mt:friendgooglejsapikey$ outside of blog context!');
+    }
+    my $apikey = $plugin->get_config_value('friends_google_jsapi_key','blog:'.$blog->id);
+    return $apikey;
+
 }
 
 1;

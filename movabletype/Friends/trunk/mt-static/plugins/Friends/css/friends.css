@@ -1,0 +1,179 @@
+.servicelist
+{
+    width: 200px;
+    height: 150px;
+    overflow: auto;
+    margin: 0px;
+    padding: 3px;
+    border: 1px solid #cccccc;
+    float: left;
+}
+
+.servicelist .blogroll-link
+{
+    padding: 5px;
+    border-bottom: 1px solid #cccccc;
+}
+
+#selicon
+{
+    float: left;
+    height: 20px;
+    padding: 0px 10px 0px 3px;
+}
+
+
+.widget-blogroll
+{}
+
+ul.blogroll-friends
+{
+}
+ul.blogroll-friends-icons
+{
+    margin: 0px;
+    padding: 0px;
+}
+ul.blogroll-friends-icons li
+{
+    float: left;
+    margin: 0px 0px 8px 0px;
+    padding: 0px;
+}
+ul.blogroll-friends-icons li.blogroll-link a
+{
+    text-decoration: none;
+    margin: 0px 0px 1px 0px;
+}
+ul.blogroll-friends-icons li.blogroll-link-noicon a
+{
+    text-decoration: none;
+    margin: 0px 0px 1px 0px;
+}
+
+.blogroll-friend
+{
+    font-weight: bold;
+    clear: both;
+}
+
+.blogroll-links
+{
+    margin: 3px 0px 8px 0px;
+}
+
+.blogroll-link a
+{
+    margin: 0px 0px 4px 0px;
+    background-image: url(../images/services/feed.png);
+    background-position: center left;
+    background-repeat: no-repeat;
+    padding: 0px 0px 0px 20px;
+    font-weight: normal;
+}
+
+ul.blogroll-friends li.blogroll-link-noicon
+{
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+ul.blogroll-friends li.blogroll-link-noicon a
+{
+    margin: 0px 0px 2px 0px;
+    background-position: center left;
+    background-repeat: no-repeat;
+    padding: 0px;
+    font-weight: normal;
+}
+
+.friend-blogroll-post
+{
+    margin: 1px 0px 5px 16px;
+}
+.friend-blogroll-post-title
+{
+    font-weight: bold;
+    margin: 1px 0px 5px 16px;
+}
+
+.blogroll-link a.blog{ background-image: url(../images/services/feed.png); }
+.blogroll-link a.twitter{ background-image: url(../images/services/twitter.png); }
+.blogroll-link a.flickr{ background-image: url(../images/services/flickr.png); }
+
+.blogroll-link a.aim{ background-image: url(../images/services/aim.png); }
+.blogroll-link a.bebo{ background-image: url(../images/services/bebo.png); }
+.blogroll-link a.blogger{ background-image: url(../images/services/blogger.png); }
+.blogroll-link a.catster{ background-image: url(../images/services/catster.png); }
+.blogroll-link a.colourlovers{ background-image: url(../images/services/colourlovers.png); }
+.blogroll-link a.corkd{ background-image: url(../images/services/corkd.png); }
+.blogroll-link a.deadjournal{ background-image: url(../images/services/deadjournal.png); }
+.blogroll-link a.delicious{ background-image: url(../images/services/delicious.png); }
+.blogroll-link a.digg{ background-image: url(../images/services/digg.png); }
+.blogroll-link a.dodgeball{ background-image: url(../images/services/dodgeball.png); }
+.blogroll-link a.dogster{ background-image: url(../images/services/dogster.png); }
+.blogroll-link a.dopplr{ background-image: url(../images/services/dopplr.png); }
+.blogroll-link a.facebook{ background-image: url(../images/services/facebook.png); }
+.blogroll-link a.fortythreethings{ background-image: url(../images/services/fortythreethings.png); }
+
+.blogroll-link a.gametap{ background-image: url(../images/services/gametap.png); }
+.blogroll-link a.goodreads{ background-image: url(../images/services/goodreads.png); }
+.blogroll-link a.googlereader{ background-image: url(../images/services/googlereader.png); }
+.blogroll-link a.hi5{ background-image: url(../images/services/hi5.png); }
+.blogroll-link a.iconbuffet{ background-image: url(../images/services/iconbuffet.png); }
+.blogroll-link a.icq{ background-image: url(../images/services/icq.png); }
+.blogroll-link a.iusethis{ background-image: url(../images/services/iusethis.png); }
+.blogroll-link a.jabber{ background-image: url(../images/services/jabber.png); }
+.blogroll-link a.jaiku{ background-image: url(../images/services/jaiku.png); }
+.blogroll-link a.lastfm{ background-image: url(../images/services/lastfm.png); }
+.blogroll-link a.linkedin{ background-image: url(../images/services/linkedin.png); }
+.blogroll-link a.livedoor{ background-image: url(../images/services/livedoor.png); }
+.blogroll-link a.livejournal{ background-image: url(../images/services/livejournal.png); }
+
+.blogroll-link a.magnolia{ background-image: url(../images/services/magnolia.png); }
+.blogroll-link a.mog{ background-image: url(../images/services/mog.png); }
+.blogroll-link a.movabletype{ background-image: url(../images/services/movabletype.png); }
+.blogroll-link a.msn{ background-image: url(../images/services/msn.png); }
+.blogroll-link a.multiply{ background-image: url(../images/services/multiply.png); }
+.blogroll-link a.myspace{ background-image: url(../images/services/myspace.png); }
+.blogroll-link a.netflix{ background-image: url(../images/services/netflix.png); }
+.blogroll-link a.newsvine{ background-image: url(../images/services/newsvine.png); }
+.blogroll-link a.ning{ background-image: url(../images/services/ning.png); }
+.blogroll-link a.ohloh{ background-image: url(../images/services/ohloh.png); }
+.blogroll-link a.oneup{ background-image: url(../images/services/oneup.png); }
+.blogroll-link a.openid{ background-image: url(../images/services/openid.png); }
+.blogroll-link a.orkut{ background-image: url(../images/services/orkut.png); }
+.blogroll-link a.pandora{ background-image: url(../images/services/pandora.png); }
+.blogroll-link a.pownce{ background-image: url(../images/services/pownce.png); }
+.blogroll-link a.reddit{ background-image: url(../images/services/reddit.png); }
+
+.blogroll-link a.skype{ background-image: url(../images/services/skype.png); }
+.blogroll-link a.smugmug{ background-image: url(../images/services/smugmug.png); }
+.blogroll-link a.sonicliving{ background-image: url(../images/services/sonicliving.png); }
+.blogroll-link a.steam{ background-image: url(../images/services/steam.png); }
+.blogroll-link a.stumbleupon{ background-image: url(../images/services/stumbleupon.png); }
+.blogroll-link a.tabblo{ background-image: url(../images/services/tabblo.png); }
+.blogroll-link a.technorati{ background-image: url(../images/services/technorati.png); }
+.blogroll-link a.tribe{ background-image: url(../images/services/tribe.png); }
+.blogroll-link a.typepad{ background-image: url(../images/services/typepad.png); }
+.blogroll-link a.uncrate{ background-image: url(../images/services/uncrate.png); }
+
+.blogroll-link a.upcoming{ background-image: url(../images/services/upcoming.png); }
+.blogroll-link a.virb{ background-image: url(../images/services/virb.png); }
+.blogroll-link a.vox{ background-image: url(../images/services/vox.png); }
+.blogroll-link a.website{ background-image: url(../images/services/website.png); }
+.blogroll-link a.wordpress{ background-image: url(../images/services/wordpress.png); }
+.blogroll-link a.xboxlive{ background-image: url(../images/services/xboxlive.png); }
+.blogroll-link a.yahoo{ background-image: url(../images/services/yahoo.png); }
+.blogroll-link a.youtube{ background-image: url(../images/services/youtube.png); }
+.blogroll-link a.zooomr{ background-image: url(../images/services/zooomr.png); }
+.blogroll-link a.picasaweb{ background-image: url(../images/services/picasaweb.png); }
+.blogroll-link a.fireeagle{ background-image: url(../images/services/fireeagle.png); }
+.blogroll-link a.istockphoto{ background-image: url(../images/services/istockphoto.png); }
+.blogroll-link a.netvibes{ background-image: url(../images/services/netvibes.png); }
+.blogroll-link a.vimeo{ background-image: url(../images/services/vimeo.png); }
+.blogroll-link a.viddler{ background-image: url(../images/services/viddler.png); }
+.blogroll-link a.tumblr{ background-image: url(../images/services/tumblr.gif); }
+.blogroll-link a.yelp{ background-image: url(../images/services/yelp.png); }
+.blogroll-link a.iwtst{ background-image: url(../images/services/iwtst.png); }
+.blogroll-link a.flickr{ background-image: url(../images/services/flickr.png); }

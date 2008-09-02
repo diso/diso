@@ -1,4 +1,15 @@
 <mt:setvar name="friends" value="1">
+<mt:setvarblock name="html_head" append="1">
+    <link href="<mt:var name="static_uri">plugins/Friends/css/friends.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript">
+        function setIconClass(name,iconclass)
+        {
+            document.getElementById('label').value = name;
+            document.getElementById('selicon').innerHTML = '<a href="#" class="'+iconclass+'">'+name+'</a>';
+            document.getElementById('iconclass').value = iconclass;
+        }
+    </script>
+</mt:setvarblock>
 <mt:if name="object_type" eq="link">
     <$mt:setvar name="page_title" value="<__trans phrase="Edit Profile">"$>
     <mt:if name="new_object">
@@ -55,6 +66,19 @@
     label="<__trans phrase="Label">">
     <input type="text" name="label" id="label" value="<mt:var name="label">" size="50" />
 </mtapp:setting>
+
+
+    <mtapp:setting
+        id="network"
+        label="<__trans phrase="Icon">">
+        <input type="hidden" name="iconclass" id="iconclass" value="blog">
+        <div id="selicon" class="blogroll-link"><a href="#" class="<mt:var name="iconclass">"><mt:var name="label"></a></div>
+        <div class="servicelist">
+            <mt:loop name="networks" var="networks">
+                <div class="blogroll-link"><a href="javascript:setIconClass('<mt:var name="name" escape="html">','<mt:var name="css">')" class="<mt:var name="css">"><mt:var name="name" escape="html"></a></div>
+            </mt:loop>
+        </div>
+    </mtapp:setting>
 
 <mtapp:setting
     id="notes"
