@@ -524,7 +524,7 @@ action_streams:
             url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
             atom:
                 tweet: title/child::text()
-        tweets:
+        favourites:
             name: Favourited Tweets
             description: Your favourited tweets
             fields:
