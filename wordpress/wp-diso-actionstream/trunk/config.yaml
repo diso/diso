@@ -332,7 +332,7 @@ action_streams:
         checkins:
             name: Checkins
             description: Your most recent checkins
-            html_form: '[_1] <a href="[_2]">checked in</a> @ <a class="entry-title" href="[_3]">[_4]</a>'
+            html_form: '[_1] <a rel="bookmark" href="[_2]">checked in</a> @ <a class="entry-title" href="[_3]">[_4]</a>'
             html_params:
                 - url
                 - placeLink
@@ -522,6 +522,18 @@ action_streams:
                 - url
                 - tweet
             url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
+            atom:
+                tweet: title/child::text()
+        tweets:
+            name: Favourited Tweets
+            description: Your favourited tweets
+            fields:
+                - tweet
+            html_form: '[_1] <a rel="bookmark" href="[_2]">favourited</a>, "<span class="entry-title entry-content">[_3]</span>"'
+            html_params:
+                - url
+                - tweet
+            url: 'http://twitter.com/favorites/{{ident}}.atom'
             atom:
                 tweet: title/child::text()
     vox:
