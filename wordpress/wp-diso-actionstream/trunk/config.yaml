@@ -517,25 +517,23 @@ action_streams:
             description: Your public tweets
             fields:
                 - tweet
-            html_form: '[_1] <a rel="bookmark" href="[_2]">tweeted</a>, "<span class="entry-title entry-content">[_3]</span>"'
+            html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]">tweeted</a>, "<span class="entry-title">[_3]</span>"'
             html_params:
                 - url
                 - tweet
             url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
             atom:
                 tweet: title/child::text()
-        favourites:
+        favourited:
             name: Favourited Tweets
             description: Your favourited tweets
-            fields:
-                - tweet
-            html_form: '[_1] <a rel="bookmark" href="[_2]">favourited</a>, "<span class="entry-title entry-content">[_3]</span>"'
+            html_form: '[_1] <a class="verb" rel="bookmark" href="[_2]">favourited</a>, "<span class="entry-title">[_3]</span>"'
             html_params:
                 - url
-                - tweet
+                - title
             url: 'http://twitter.com/favorites/{{ident}}.atom'
             atom:
-                tweet: title/child::text()
+                title: title/child::text()
     vox:
         favorites:
             name: Favorites
@@ -747,11 +745,15 @@ action_streams:
         scrobbles:
             name: Scrobbles
             description: Your recent scrobbles
-            html_form: '[_1] listened to <span class="haudio"><a rel="bookmark" class="entry-title title" href="[_2]">[_3]</a> by <span class="contributor vcard"><a class="fn url" rel="artist" href="http://last.fm/music/[_4]">[_4]</a></span></span>'
+            html_form: '[_1] <span class="verb">listened</span> to <span class="haudio"><a rel="bookmark" class="entry-title title" href="[_2]">[_3]</a> <a class="url" href="http://musicbrainz.org/track/[_4].html"></a> by <span class="contributor vcard"><a class="fn url" rel="artist" href="http://last.fm/music/[_5]">[_5]</a> <a class="url uid" href="http://musicbrainz.org/artist/[_6].html"></a> </span> <a class="album" href="http://musicbrainz.org/release/[_8].html">[_7]</a> </span>'
             html_params:
                 - url
                 - title
+                - mbid
                 - artist
+                - artist_mbid
+                - album
+                - album_mbid
             url: 'http://ws.audioscrobbler.com/1.0/user/{{ident}}/recenttracks.xml'
             xpath:
                 foreach: //track
