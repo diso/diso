@@ -21,6 +21,8 @@
     min-width: 16px;
 }
 
+.service-lastfm .album { display: none; }
+
 .service-website { background-image: url(../images/services/website.png); }
 
 .service-brightkite { background-image: url(../images/services/brightkite.png); }
