@@ -107,19 +107,23 @@ function xrds_page() {
 	echo '</pre>';
 
 	echo '<h3>Registered Filters</h3>';
-	echo '<ul>';
 	global $wp_filter;
-	foreach ($wp_filter['xrds_simple'] as $priority) {
-		foreach ($priority as $idx => $data) {
-			$function = $data['function'];
-			if (is_array($function)) {
-				list($class, $func) = $function;
-				$function = "$class::$func";
+	if (array_key_exists('xrds_simple', $wp_filter) && !empty($wp_filter['xrds_simple'])) {
+		echo '<ul>';
+		foreach ($wp_filter['xrds_simple'] as $priority) {
+			foreach ($priority as $idx => $data) {
+				$function = $data['function'];
+				if (is_array($function)) {
+					list($class, $func) = $function;
+					$function = "$class::$func";
+				}
+				echo '<li>'.$function.'</li>';
 			}
-			echo '<li>'.$function.'</li>';
 		}
+		echo '</ul>';
+	} else {
+		echo '<p>No registered filters.</p>';
 	}
-	echo '</ul>';
 
 	echo '</div>';
 }//end xrds_page
@@ -137,8 +141,8 @@ function xrds_parse_request($wp) {
 		echo xrds_write();
 		exit;
 	} else {
-		header('X-XRDS-Location: '.get_bloginfo('home').'/?xrds');
-		header('X-Yadis-Location: '.get_bloginfo('home').'/?xrds');
+		@header('X-XRDS-Location: '.get_bloginfo('home').'/?xrds');
+		@header('X-Yadis-Location: '.get_bloginfo('home').'/?xrds');
 	}
 }
 
