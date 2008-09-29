@@ -2,9 +2,9 @@
 /*
  Plugin Name: OpenID
  Plugin URI: http://wordpress.org/extend/plugins/openid
- Description: Allows the use of OpenID for account registration, authentication, and commenting.  <em>By <a href="http://verselogic.net">Alan Castonguay</a>.</em>
- Author: Will Norris
- Author URI: http://willnorris.com/
+ Description: Allows the use of OpenID for account registration, authentication, and commenting.  Also includes an OpenID provider which can turn WordPress author URLs into OpenIDs.
+ Author: DiSo Development Team
+ Author URI: http://diso-project.org/
  Version: trunk
  License: Dual GPL (http://www.fsf.org/licensing/licenses/info/GPLv2.html) and Modified BSD (http://www.fsf.org/licensing/licenses/index_html#ModifiedBSD)
  */
