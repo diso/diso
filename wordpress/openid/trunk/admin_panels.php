@@ -38,8 +38,8 @@ function openid_admin_panels() {
 	add_action("admin_head-$hookname", 'openid_style' );
 	
 
-	$hookname =	add_submenu_page('profile.php', __('Your Accounts', 'openid'), 
-		__('Your Accounts', 'openid'), 'read', 'openid', 'openid_profile_panel' );
+	$hookname =	add_users_page(__('Your Accounts', 'openid'), __('Your Accounts', 'openid'), 
+		'read', 'openid_accounts', 'openid_profile_panel' );
 	add_action("admin_head-$hookname", 'openid_style' );
 	add_action("load-$hookname", create_function('', 'wp_enqueue_script("admin-forms");'));
 	add_action("load-$hookname", 'openid_profile_management' );
@@ -289,7 +289,7 @@ function openid_options_page() {
 		</form>
 	</div>
 		<?php
-} // end function options_page
+}
 
 
 /**
