@@ -1,36 +1,52 @@
 <?php
 /*
-Plugin Name: wp-XRDS-Simple
+Plugin Name: XRDS-Simple
 Plugin URI: http://singpolyma.net/plugins/xrds/
-Description: Add XRDS information to your blog.
+Description: Provides framework for other plugins to dvertise services via XRDS.
 Version: 0.1
-Author: Stephen Paul Weber
-Author URI: http://singpolyma.net/
+Author: DiSo Development Team
+Author URI: http://diso-project.org/
+License: MIT license (http://www.opensource.org/licenses/mit-license.php)
 */
 
-//Licensed under an MIT-style license
+// Public Functions
 
-
-
-function xrds_meta() {
-	echo '<meta http-equiv="X-XRDS-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
-	echo '<meta http-equiv="X-Yadis-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
-}//end xrds_meta
-
-
+/**
+ * Convenience function for adding a new XRD to the XRDS structure.
+ *
+ * @param array $xrds current XRDS-Simple structure
+ * @param string $id ID of new XRD to add
+ * @param array $type service types for the new XRD
+ * @param string $expires expiration date for XRD, formatted as xs:dateTime
+ * @return array updated XRDS-Simple structure
+ */
 function xrds_add_xrd($xrds, $id, $type=array(), $expires=false) {
 	if(!is_array($xrds)) $xrds = array();
 	$xrds[$id] = array('type' => $type, 'expires' => $expires, 'services' => array());
 	return $xrds;
 }
 
-/*
-Format of $content:
-array(
-	'NodeName (ie, Type)' => array( array('attribute' => 'value', 'content' => 'content string') , ... ) ,
-)
-*/
 
+/**
+ * Convenience function for adding a new service endpoint to the XRDS structure.
+ *
+ * @param array $xrds current XRDS-Simple structure
+ * @param string $id ID of the XRD to add the new service to.  If no XRD exists with the specified ID,
+ *        a new one will be created.
+ * @param string $name human readable name of the service
+ * @param array $content content to be included in the service definition. Format:
+ *        <code>
+ *        array(
+ *            'NodeName (ie, Type)' => array( 
+ *                array('attribute' => 'value', 'content' => 'content string'), 
+ *                ... 
+ *             ),
+ *             ...
+ *        )
+ *        </code>
+ * @param int $priority service priorty
+ * @return array updated XRDS-Simple structure
+ */
 function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
 	if (!is_array($xrds[$xrd_id])) {
 		$xrds = xrds_add_xrd($xrds, $xrd_id);
@@ -39,16 +55,40 @@ function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
 	return $xrds;
 }
 
+
+
+// Private Functions
+
+add_action('wp_head', 'xrds_meta');
+add_action('parse_request', 'xrds_parse_request');
+add_action('admin_menu', 'xrds_admin_menu');
+add_filter('xrds_simple', 'xrds_atompub_service');
+
+/**
+ * Print HTML meta tags, advertising the location of the XRDS document.
+ */
+function xrds_meta() {
+	echo '<meta http-equiv="X-XRDS-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
+	echo '<meta http-equiv="X-Yadis-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
+}
+
+
+/**
+ * Build the XRDS-Simple document.
+ *
+ * @return string XRDS-Simple document
+ */
 function xrds_write() {
 
 	$xrds = array();
 	$xrds = apply_filters('xrds_simple', $xrds);
-
-	if($xrds['main']) {//make sure main is last
+	
+	//make sure main is last
+	if($xrds['main']) {
 		$o = $xrds['main'];
 		unset($xrds['main']);
 		$xrds['main'] = $o;
-	}//end if main
+	}
 
 	$xml = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
 	$xml .= '<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)" xmlns:simple="http://xrds-simple.net/core/1.0" xmlns:openid="http://openid.net/xmlns/1.0">'."\n";
@@ -83,21 +123,13 @@ function xrds_write() {
 	$xml .= '</xrds:XRDS>'."\n";
 
 	return $xml;
-}//end xrds_write
+}
 
-function xrds_checkXML($data) {//returns FALSE if $data is well-formed XML, errorcode otherwise
-	$rtrn = 0;
-	$theParser = xml_parser_create();
-	if(!xml_parse_into_struct($theParser,$data,$vals)) {
-		$errorcode = xml_get_error_code($theParser);
-		if($errorcode != XML_ERROR_NONE && $errorcode != 27)
-			$rtrn = $errorcode;
-	}//end if ! parse
-	xml_parser_free($theParser);
-	return $rtrn;
-}//end function checkXML
 
-function xrds_page() {
+/**
+ * Handle options page for XRDS-Simple.
+ */
+function xrds_options_page() {
 	echo "<div class=\"wrap\">\n";
 	echo "<h2>XRDS-Simple</h2>\n";
 
@@ -126,14 +158,22 @@ function xrds_page() {
 	}
 
 	echo '</div>';
-}//end xrds_page
-
-function xrds_tab($s) {
-	add_submenu_page('options-general.php', 'XRDS-Simple', 'XRDS-Simple', 1, __FILE__, 'xrds_page');
-	return $s;
-}//end function
+}//end xrds_options_page
 
 
+/**
+ * Setup admin menu for XRDS.
+ */
+function xrds_admin_menu() {
+	add_options_page('XRDS-Simple', 'XRDS-Simple', 8, 'xrds-simple', 'xrds_options_page');
+}
+
+
+/**
+ * Parse the WordPress request.  If the request is for the XRDS document, handle it accordingly.
+ *
+ * @param object $wp WP instance for the current request
+ */
 function xrds_parse_request($wp) {
 	$accept = explode(',', $_SERVER['HTTP_ACCEPT']);
 	if(isset($_GET['xrds']) || in_array('application/xrds+xml', $accept)) {
@@ -149,6 +189,9 @@ function xrds_parse_request($wp) {
 
 /**
  * Contribute the AtomPub Service to XRDS-Simple.
+ *
+ * @param array $xrds current XRDS-Simple array
+ * @return array updated XRDS-Simple array
  */
 function xrds_atompub_service($xrds) {
 	$xrds = xrds_add_service($xrds, 'main', 'AtomPub Service', 
@@ -162,9 +205,23 @@ function xrds_atompub_service($xrds) {
 	return $xrds;
 }
 
-add_action('wp_head','xrds_meta');
-add_action('parse_request', 'xrds_parse_request');
-add_action('admin_menu', 'xrds_tab');
-add_filter('xrds_simple', 'xrds_atompub_service');
+
+/**
+ * Check if data is well-formed XML.
+ *
+ * @param string $data XML structure to test
+ * @return mixed FALSE if data is well-formed XML, XML error code otherwise
+ */
+function xrds_checkXML($data) {//returns FALSE if $data is well-formed XML, errorcode otherwise
+	$rtrn = 0;
+	$theParser = xml_parser_create();
+	if(!xml_parse_into_struct($theParser,$data,$vals)) {
+		$errorcode = xml_get_error_code($theParser);
+		if($errorcode != XML_ERROR_NONE && $errorcode != 27)
+			$rtrn = $errorcode;
+	}//end if ! parse
+	xml_parser_free($theParser);
+	return $rtrn;
+}
 
 ?>
