@@ -3,7 +3,7 @@
 Plugin Name: XRDS-Simple
 Plugin URI: http://singpolyma.net/plugins/xrds/
 Description: Provides framework for other plugins to advertise services via XRDS.
-Version: 0.1
+Version: trunk
 Author: DiSo Development Team
 Author URI: http://diso-project.org/
 License: MIT license (http://www.opensource.org/licenses/mit-license.php)
