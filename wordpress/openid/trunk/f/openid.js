@@ -1,14 +1,16 @@
-jQuery(function() {
-	jQuery('body.wp-admin #openid_rollup > div').hide();
+// use yuicompress (http://developer.yahoo.com/yui/compressor/) to generate openid.min.js
 
-	jQuery('body.wp-admin #openid_rollup_link').click( function() {
+jQuery(function() {
+	jQuery('#openid_rollup > div').hide();
+
+	jQuery('#openid_rollup_link').click( function() {
 		jQuery('#openid_rollup > div').toggle();
 		return false;
 	});
 });
 
 function stylize_profilelink() {
-	jQuery('#commentform a[@href$=/wp-admin/profile.php]').addClass('openid_link');
+	jQuery("#commentform a[@href$='profile.php']").addClass('openid_link');
 }
 
 function add_openid_to_comment_form() {
@@ -23,6 +25,7 @@ function add_openid_to_comment_form() {
 					'<a href="http://openid.net/get/">find an OpenID provider</a>.' +
 				'</div> ';
 
+	jQuery('#commentform #url').attr('maxlength', '100');
 	var label = jQuery('#commentform label[@for=url]');
 	var children = jQuery(':visible:hastext', label);
 
