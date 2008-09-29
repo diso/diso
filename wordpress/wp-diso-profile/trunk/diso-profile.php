@@ -96,6 +96,7 @@ add_action('user_register', 'diso_profile_hcard_import');
 function diso_profile_extend() {
 	global $profileuser;
 	$userdata = $profileuser;
+
 	//PHOTO
 	echo '<h3>Photo</h3>';
 	echo '<table class="form-table">';
@@ -133,84 +134,31 @@ function diso_profile_extend() {
 		echo '</table>';
 	}//end foreach fieldset
 ?>
-	<fieldset style="clear:both;width:90%;">
-		<legend>Preview</legend>
-		<p>(This is how your profile looks to people allowed to see all the information.)</p>
-		<div id="hcard-preview"></div>
-		<script type="text/javascript">
-		//<![CDATA[
-			function preview_hcard() {
-				var template = '<div class="vcard diso diso-profile">';
-				if(document.getElementById('photo').value) template += '<img class="photo" alt="photo" src="'+document.getElementById('photo').value+'" />\n';
-				template += '<h2 class="fn">'+document.getElementById('display_name').value+'</h2>';
-				if( document.getElementById('first_name').value || document.getElementById('additional-name').value || document.getElementById('last_name').value ) {
-					if(document.getElementById('url').value)
-						template += '<a class="url uid" rel="me" href="'+document.getElementById('url').value+'">';
-					else
-						template += '<span class="n">';
-					if(document.getElementById('last_name').value) template += '<span class="family-name">'+document.getElementById('last_name').value+'</span>,\n';
-					if(document.getElementById('first_name').value) template += '<span class="given-name">'+document.getElementById('first_name').value+'</span>\n';
-					if(document.getElementById('additional-name').value) template += '<span class="additional-name">'+document.getElementById('additional-name').value+'</span>\n';
-					if(document.getElementById('url').value)
-						template += '</a>';
-					else
-						template += '</span>';
-				}//end if name
-				if(document.getElementById('nickname').value) template += '"<span class="nickname">'+document.getElementById('nickname').value+'</span>"\n';
-				if(document.getElementById('org').value) template += '(<span class="org">'+document.getElementById('org').value+'</span>)\n';
-				if(document.getElementById('description').value) template += '<p class="note">'+document.getElementById('description').value+'</p>\n';
-				
-				template += '<h3>Contact Information</h3>';
-				template += '<dl class="contact">';
-				if(document.getElementById('urls').value) {
-					var urls = document.getElementById('urls').value.split(/[\s]+/);
-					template += '<dt>On the web:</dt> <dd> <ul>';
-					for(var i in urls)
-						template += '<li><a class="url" rel="me" href="'+urls[i]+'">'+urls[i]+'</a></li>';
-					template += '</ul> </dd>\n';
-				}//end if urls
-				if(document.getElementById('aim').value) template += '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='+document.getElementById('aim').value+'">'+document.getElementById('aim').value+'</a></dd>\n';
-				if(document.getElementById('yim').value) template += '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'+document.getElementById('yim').value+'">'+document.getElementById('yim').value+'</a></dd>\n';
-				if(document.getElementById('jabber').value) template += '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'+document.getElementById('jabber').value+'">'+document.getElementById('jabber').value+'</a></dd>\n';
-				if(document.getElementById('email').value) template += '<dt>Email:</dt> <dd><a class="email" href="mailto:'+document.getElementById('email').value+'">'+document.getElementById('email').value+'</a></dd>\n';
-				if(document.getElementById('tel').value) template += '<dt>Telephone:</dt> <dd class="tel">'+document.getElementById('tel').value+'</dd>\n';
-				if( document.getElementById('streetaddress').value || document.getElementById('locality').value || document.getElementById('region').value || document.getElementById('postalcode').value || document.getElementById('countryname').value ) {
-					template += '<dt>Current Address:</dt> <dd class="adr">';
-					if(document.getElementById('streetaddress').value) template += '<div class="street-address">'+document.getElementById('streetaddress').value+'</div>\n';
-					if(document.getElementById('locality').value) template += '<span class="locality">'+document.getElementById('locality').value+'</span>,\n';
-					if(document.getElementById('region').value) template += '<span class="region">'+document.getElementById('region').value+'</span>\n';
-					if(document.getElementById('postalcode').value) template += '<div class="postal-code">'+document.getElementById('postalcode').value+'</div>\n';
-					if(document.getElementById('countryname').value) template += '<div class="country-name">'+document.getElementById('countryname').value+'</div>\n';
-					template += '</dd>';
-				}//end if adr
-				template += '</dl>';
-				template += '</div>';
 
-				document.getElementById('hcard-preview').innerHTML = template;
-			}//end preview_hcard
-			preview_hcard();
-			if(typeof(document.getElementById('first_name').addEventListener) == 'function') {
-				document.getElementById('first_name').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('last_name').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('nickname').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('display_name').addEventListener('change',preview_hcard,false);
-				document.getElementById('url').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('aim').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('yim').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('jabber').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('description').addEventListener('keyup',preview_hcard,false);
-				document.getElementById('email').addEventListener('keyup',preview_hcard,false);
-			}//end if addEventListener
-		//]]>
-		</script>
-	</fieldset>
+	<div id="diso_preview" style="display: none">
+		<h1>Profile Preview</h1>
+		<p>This is how your profile looks to people allowed to see all the information.</p>
+		<hr />
+		<div id="hcard-preview"></div>
+	</div>
+
+	<p><a id="diso_preview_link" href="#">Preview Profile</a></p>
+	<a id="profile_thickbox" href="#TB_inline?height=600&width=800&inlineId=diso_preview" class="thickbox"></a>
+
 	<script type="text/javascript">
 		jQuery(function() {
 			jQuery("#hcard_link").click(function() {
 				jQuery("#do_manual_hcard").val("1");
 				jQuery("input[type=submit]").click();
 			});
+
+			jQuery('#diso_preview_link').click(function() {
+				preview_hcard();
+				jQuery('#profile_thickbox').click();
+				return false;
+			});
 		});
+
 	</script>
 <?php
 
@@ -247,6 +195,10 @@ function diso_profile_extend_save($userid) {
 add_action('profile_update', 'diso_profile_extend_save');
 
 function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
+
+	// ensure plugin doesn't break in the absence of the permissions plugin
+	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
+
 	$time = microtime(true);
 	if(!$userid) {//get administrator
 		global $wpdb;
@@ -321,7 +273,15 @@ function diso_profile_head() {
 	echo '		<link rel="stylesheet" type="text/css" href="'.clean_url(diso_profile_plugin_url() . '/profile.css').'" />'."\n";
 }//end function diso_profile_head
 add_action('wp_head', 'diso_profile_head');
-add_action('admin_head', 'diso_profile_head');
+add_action('admin_head-profile.php', 'diso_profile_head');
+add_action('admin_head-user-edit.php', 'diso_profile_head');
+
+function diso_profile_load() {
+	add_thickbox();
+	wp_enqueue_script('diso-profile', diso_profile_plugin_url() . '/profile_preview.js', array('thickbox'));
+}
+add_action('load-profile.php', 'diso_profile_load');
+add_action('load-user-edit.php', 'diso_profile_load');
 
 function diso_profile_parse_page_token($content) {
 	if(preg_match('/<!--diso_profile[\(]*(.*?)[\)]*-->/',$content,$matches)) {
@@ -332,4 +292,17 @@ function diso_profile_parse_page_token($content) {
 }//end function diso_profile_parse_page_token
 add_filter('the_content', 'diso_profile_parse_page_token');
 
+
+// Extend WordPress OpenID plugin's SREG functions
+function diso_profile_openid_sreg_country($value, $user_id) {
+	$country = get_usermeta($user_id, 'countryname');
+	return $country ? $country : $value;
+}
+add_filter('openid_server_sreg_country', 'diso_profile_openid_sreg_country', 10, 2);
+
+function diso_profile_openid_sreg_postcode($value, $user_id) {
+	$postcode = get_usermeta($user_id, 'postalcode');
+	return $postcode ? $postcode : $value;
+}
+add_filter('openid_server_sreg_postcode', 'diso_profile_openid_sreg_postcode', 10, 2);
 ?>
