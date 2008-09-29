@@ -92,7 +92,7 @@ function openid_options_page() {
 		update_option( 'openid_enable_commentform', isset($_POST['enable_commentform']) ? true : false );
 		update_option( 'openid_enable_approval', isset($_POST['enable_approval']) ? true : false );
 		update_option( 'openid_enable_email_mapping', isset($_POST['enable_email_mapping']) ? true : false );
-		update_option( 'force_openid_registration', isset($_POST['force_openid_registration']) ? true : false );
+		update_option( 'openid_required_for_registration', isset($_POST['openid_required_for_registration']) ? true : false );
 		update_option( 'openid_blog_owner', $_POST['openid_blog_owner']);
 
 		// set OpenID Capability
@@ -171,10 +171,10 @@ function openid_options_page() {
 				<tr valign="top">
 					<th scope="row"><?php _e('Force OpenID Registration', 'openid') ?></th>
 					<td>
-						<p><input type="checkbox" name="force_openid_registration" id="force_openid_registration" <?php
-						if( get_option('force_openid_registration') ) echo 'checked="checked"'
+						<p><input type="checkbox" name="openid_required_for_registration" id="openid_required_for_registration" <?php
+						if( get_option('openid_required_for_registration') ) echo 'checked="checked"'
 						?> />
-							<label for="force_openid_registration"><?php _e('Force use of OpenID for new account registration.', 'openid') ?></label></p>
+							<label for="openid_required_for_registration"><?php _e('Force use of OpenID for new account registration.', 'openid') ?></label></p>
 					</td>
 				</tr>
 				<?php endif; ?>
