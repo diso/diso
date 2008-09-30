@@ -133,7 +133,8 @@ function xrds_write() {
 			$xml .= '		<Type>'.htmlspecialchars($type).'</Type>'."\n";
 		if($xrd['expires'])
 			$xml .= '	<Expires>'.htmlspecialchars($xrd['expires']).'</Expires>'."\n";
-		foreach($xrd['services'] as $service) {
+		foreach($xrd['services'] as $name => $service) {
+			$xml .= "\n".'		<!-- ' . $name . ' -->'."\n";
 			$xml .= '		<Service priority="'.floor($service['priority']).'">'."\n";
 			foreach($service['content'] as $node => $nodes) {
 				if(!is_array($nodes)) $nodes = array($nodes);//sanity check
