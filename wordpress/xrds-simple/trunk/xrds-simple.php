@@ -20,6 +20,7 @@ License: MIT license (http://www.opensource.org/licenses/mit-license.php)
  * @param array $type service types for the new XRD
  * @param string $expires expiration date for XRD, formatted as xs:dateTime
  * @return array updated XRDS-Simple structure
+ * @since 1.0
  */
 function xrds_add_xrd($xrds, $id, $type=array(), $expires=false) {
 	if(!is_array($xrds)) $xrds = array();
@@ -47,6 +48,7 @@ function xrds_add_xrd($xrds, $id, $type=array(), $expires=false) {
  *        </code>
  * @param int $priority service priorty
  * @return array updated XRDS-Simple structure
+ * @since 1.0
  */
 function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
 	if (!is_array($xrds[$xrd_id])) {
@@ -54,6 +56,35 @@ function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
 	}
 	$xrds[$xrd_id]['services'][$name] = array('priority' => $priority, 'content' => $content);
 	return $xrds;
+}
+
+/**
+ * Convenience function for adding a new service with minimal options.  
+ * Services will always be added to the 'main' XRD with the default priority.  
+ * No additional parameters such as httpMethod on URIs can be passed.  If those 
+ * are necessary, use xrds_add_service().
+ *
+ * @param array $xrds current XRDS-Simple structure
+ * @param string $name human readable name of the service
+ * @param mixed $type one type (string) or array of multiple types
+ * @param mixed $uri one URI (string) or array of multiple URIs
+ * @return array updated XRDS-Simple structure
+ * @since 1.0
+ */
+function xrds_add_simple_service($xrds, $name, $type, $uri) {
+	if (!is_array($type)) $type = array($type);
+	if (!is_array($uri)) $uri = array($uri);
+	$service = array('Type' => array(), 'URI' => array());
+
+	foreach ($type as $t) {
+		$service['Type'][] = array('content' => $t);
+	}
+
+	foreach ($uri as $u) {
+		$service['URI'][] = array('content' => $u);
+	}
+
+	return xrds_add_service($xrds, 'main', $name, $service);
 }
 
 
