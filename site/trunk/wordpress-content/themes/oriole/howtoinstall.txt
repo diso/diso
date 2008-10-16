@@ -1,0 +1,47 @@
+= ORIOLE: A SANDBOX DESIGN =
+
+Thank you for downloading ORIOLE by JASON PORRITT, a participant in the Sandbox Designs Competition, http://www.sndbx.org/.
+
+For more information, updates, and support for this design, please (a) visit JASON PORRITT's site (URL unknown!), or (b) get help on the Sandbox Forums, http://www.sndbx.org/forums/.
+
+Remember, A comes before B.
+
+
+** VERY IMPORTANT **
+To use a Sandbox design, the Sandbox theme must be installed.
+
+At the time of writing (2007-08-03) the ../wp-includes/themes.php file in WORDPRESS 2.2.x includes linebreaks that break the template feature. This bug is scheduled to be fixed in an upcoming release, but until then you may need to replace that file. This bug does not affect WORDPRESS 2.0.x or 2.1.x.
+
+If you follow the directions for installing the Sandbox and a design and receive a message in the Presentation menu that a design is 'broken,' download a patched ../wp-includes/themes.php file at
+	http://www.sndbx.org/downloads/patched_themes-php.zip.
+
+Only use this file if the templates appear 'broken' AND if you're using WordPress 2.2.x.
+
+
+== INSTALLING THE SANDBOX ==
+
+The Sandbox theme is installed just like any other WordPress theme.
+
+	1. Download the Sandbox, http://www.plaintxt.org/themes/sandbox/
+	2. Extract the /sandbox/ folder from the archive
+		* The file structure should be: ../wp-content/themes/sandbox/style.css
+	3. Upload this folder and its contents to the ../wp-content/themes/
+	4. The Sandbox will now appear in the Dashboard > Presentation menu
+
+You can read more detailed installation instructions on the WordPress Codex.
+	http://codex.wordpress.org/Using_Themes#Adding_New_Themes
+
+
+== INSTALLING A DESIGN ==
+
+Before installing a design, make sure you have installed the Sandbox theme. This design is installed just like any other WordPress theme.
+
+	1. Extract the /oriole/ folder from the archive
+	2. Upload this folder and its contents to the ../wp-content/themes/
+		* The file structure should be: ../wp-content/themes/oriole/style.css
+	3. The design will now appear in the Dashboard > Presentation menu
+
+You can read more detailed installation instructions on the WordPress Codex.
+	http://codex.wordpress.org/Using_Themes#Adding_New_Themes
+
+Enjoy.
