@@ -1,0 +1,464 @@
+/*
+THEME NAME: Oriole
+THEME URI: 
+DESCRIPTION: Dark gray, red-orange, and some good blues.  Simple and clean.
+VERSION: 0.1
+AUTHOR: Jason Porritt
+AUTHOR URI:
+TEMPLATE: sandbox
+*/
+
+/* Reset styles */
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{
+    margin:0;
+    padding:0;
+}
+table{
+    border-collapse:collapse;
+    border-spacing:0;
+}
+fieldset,img{
+    border:0;
+}
+ul,ul {
+    list-style:none;
+}
+caption,th {
+    text-align:left;
+}
+h1,h2,h3,h4,h5,h6{
+    font-size:100%;
+    font-weight:normal;
+}
+
+/* End of yahoo stylesheet content */
+
+/* Layout grid */
+body {
+    margin: 0;
+    padding: 0;
+}
+#wrapper {
+    width: 800px;
+    margin: 0 auto;
+    padding: 0;
+    position: relative;
+}
+#header {
+    height: 126px;
+    width: 564px;
+    float: left;
+    clear: left;
+    display: inline; /* work around IE bug */
+}
+#container {
+    width: 582px;
+    float: left;
+    clear: left;
+    display: inline; /* work around IE bug */
+}
+#access, #primary, #secondary {
+    width: 182px;
+    float: right;
+    clear: right;
+    display: inline; /* work around IE bug */
+}
+#access {
+    height: 90px;
+    padding: 18px 9px;
+}
+#primary {
+    padding: 18px 9px 0 9px;
+}
+#secondary {
+    padding: 0 9px;
+}
+#footer {
+    height: 18px;
+    clear: both;
+    padding: 73px 9px 9px 9px;
+    margin-top: 3em;
+}
+
+/* Typesetting */
+body {
+    font-family: "Lucicia Grande",Geneva,Verdana,Arial,Helvetica,sans-serif;
+    font-size: 75%;
+    line-height: 1.5em;
+}
+p {
+    font-size: 1em;
+    line-height: 1.5em;
+    margin: 0 0 1.5em 0;
+}
+h1, h2 {
+    font-size: 1.5em;
+    line-height: 1em;
+    margin-bottom: 1em;
+}
+h3 {
+    font-size: 1.25em;
+    line-height: 1.2em;
+    margin-bottom: 1.2em;
+}
+h4 {
+    font-size: 1.1666em;
+    line-height: 1.2857em;
+    margin-bottom: 1.2857em;
+}
+h5 {
+    font-size: 1em;
+    line-height: 1.5em;
+    margin-bottom: 1.5em;
+    font-weight: bold;
+}
+h6 {
+    font-size: 1em;
+    line-height: 1.5em;
+    margin-bottom: 1.5em;
+    text-decoration: underline;
+}
+pre, code {
+    font-family: monospace;
+    font-size: 1.25em;
+    line-height: 1.2em;
+    margin-bottom: 1.2em;
+}
+
+/* global styles */
+body {
+    background: #fff url(body_bg.png) top left repeat-x;
+    color: #444;
+}
+strong {
+    font-weight: bold;
+}
+em {
+    font-style: italic;
+}
+pre {
+    padding: .75em;
+    border-top: solid 1px #ccc;
+    border-bottom: solid 1px #ccc;
+    color: #009bc8;
+}
+code {
+    color: #009bc8;
+}
+cite {
+    font-style: italic;
+}
+abbr {
+    border-bottom: dotted 1px #999;
+}
+del {
+    color: #999;
+}
+ins {
+    text-decoration: none;
+    border-bottom: dotted 1px #999;
+}
+blockquote {
+    padding: .75em .75em 0 2.5em;
+    border-top: solid 1px #ccc;
+    border-bottom: solid 1px #ccc;
+    margin-bottom: 1.5em;
+    background: #efefef url(quote.png) 2px 0 no-repeat;
+}
+dl {
+    margin-bottom: 1.5em;
+}
+dt {
+    font-weight: bold;
+}
+dd {
+    margin-left: 3em;
+    font-style: italic;
+    margin-bottom: .75em;
+}
+
+.caps {
+    text-transform: uppercase;
+}
+#container {
+    background-color: #fff;
+    padding: 18px 9px;
+}
+#primary, #secondary {
+    background-color: #fff;
+}
+a, a:link { color: #005168; }
+a:hover { color: #009bc8; }
+
+/* Header, footer, and nav */
+#header {
+    color: #fff;
+    padding: 0 18px;
+    letter-spacing: .08em;
+}
+#header h1 {
+    color: #fff;
+    font-size: 3em;
+    line-height: 1em;
+    font-weight: bold;
+    margin-bottom: 0;
+    margin-top: 1em;
+    letter-spacing: .08em;
+}
+#header a {
+    color: #fff;
+    text-decoration: none;
+}
+#header a:hover {
+    color: #009bc8;
+}
+#blog-description {
+    color: #009bc8;
+}
+#footer {
+    text-align: center;
+    background: #fff url(footer.png) bottom center no-repeat;;
+    color: #777;
+}
+#footer a {
+    color: #777;
+}
+#footer a:hover {
+    color: #999;
+}
+#nav-above, #nav-below {
+    margin-bottom: 1.5em;
+}
+.nav-next, .nav-previous {
+    margin-bottom: 1.5em;
+    display: inline;
+}
+.nav-next a, .nav-previous a {
+    padding: 2px 4px;
+}
+.nav-next a {
+    background: #fff url(next.png) top right no-repeat;
+    padding-right: 24px;
+}
+.nav-previous a {
+    background: #fff url(prev.png) top left no-repeat;
+    padding-left: 24px;
+}
+#nav-above .meta-nav,
+#nav-below .meta-nav {
+    display: none;
+}
+
+/* right column */
+.sidebar {
+    font-size: .91666em;
+    line-height: 1.63636em;
+}
+.sidebar h3 {
+    margin-bottom: 0;
+}
+.sidebar .xoxo li {
+    margin-bottom: 1.63636em;
+}
+.sidebar .xoxo li li { 
+    margin-bottom: 0;
+    margin-left: 1.63636em;
+}
+.skip-link {
+    display: none;
+}
+
+#access {
+    font-size: .91666em;
+    line-height: 1.63636;
+    background-color: #e24000;
+}
+#access a {
+    color: #fff;
+}
+#access a:hover {
+    color: #444;
+}
+#menu .page_item ul {
+    display: none;
+}
+
+/* Generic post base styles */
+.post {
+    margin-bottom: 3em;
+    overflow: hidden;
+    border-bottom: 1px solid #aaa;
+}
+.post .entry-title {
+    margin-bottom: 0;
+    color: #e24000;
+    border-left: solid 9px #e24000;
+    padding-left: 9px;
+}
+.post .entry-title a {
+    color: #e24000;
+    text-decoration: none;
+}
+.post .entry-title a:hover {
+    text-decoration: underline;
+}
+.single .post .entry-title {
+    margin-bottom: 1.2em;
+}
+.single .post {
+    border-bottom: none;
+}
+.post .entry-date,
+.post .entry-meta {
+    font-size: .91666em;
+    line-height: 1.63636em;
+    color: #666;
+}
+.post .entry-date {
+    margin-bottom: 1.63636em;
+    border-left: solid 9px #e24000;
+    padding-left: 9px;
+}
+.post .entry-date abbr {
+    border: none;
+}
+.post .entry-meta {
+    padding-bottom: 1.63636em;
+}
+.single .post .entry-meta {
+    padding-top: 17px;
+    padding-left: 9px;
+    padding-right: 9px;
+    border-left: solid 9px #e24000;
+}
+
+.post .page-link {
+    margin-bottom: 1.63636em;
+}
+.post .page-link a {
+    margin-left: 2px;
+}
+
+#content ul, #content ol {
+    margin-bottom: 1.5em;
+}
+#content ul {
+    list-style-type: square;
+    list-style-position: inside;
+}
+#content ol {
+    list-style-type: decimal;
+    list-style-position: inside;
+}
+#content ul li,
+#content ol li {
+    margin-left: 2em;
+}
+#content img.alignright {
+    float: right;
+    clear: right;
+    margin: 1em;
+}
+#content img.alignleft {
+    float: left;
+    clear: left;
+    margin: 1em;
+}
+#content img.center {
+    display: block;
+    text-align: center;
+    clear: both;
+    margin: 1em auto;
+}
+#respond {
+    border: solid 3px #e24000;
+}
+#respond h3 {
+    background-color: #e24000;
+    color: #fff;
+    padding: .25em;
+}
+#respond .formcontainer {
+    margin: .75em;
+}
+#respond .form-submit {
+    margin-top: .75em;
+}
+
+/* Asides */
+.post.category-asides {
+    border-left: solid 9px #444;
+    font-size: .91666em;
+    line-height: 1.63636em;
+    padding-top: 4px;
+    padding-left: 9px;
+    color: #666;
+    border-bottom: none;
+    margin-bottom: 3.24em;
+}
+.post.category-asides .entry-title,
+.post.category-asides .entry-title a {
+    color: #444;
+    padding-left: 0;
+    border: none;
+}
+.post.category-asides .entry-meta,
+.post.category-asides .entry-date {
+    display: none;
+}
+.post.category-asides p {
+    margin-bottom: 4px;
+}
+
+/* Comments */
+#comments-list h3, #trackbacks-list h3, #pingbacks-list h3 {
+    margin-top: 3em;
+    color: #fff;
+    background-color: #444;
+    padding: 2px 9px;
+}
+#comments ol, #comments ul {
+    list-style: none;
+}
+.comments ol li.comment, .comments ol li.trackback, .comments ol li.pingback {
+    margin-left: 0;
+    padding-left: 1.5em;
+}
+.comment-meta {
+    font-size: .91666em;
+    line-height: 1.63636em;
+    color: #888;
+}
+.comment-author, .comment-meta {
+    margin-left: -36px;
+    padding-left: 0;
+}
+.comment-author {
+    _margin-left: -52px;
+}
+.comment, .pingback, .trackback {
+    margin-bottom: 3em;
+    padding-left: 3em;
+}
+.comment p, .pingback p, .trackback p {
+    margin-bottom: 1em; 
+}
+.comment-author {
+    font-weight: bold;
+}
+.comment blockquote {
+    background-color: #efefef;
+}
+
+/* Search box */
+#search {
+    position: absolute;
+    top: 98px;
+}
+#search h3 {
+    display: none;
+}
+#search input#s {
+    width: 120px;
+    vertical-align: top;
+}
