@@ -76,8 +76,7 @@ body {
 #footer {
     height: 18px;
     clear: both;
-    padding: 73px 9px 9px 9px;
-    margin-top: 3em;
+    margin: 1em auto;
 }
 
 /* Typesetting */
@@ -217,7 +216,6 @@ a:hover { color: #009bc8; }
 }
 #footer {
     text-align: center;
-    background: #fff url(footer.png) bottom center no-repeat;;
     color: #777;
 }
 #footer a {
