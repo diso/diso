@@ -460,3 +460,7 @@ a:hover { color: #009bc8; }
     width: 120px;
     vertical-align: top;
 }
+
+body.home .entry-title {
+	display: none;
+}
