@@ -186,6 +186,11 @@ profile_services:
         url: http://www.google.com/reader/shared/%s
         ident_label: Sharing ID
         ident_example: 16793324975410272738
+    github:
+        name: GitHub
+        url: http://github.com/%s
+        ident_label: Username
+        ident_example: singpolyma
     hi5:
         name: Hi5
         url: http://hi5.com/friend/profile/displayProfile.do?userid=%s
@@ -474,6 +479,17 @@ action_streams:
                     created_on: pubDate/child::text()
                     title: title/child::text()
                     url: link/child::text()
+    github:
+        activity:
+            name: Activity
+            description: Your public GitHub activity
+            html_form: '<a class="entry-title" rel="bookmark" href="[_2]">[_3]</a>'
+            html_params:
+                - url
+                - title
+            url: 'http://github.com/{{ident}}.atom'
+            identifier: url
+            atom:
     iusethis:
         osxapps:
             name: Apps you use
