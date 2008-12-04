@@ -1,0 +1,38 @@
+#!/usr/bin/php
+<?php
+
+require_once('XRDS.php');
+
+//$xml = simplexml_load_file('./data/example.xml');
+//print_r($xml);
+
+//$xrds = XRDS::from_simple_xml($xml);
+//print_r($xrds);
+//$new_xml = $xrds->to_simple_xml();
+
+
+//print_r($new_xml->asXML());
+/*
+$doc = new DOMDocument('1.0');
+$doc->formatOutput = true;
+$domnode = dom_import_simplexml($new_xml);
+$domnode = $doc->importNode($domnode, true);
+$domnode = $doc->appendChild($domnode);
+$doc->normalizeDocument();
+
+echo $doc->saveXML();
+ */
+
+/*
+$xrds = XRDS::load('./data/example.xml');
+$dom = $xrds->to_dom();
+$dom->formatOutput = true;
+print_r($dom->saveXML());
+ */
+
+
+require_once('XRDS/Discovery.php');
+$d = new XRDS_Discovery();
+$d->discover('http://willnorris.com');
+
+?>

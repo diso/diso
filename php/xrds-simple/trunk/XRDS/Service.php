@@ -37,6 +37,7 @@ class XRDS_Service {
 			$uri = XRDS_URI::from_dom($e);
 			$service->uri[] = $uri;
 		}
+		usort($service->uri, array('XRDS', 'priority_sort'));
 
 		$elements = $dom->getElementsByTagName('LocalID');
 		foreach ($elements as $e) {
@@ -80,7 +81,7 @@ class XRDS_Service {
 		}
 
 		foreach ($this->must_support as $support) {
-			$support_dom = $dom->createElement('simple:mustSupport', $support);
+			$support_dom = $dom->createElement('simple:MustSupport', $support);
 			$service->appendChild($support_dom);
 		}
 

@@ -28,7 +28,9 @@ class XRDS_XRD {
 		$xrd = new XRDS_XRD();
 
 		$xrd->version = $dom->getAttribute('version');
-		$xrd->id = $dom->getAttributeNS(XRDS::XML_NS, 'id');
+		$xrd->id = $dom->getAttribute('xml:id');
+
+		$services = array();
 
 		foreach ($dom->childNodes as $node) {
 			switch($node->tagName) {
@@ -47,6 +49,8 @@ class XRDS_XRD {
 			}
 		}
 
+		usort($xrd->service, array('XRDS', 'priority_sort'));
+
 		return $xrd;
 	}
 
@@ -55,6 +59,10 @@ class XRDS_XRD {
 
 		if ($this->id) {
 			$xrd->setAttribute('xml:id', $this->id);
+		}
+
+		if ($this->version) {
+			$xrd->setAttribute('version', $this->version);
 		}
 
 		if ($this->expires) {
