@@ -237,7 +237,7 @@ class ActionStream {
 
 					$as_item = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
 
-					$rtrn .= '<li id="as-'.htmlspecialchars($as_item->identifier()).'" class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
+					$rtrn .= '<li id="as-'.htmlspecialchars(sha1($as_item->identifier())).'" class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
 					$rtrn .= "\n\t".$as_item->__toString($hide_user);
 
 					// javascript magic to toggle collapsable items
