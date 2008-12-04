@@ -91,7 +91,18 @@ class XRDS {
 	}
 
 	public function priority_sort($a, $b) {
-		// TODO what happens when there is no priority on one or both of the elements?
+
+		// deal with null values
+		if ($a->priority === null) {
+			if ($b->priority === null) {
+				return 0;
+			} else {
+				return 1;
+			}
+		} else if ($b->priority === null) {
+			return -1;
+		}
+
 		if ($a->priority == $b->priority) return 0;
 		if ($a->priority > $b->priority) return 1;
 		if ($a->priority < $b->priority) return -1;

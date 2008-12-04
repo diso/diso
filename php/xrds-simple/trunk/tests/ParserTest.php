@@ -26,8 +26,6 @@ class ParserTest extends PHPUnit_Framework_TestCase {
 	public function testParsing2() {
 		$file = $this->data_dir . 'vidoop.xml';
 		$xrds = XRDS::load($file);
-
-		print_r($xrds);
 	}
 
 	public function testServiceRetrieval() {
