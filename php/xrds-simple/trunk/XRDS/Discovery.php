@@ -205,8 +205,6 @@ class XRDS_Discovery_Content_Negotiation extends XRDS_Discovery_Method {
 	}
 
 	public function discover(XRDS_Discovery_Context &$context) {
-		error_log('content_negotiation');
-
 		if (@strtolower($context->response_headers['content-type']) == self::CONTENT_TYPE) {
 			$xrds = XRDS::loadXML($context->content);
 			return $xrds;
@@ -222,8 +220,6 @@ class XRDS_Discovery_Content_Negotiation extends XRDS_Discovery_Method {
 class XRDS_Discovery_Location_Header extends XRDS_Discovery_Method {
 
 	public function discover(XRDS_Discovery_Context &$context) {
-		error_log('location_header');
-
 		if ($context->response_headers['x-xrds-location']) {
 			return XRDS_Discovery::fetch_xrds_url($context->response_headers['x-xrds-location']);
 		}
@@ -238,8 +234,6 @@ class XRDS_Discovery_Location_Header extends XRDS_Discovery_Method {
 class XRDS_Discovery_HTML_Link extends XRDS_Discovery_Method {
 
 	public function discover(XRDS_Discovery_Context &$context) {
-		error_log('html_link');
-
 		preg_match_all('/<meta [^>]*>/', $context->content, $matches);
 		foreach ($matches[0] as $meta) {
 			if (preg_match('/ http-equiv=("|\')?x-xrds-location\\1/i', $meta)) {
