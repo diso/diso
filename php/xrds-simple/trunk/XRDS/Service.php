@@ -44,6 +44,7 @@ class XRDS_Service {
 			$local_id = XRDS_LocalID::from_dom($e);
 			$service->local_id[] = $local_id;
 		}
+		usort($service->local_id, array('XRDS', 'priority_sort'));
 
 		$elements = $dom->getElementsByTagNameNS(XRDS::SIMPLE_NS, 'MustSupport');
 		foreach ($elements as $e) {
