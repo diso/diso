@@ -1,14 +1,12 @@
 <?php
 /*
 Plugin Name: DiSo Profile
-Plugin URI: http://singpolyma.net/plugins/hcard-import/
-Description: Detect and import hCard data on new user, extended data for user profiles, easy hCard generation
-Version: 0.2
-Author: Stephen Paul Weber
-Author URI: http://singpolyma.net/
+Plugin URI: http://singpolyma.net/plugins/diso-profile/
+Description: Detect and import hCard data on new user, extended data for user profiles, easy hCard generation.
+Version: 0.50
+Author: DiSo Development Team
+Author URI: http://code.google.com/p/diso/
 */
-
-//Licensed under an MIT-style licence
 
 require_once dirname(__FILE__).'/recent-visitors.php';
 require_once dirname(__FILE__).'/profile-widget.php';
