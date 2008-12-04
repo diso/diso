@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Actionstream
-Version: 0.45
+Version: 0.50
 Plugin URI: http://singpolyma.net/plugins/actionstream/
 Description: Shows updates from activities across the web.
-Author: Stephen Paul Weber (inspired by http://www.movabletype.org/2008/01/building_action_streams.html)
-Author URI: http://singpolyma.net/
+Author: DiSo Development Team
+Author URI: http://code.google.com/p/diso/
 */
 
 //Copyright 2008 Stephen Paul Weber
