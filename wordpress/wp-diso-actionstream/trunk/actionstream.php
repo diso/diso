@@ -196,8 +196,19 @@ function actionstream_page() {
 
 }//end function actionstream_page
 
+function actionstream_plugin_actions($links, $file) {
+	static $this_plugin;
+	if(!$this_plugin) $this_plugin = plugin_basename(__FILE__);
+	if($file == $this_plugin) {
+		$settings_link = '<a href="users.php?page=wp-diso-actionstream" style="font-weight:bold;">Manage</a>';
+		$links[] = $settings_link;
+	}//end if this_plugin
+	return $links;
+}//end actionstream_plugin_actions
+
 function actionstream_tab($s) {
 	add_submenu_page('profile.php', 'Action Stream', 'Action Stream', 'read', 'wp-diso-actionstream', 'actionstream_page');
+	add_filter('plugin_action_links', 'actionstream_plugin_actions', 10, 2);
 	return $s;
 }//end function actionstream_tab
 add_action('admin_menu', 'actionstream_tab');
