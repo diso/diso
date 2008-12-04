@@ -2,7 +2,7 @@
 
 if(!class_exists('SocialGraphApi')) {
 
-require_once dirname(__FILE__).'/JSON.php';
+if(!class_exists('Services_JSON')) require_once dirname(__FILE__).'/JSON.php';
 define('SGAPIURL','http://socialgraph.apis.google.com/lookup');
 
 class SocialGraphApi {
