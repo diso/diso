@@ -193,12 +193,22 @@ function xrds_options_page() {
 	echo '</div>';
 }//end xrds_options_page
 
+function xrds_plugin_actions($links, $file) {
+	static $this_plugin;
+	if(!$this_plugin) $this_plugin = plugin_basename(__FILE__);
+	if($file == $this_plugin) {
+		$settings_link = '<a href="options-general.php?page=xrds-simple" style="font-weight:bold;">Settings</a>';
+		$links[] = $settings_link;
+	}//end if this_plugin
+	return $links;
+}//end xrds_plugin_actions
 
 /**
  * Setup admin menu for XRDS.
  */
 function xrds_admin_menu() {
 	add_options_page('XRDS-Simple', 'XRDS-Simple', 8, 'xrds-simple', 'xrds_options_page');
+	add_filter('plugin_action_links', 'xrds_plugin_actions', 10, 2);
 }
 
 
