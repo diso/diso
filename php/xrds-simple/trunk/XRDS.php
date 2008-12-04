@@ -20,9 +20,38 @@ class XRDS {
 	public function __construct() {
 	}
 
+	public function getServiceURI($type) {
+		if (!is_array($type)) {
+			$type = array($type);
+		}
+
+		foreach ($this->xrd as $xrd) {
+			foreach ($xrd->service as $service) {
+				foreach ($type as $t) {
+					if (!in_array($t, $service->type)) {
+						continue 2;
+					}
+				}
+				return $service->uri[0];
+			}
+		}
+
+	}
+
+
+	/* Marshalling / Unmarshalling functions */
+
 	public static function load($file) {
 		$dom = new DOMDocument();
 		$dom->load($file);
+		$xrds_elements = $dom->getElementsByTagName('XRDS');
+		
+		return self::from_dom($xrds_elements->item(0));
+	}
+
+	public static function loadXML($xml) {
+		$dom = new DOMDocument();
+		$dom->loadXML($xml);
 		$xrds_elements = $dom->getElementsByTagName('XRDS');
 		
 		return self::from_dom($xrds_elements->item(0));
@@ -54,6 +83,18 @@ class XRDS {
 		}
 
 		return $dom;
+	}
+
+	public function to_xml() {
+		$dom = $this->to_dom();
+		return $dom->saveXML();
+	}
+
+	public function priority_sort($a, $b) {
+		// TODO what happens when there is no priority on one or both of the elements?
+		if ($a->priority == $b->priority) return 0;
+		if ($a->priority > $b->priority) return 1;
+		if ($a->priority < $b->priority) return -1;
 	}
 }
 
