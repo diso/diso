@@ -11,6 +11,7 @@ Author URI: http://code.google.com/p/diso/
 require_once dirname(__FILE__).'/recent-visitors.php';
 require_once dirname(__FILE__).'/profile-widget.php';
 require_once dirname(__FILE__).'/permissions.php';
+require_once dirname(__FILE__).'/avatar.php';
 
 $hkit;
 function diso_profile_hcard_from_url($url) {
