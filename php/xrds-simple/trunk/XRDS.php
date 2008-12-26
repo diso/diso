@@ -9,17 +9,33 @@ require_once('XRDS/XRD.php');
  */
 class XRDS {
 
+	/** XRDS XML Namespace */
 	const XRDS_NS = 'xri://$xrds';
+
+	/** XRD XML Namespace */
 	const XRD_NS = 'xri://$XRD*($v*2.0)';
+
+	/** OpenID XML Namespace */
 	const OPENID_NS = 'http://openid.net/xmlns/1.0';
+
+	/** XRDS-Simple XML Namespace */
 	const SIMPLE_NS = 'http://xrds-simple.net/core/1.0';
 
 	/** XRDS Descriptors */
 	public $xrd = array();
 
+	/** Constructor */
 	public function __construct() {
 	}
 
+	/** 
+	 * Get the URI for the Service that includes the specified type(s).  
+	 * If the service contains multiple URIs, only one is returned (based 
+	 * on priority).
+	 *
+	 * @param mixed $type a single type string, or an array of types
+	 * @return string URI for the service
+	 */
 	public function getServiceURI($type) {
 		if (!is_array($type)) {
 			$type = array($type);
@@ -41,6 +57,13 @@ class XRDS {
 
 	/* Marshalling / Unmarshalling functions */
 
+	/**
+	 * Create an XRDS object from the specified file.
+	 *
+	 * @param string $file file to load
+	 * @return XRDS object
+	 * @see DOMDocument::load
+	 */
 	public static function load($file) {
 		$dom = new DOMDocument();
 		$dom->load($file);
@@ -49,6 +72,13 @@ class XRDS {
 		return self::from_dom($xrds_elements->item(0));
 	}
 
+	/**
+	 * Create an XRDS object from the specified XML string.
+	 *
+	 * @param string $xml XML string to load
+	 * @return XRDS object
+	 * @see DOMDocument::loadXML
+	 */
 	public static function loadXML($xml) {
 		$dom = new DOMDocument();
 		$dom->loadXML($xml);
@@ -57,6 +87,12 @@ class XRDS {
 		return self::from_dom($xrds_elements->item(0));
 	}
 
+	/**
+	 * Create an XRDS object from a DOMElement.
+	 *
+	 * @param DOMElement $dom DOM element to load
+	 * @return XRDS object
+	 */
 	public static function from_dom(DOMElement $dom) {
 		$xrds = new XRDS();
 
@@ -69,6 +105,11 @@ class XRDS {
 		return $xrds;
 	}
 
+	/**
+	 * Create a a DOMDocument from this XRDS object.
+	 *
+	 * @return DOMDocument
+	 */
 	public function to_dom() {
 		$dom = new DOMDocument();
 		$xrds = $dom->createElementNS(XRDS::XRDS_NS, 'XRDS');
@@ -85,11 +126,26 @@ class XRDS {
 		return $dom;
 	}
 
+	/**
+	 * Get the marshalled XML for this XRDS object.
+	 *
+	 * @return string marshalled xml
+	 */
 	public function to_xml() {
 		$dom = $this->to_dom();
 		return $dom->saveXML();
 	}
 
+	/**
+	 * Compare items based on the priority rules of XRDS-Simple.  
+	 * Items are sorted in increasing priority order, with null 
+	 * values interpreted as infinity.
+	 *
+	 * @param object $a first object to compare
+	 * @param object $b second object to compare
+	 * @return int -1 if $a has a lower priority, +1 if $b has a lower priority, 0 if the two priorities are equal
+	 * @see usort
+	 */
 	public function priority_sort($a, $b) {
 
 		// deal with null values

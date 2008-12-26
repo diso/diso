@@ -5,18 +5,30 @@
  */
 class XRDS_Service {
 
+	/** Priority. */
 	public $priority;
 
+	/** Types */
 	public $type = array();
 
+	/** Media types */
 	public $media_type = array();
 
+	/** URIs */
 	public $uri = array();
 
+	/** Local IDs */
 	public $local_id = array();
 
+	/** Required Ssupport */
 	public $must_support = array();
 
+	/**
+	 * Create an XRDS_Service object from a DOMElement.
+	 *
+	 * @param DOMElement $dom DOM element to load
+	 * @return XRDS_Service object
+	 */
 	public static function from_dom(DOMElement $dom) {
 		$service = new XRDS_Service();
 
@@ -54,6 +66,11 @@ class XRDS_Service {
 		return $service;
 	}
 
+	/**
+	 * Create a a DOMDocument from this XRDS_Service object.
+	 *
+	 * @return DOMDocument
+	 */
 	public function to_dom($dom) {
 		$service = $dom->createElement('Service');
 

@@ -11,6 +11,12 @@ class XRDS_LocalID {
 	/** URI value. */
 	public $uri;
 
+	/**
+	 * Create an XRDS_LocalID object from a DOMElement.
+	 *
+	 * @param DOMElement $dom DOM element to load
+	 * @return XRDS_LocalID object
+	 */
 	public static function from_dom(DOMElement $dom) {
 		$local_id = new XRDS_LocalID();
 
@@ -20,6 +26,11 @@ class XRDS_LocalID {
 		return $local_id;
 	}
 
+	/**
+	 * Create a a DOMDocument from this XRDS_LocalID object.
+	 *
+	 * @return DOMDocument
+	 */
 	public function to_dom($dom) {
 		$local_id = $dom->createElement('LocalID', $this->uri);
 

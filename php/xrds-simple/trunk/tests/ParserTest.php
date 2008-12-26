@@ -14,6 +14,7 @@ class ParserTest extends PHPUnit_Framework_TestCase {
 	public function testParsing() {
 		$file = $this->data_dir . 'example.xml';
 		$xrds = XRDS::load($file);
+		print_r($xrds);
 
 		$this->assertEquals(1, sizeof($xrds->xrd));
 		$this->assertEquals(2, sizeof($xrds->xrd[0]->service));
