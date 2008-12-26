@@ -24,6 +24,13 @@ class XRDS_XRD {
 	/** Services. */
 	public $service = array();
 
+
+	/**
+	 * Create an XRDS_XRD object from a DOMElement
+	 *
+	 * @param DOMElement $dom DOM element to load
+	 * @return XRDS_XRD object
+	 */
 	public static function from_dom(DOMElement $dom) {
 		$xrd = new XRDS_XRD();
 
@@ -54,6 +61,11 @@ class XRDS_XRD {
 		return $xrd;
 	}
 
+	/**
+	 * Create a a DOMDocument from this XRDS_XRD object
+	 *
+	 * @return DOMDocument
+	 */
 	public function to_dom($dom) {
 		$xrd = $dom->createElementNS(XRDS::XRD_NS, 'XRD');
 

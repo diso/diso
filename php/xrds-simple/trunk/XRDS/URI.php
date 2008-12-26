@@ -14,6 +14,12 @@ class XRDS_URI {
 	/** HTTP method. */
 	public $http_method;
 
+	/**
+	 * Create an XRDS_URI object from a DOMElement.
+	 *
+	 * @param DOMElement $dom DOM element to load
+	 * @return XRDS_URI object
+	 */
 	public static function from_dom(DOMElement $dom) {
 		$uri = new XRDS_URI();
 
@@ -24,6 +30,11 @@ class XRDS_URI {
 		return $uri;
 	}
 
+	/**
+	 * Create a a DOMDocument from this XRDS_URI object.
+	 *
+	 * @return DOMDocument
+	 */
 	public function to_dom($dom) {
 		$uri = $dom->createElement('URI', $this->uri);
 
