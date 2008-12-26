@@ -1,0 +1,25 @@
+.diso-profile img.photo {
+	float: left;
+	margin-right: 10px;
+	padding: 5px;
+	background-color: lightgrey;
+}
+.diso-profile h2 {
+	clear: none;
+	background: none;
+}
+.diso-profile p.note {
+	margin-top: 2em;
+}
+.diso-profile dl.contact dt {
+	float: left;
+	width: 10em;
+}
+.diso-profile dl.contact dd {
+	margin-left: 10em;
+}
+.diso-profile dl.contact ul,
+.diso-profile dl.contact ul li {
+	list-style-type: none;
+	padding: 0px;
+}
