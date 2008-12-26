@@ -256,6 +256,9 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 	}//end if adr
 	$template .= '</dl>';
 	$template .= '</div>';
+
+	$template = apply_filters('diso_profile_template', $template);
+
 	if($echo) {echo $template; echo '<!-- diso-profile time : '.(microtime(true)-$time).' seconds -->';}
 	return $template;
 }//end function diso_profile
