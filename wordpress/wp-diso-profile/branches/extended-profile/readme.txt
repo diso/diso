@@ -1,8 +1,9 @@
 === Extended Profile ===
 Contributors: singpolyma, steveivy, wnorris
-Tags: profile
+Tags: profile, microformats, hcard
+equires at least: 2.6
 Tested up to: 2.7
-Stable tag: 0.5
+Stable tag: 0.6
 
 Extend the WordPress profile to include additional attributes, and output as hCard.
 

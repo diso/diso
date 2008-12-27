@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/extended-profile/
 Description: Detect and import hCard data on new user, extended data for user profiles, easy hCard generation.
 Version: 0.6
 Author: DiSo Development Team
-Author URI: http://code.google.com/p/diso/
+Author URI: http://diso-project.org/
 */
 
 require_once dirname(__FILE__).'/recent-visitors.php';
