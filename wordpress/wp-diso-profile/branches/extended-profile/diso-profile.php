@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Extended Profile
-Plugin URI: http://singpolyma.net/plugins/diso-profile/
+Plugin URI: http://wordpress.org/extend/plugins/extended-profile/
 Description: Detect and import hCard data on new user, extended data for user profiles, easy hCard generation.
 Version: 0.50
 Author: DiSo Development Team
@@ -14,6 +14,14 @@ require_once dirname(__FILE__).'/permissions.php';
 require_once dirname(__FILE__).'/avatar.php';
 
 $hkit;
+
+
+/**
+ * Fetch hCard for the specified URL.
+ *
+ * @param string $url URL to get hCard from
+ * @return array array containing the hCard object (key: 'hcard') as well as the raw XML (key: 'xml')
+ */
 function diso_profile_hcard_from_url($url) {
 	global $hkit;
 	require_once dirname(__FILE__).'/hkit.class.php';
@@ -31,7 +39,7 @@ function diso_profile_hcard_from_url($url) {
 	} else {
 		if($hcard['all']) {
 			foreach($hcard['all'] as $card) {
-				if($card['uid'] == $userdata->user_url) { $phcard = $card; break; }
+				if($card['uid'] == $url) { $phcard = $card; break; }
 				if(!is_array($card['url']) && $card['url'] == $url) { $phcard = $card; break; }
 				if(is_array($card['url']) && in_array($url,$card['url'])) { $phcard = $card; break; }
 			}//end foreach all
@@ -41,7 +49,17 @@ function diso_profile_hcard_from_url($url) {
 	return array('hcard' => $phcard, 'xml' => $hcard['xml']);
 }//end function diso_profile_hcard_from_url
 
-function diso_profile_hcard_import($userid,$override=false) {
+
+/**
+ * Fetch the hCard from the URL specified in the user's profile.  Use the 
+ * hCard profile data to update the user's local WordPress profile.
+ *
+ * @param int $userid ID of user to update
+ * @param bool $override should local attributes be overwritten with data from 
+ *                       hCard.  If false, only empty fields in the local 
+ *                       profile will be updated from the hCard.
+ */
+function diso_profile_hcard_import($userid, $override=false) {
 	$userdata = get_userdata($userid);
 
 	//GET HCARD
@@ -92,6 +110,10 @@ function diso_profile_hcard_import($userid,$override=false) {
 }//end function diso_profile_hcard_import
 add_action('user_register', 'diso_profile_hcard_import');
 
+
+/**
+ * Extend the WordPress profile page to include the additional fields.
+ */
 function diso_profile_extend() {
 	global $profileuser;
 	$userdata = $profileuser;
@@ -165,12 +187,22 @@ function diso_profile_extend() {
 add_action('show_user_profile', 'diso_profile_extend');
 add_action('edit_user_profile', 'diso_profile_extend');
 
+
+/**
+ * Include a link at the top of the WordPress profile page to import hCard data.
+ */
 function diso_profile_extend_top() {
 	global $profileuser;
 	echo '<p><input type="hidden" id="do_manual_hcard" name="do_manual_hcard" /><a href="#" id="hcard_link">Import hCard</a></p>';
 }//end finction diso_profile_extend_top
 add_action('profile_personal_options', 'diso_profile_extend_top');
 
+
+/**
+ * Save extended profile attributes.
+ *
+ * @param int $userid ID of user
+ */
 function diso_profile_extend_save($userid) {
 	if($_POST['do_manual_hcard']) {
 		diso_profile_hcard_import($userid, true);
@@ -193,6 +225,16 @@ function diso_profile_extend_save($userid) {
 }//end function diso_profile_extend_save
 add_action('profile_update', 'diso_profile_extend_save');
 
+
+/**
+ * Get the microformatted profile for the specified user.
+ *
+ * @param mixed $userid username or ID of user to get profile for.  If not 
+ *                      specified, administrator user will be used.
+ * @param bool $echo should profile be echo()'ed
+ * @param bool $actionstream_aware should profile include actionstream URLs
+ * @return string microformatted profile
+ */
 function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
@@ -263,6 +305,12 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 	return $template;
 }//end function diso_profile
 
+
+/**
+ * Get the URL for the plugin.
+ *
+ * @return string plugin URL
+ */
 function diso_profile_plugin_url() {
 	if (function_exists('plugins_url')) {
 		return plugins_url('extended-profile');
@@ -271,6 +319,10 @@ function diso_profile_plugin_url() {
 	}
 }
 
+
+/**
+ * Include stylesheet for displaying profiles.
+ */
 function diso_profile_head() {
 	echo '		<link rel="stylesheet" type="text/css" href="'.clean_url(diso_profile_plugin_url() . '/profile.css').'" />'."\n";
 }//end function diso_profile_head
@@ -278,6 +330,10 @@ add_action('wp_head', 'diso_profile_head');
 add_action('admin_head-profile.php', 'diso_profile_head');
 add_action('admin_head-user-edit.php', 'diso_profile_head');
 
+
+/**
+ * Load the javascript necessary for the WordPress profile page.
+ */
 function diso_profile_load() {
 	add_thickbox();
 	wp_enqueue_script('diso-profile', diso_profile_plugin_url() . '/profile_preview.js', array('thickbox'));
@@ -285,18 +341,43 @@ function diso_profile_load() {
 add_action('load-profile.php', 'diso_profile_load');
 add_action('load-user-edit.php', 'diso_profile_load');
 
+
+/**
+ * Handle the 'profile' shortcode.
+ *
+ * @param array $attr attributes passed to the shortcode
+ * @param string $content content passed to the shortcode.  This should 
+ *                        include the name or ID of the user to print the 
+ *                        profile for.
+ * @return string microformatted profile
+ */
 function ext_profile_shortcode($attr, $content) {
 	return diso_profile($content, false);
 }
 add_shortcode('profile', 'ext_profile_shortcode');
 
-// Extend WordPress OpenID plugin's SREG functions
+
+/**
+ * Provide value of 'country' SREG attribute.
+ *
+ * @param string $value current value for attribute
+ * @param id $user_id ID of user to get attribute for
+ * @return string new value for attribute
+ */
 function diso_profile_openid_sreg_country($value, $user_id) {
 	$country = get_usermeta($user_id, 'countryname');
 	return $country ? $country : $value;
 }
 add_filter('openid_server_sreg_country', 'diso_profile_openid_sreg_country', 10, 2);
 
+
+/**
+ * Provide value of 'postcode' SREG attribute.
+ *
+ * @param string $value current value for attribute
+ * @param id $user_id ID of user to get attribute for
+ * @return string new value for attribute
+ */
 function diso_profile_openid_sreg_postcode($value, $user_id) {
 	$postcode = get_usermeta($user_id, 'postalcode');
 	return $postcode ? $postcode : $value;

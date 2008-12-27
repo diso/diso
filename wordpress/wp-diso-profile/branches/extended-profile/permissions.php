@@ -1,6 +1,11 @@
 <?php
 
-
+/**
+ * Provide profile attributes which should be included in the Permissions plugin.
+ *
+ * @param array $permissions existing permissions
+ * @return array new permissions
+ */
 function diso_profile_permissions($permissions) {
 	$permissions['profile'] = array(
 		'name' => 'Profile Permissions',
