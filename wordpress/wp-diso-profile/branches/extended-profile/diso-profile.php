@@ -184,8 +184,6 @@ function diso_profile_extend() {
 <?php
 
 }//end function diso_profile_extend
-add_action('show_user_profile', 'diso_profile_extend');
-add_action('edit_user_profile', 'diso_profile_extend');
 
 
 /**
@@ -195,7 +193,6 @@ function diso_profile_extend_top() {
 	global $profileuser;
 	echo '<p><input type="hidden" id="do_manual_hcard" name="do_manual_hcard" /><a href="#" id="hcard_link">Import hCard</a></p>';
 }//end finction diso_profile_extend_top
-add_action('profile_personal_options', 'diso_profile_extend_top');
 
 
 /**
@@ -223,7 +220,6 @@ function diso_profile_extend_save($userid) {
 		update_usermeta($userdata->ID, 'display_name', $_POST['display_name']);
 	}
 }//end function diso_profile_extend_save
-add_action('profile_update', 'diso_profile_extend_save');
 
 
 /**
@@ -307,39 +303,38 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 
 
 /**
- * Get the URL for the plugin.
- *
- * @return string plugin URL
- */
-function diso_profile_plugin_url() {
-	if (function_exists('plugins_url')) {
-		return plugins_url('extended-profile');
-	} else {
-		return get_bloginfo('wpurl') . PLUGINDIR . '/extended-profile';
-	}
-}
-
-
-/**
  * Include stylesheet for displaying profiles.
  */
-function diso_profile_head() {
-	echo '		<link rel="stylesheet" type="text/css" href="'.clean_url(diso_profile_plugin_url() . '/profile.css').'" />'."\n";
+function ext_profile_style() {
+	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
 }//end function diso_profile_head
-add_action('wp_head', 'diso_profile_head');
-add_action('admin_head-profile.php', 'diso_profile_head');
-add_action('admin_head-user-edit.php', 'diso_profile_head');
+add_action('init', 'ext_profile_style');
+add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
 
 
 /**
  * Load the javascript necessary for the WordPress profile page.
  */
-function diso_profile_load() {
+function ext_profile_admin_js() {
 	add_thickbox();
-	wp_enqueue_script('diso-profile', diso_profile_plugin_url() . '/profile_preview.js', array('thickbox'));
+	wp_enqueue_script('ext-profile', plugins_url('extended-profile/profile_preview.js'), array('thickbox'));
 }
-add_action('load-profile.php', 'diso_profile_load');
-add_action('load-user-edit.php', 'diso_profile_load');
+
+/**
+ * Register WordPress admin hooks.
+ */
+function ext_profile_admin() {
+	add_action('profile_update', 'diso_profile_extend_save');
+	add_action('profile_personal_options', 'diso_profile_extend_top');
+	add_action('show_user_profile', 'diso_profile_extend');
+	add_action('edit_user_profile', 'diso_profile_extend');
+
+	add_action('load-profile.php', 'ext_profile_admin_js');
+	add_action('load-user-edit.php', 'ext_profile_admin_js');
+	add_action('admin_head-profile.php', 'ext_profile_style');
+	add_action('admin_head-user-edit.php', 'ext_profile_style');
+}
+add_action('admin_init', 'ext_profile_admin');
 
 
 /**
