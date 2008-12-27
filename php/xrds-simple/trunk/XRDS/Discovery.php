@@ -9,7 +9,7 @@
  * 2. HTTP Response Header
  *    - look for X-XRDS-Location response header
  *    - if header exists, retrieve and finish
- * 3. HTML Link Location
+ * 3. HTML Meta Location
  *    - look for X-XRDS-Location in HTML <head>
  *    - if link exists, retrieve and finish
  * 4. (Extension) OpenID 2 Link Location
@@ -50,7 +50,7 @@ class XRDS_Discovery {
 
 		$this->register_discovery_method('XRDS_Discovery_Content_Negotiation');
 		$this->register_discovery_method('XRDS_Discovery_Location_Header');
-		$this->register_discovery_method('XRDS_Discovery_HTML_Link');
+		$this->register_discovery_method('XRDS_Discovery_HTML_Meta');
 	}
 
 
@@ -229,9 +229,9 @@ class XRDS_Discovery_Location_Header extends XRDS_Discovery_Method {
 
 
 /**
- * XRDS Discovery Method that looks for an HTML link element advertising the location of the XRDS document.
+ * XRDS Discovery Method that looks for an HTML Meta element advertising the location of the XRDS document.
  */
-class XRDS_Discovery_HTML_Link extends XRDS_Discovery_Method {
+class XRDS_Discovery_HTML_Meta extends XRDS_Discovery_Method {
 
 	public function discover(XRDS_Discovery_Context &$context) {
 		preg_match_all('/<meta [^>]*>/', $context->content, $matches);
