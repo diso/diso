@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: DiSo Profile
+Plugin Name: Extended Profile
 Plugin URI: http://singpolyma.net/plugins/diso-profile/
 Description: Detect and import hCard data on new user, extended data for user profiles, easy hCard generation.
 Version: 0.50
@@ -265,9 +265,9 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 
 function diso_profile_plugin_url() {
 	if (function_exists('plugins_url')) {
-		return plugins_url('wp-diso-profile');
+		return plugins_url('extended-profile');
 	} else {
-		return get_bloginfo('wpurl') . PLUGINDIR . '/wp-diso-profile';
+		return get_bloginfo('wpurl') . PLUGINDIR . '/extended-profile';
 	}
 }
 
@@ -285,15 +285,10 @@ function diso_profile_load() {
 add_action('load-profile.php', 'diso_profile_load');
 add_action('load-user-edit.php', 'diso_profile_load');
 
-function diso_profile_parse_page_token($content) {
-	if(preg_match('/<!--diso_profile[\(]*(.*?)[\)]*-->/',$content,$matches)) {
-		$parameter1 = $matches[1];
-		$content = preg_replace('/<!--diso_profile(.*?)-->/',diso_profile($parameter1,false), $content);
-	}//end if match
-	return $content;
-}//end function diso_profile_parse_page_token
-add_filter('the_content', 'diso_profile_parse_page_token');
-
+function ext_profile_shortcode($attr, $content) {
+	return diso_profile($content, false);
+}
+add_shortcode('profile', 'ext_profile_shortcode');
 
 // Extend WordPress OpenID plugin's SREG functions
 function diso_profile_openid_sreg_country($value, $user_id) {
