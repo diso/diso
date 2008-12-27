@@ -1,5 +1,5 @@
 function preview_hcard() {
-	var template = '<div class="vcard diso diso-profile">';
+	var template = '<div class="vcard hcard-profile">';
 	if(jQuery('#photo').val()) template += '<img class="photo" alt="photo" src="'+jQuery('#photo').val()+'" />\n';
 	template += '<h2 class="fn">'+jQuery('#display_name').val()+'</h2>';
 	if( jQuery('#first_name').val() || jQuery('#additional-name').val() || jQuery('#last_name').val() ) {

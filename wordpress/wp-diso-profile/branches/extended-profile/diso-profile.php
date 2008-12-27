@@ -22,7 +22,7 @@ $hkit;
  * @param string $url URL to get hCard from
  * @return array array containing the hCard object (key: 'hcard') as well as the raw XML (key: 'xml')
  */
-function diso_profile_hcard_from_url($url) {
+function ext_profile_hcard_from_url($url) {
 	global $hkit;
 	require_once dirname(__FILE__).'/hkit.class.php';
 	if(function_exists('tidy_clean_repair'))
@@ -47,7 +47,7 @@ function diso_profile_hcard_from_url($url) {
 		}//end if hcard all
 	}//end if-else preferred
 	return array('hcard' => $phcard, 'xml' => $hcard['xml']);
-}//end function diso_profile_hcard_from_url
+}
 
 
 /**
@@ -59,11 +59,11 @@ function diso_profile_hcard_from_url($url) {
  *                       hCard.  If false, only empty fields in the local 
  *                       profile will be updated from the hCard.
  */
-function diso_profile_hcard_import($userid, $override=false) {
+function ext_profile_hcard_import($userid, $override=false) {
 	$userdata = get_userdata($userid);
 
 	//GET HCARD
-	$data = diso_profile_hcard_from_url($userdata->user_url);
+	$data = ext_profile_hcard_from_url($userdata->user_url);
 	if((!$data['hcard'] || !count($data['hcard'])) && $data['xml']) {//if no hcard, follow rel=me
 		$relme = $data['xml']->xpath("//*[contains(concat(' ',normalize-space(@rel),' '),' me ')]");
 		foreach($relme as $tag) {
@@ -75,7 +75,7 @@ function diso_profile_hcard_import($userid, $override=false) {
 				else
 					$tag['href'] = dirname($url).'/'.$tag['href'];
 			}//end if not http
-			$data = diso_profile_hcard_from_url($tag['href']);
+			$data = ext_profile_hcard_from_url($tag['href']);
 			if($data['hcard'] && count($data['hcard'])) break;
 		}//end foreach
 	}//end if ! hcard
@@ -107,14 +107,14 @@ function diso_profile_hcard_import($userid, $override=false) {
 	$phcard['urls'] = $phcard['url']; unset($phcard['url']);
 	foreach($phcard as $key => $val)
 		if($key && $val && ($override || !$userdata->$key)) update_usermeta($userid, $key, $val);
-}//end function diso_profile_hcard_import
-add_action('user_register', 'diso_profile_hcard_import');
+}
+add_action('user_register', 'ext_profile_hcard_import');
 
 
 /**
  * Extend the WordPress profile page to include the additional fields.
  */
-function diso_profile_extend() {
+function ext_profile_fields() {
 	global $profileuser;
 	$userdata = $profileuser;
 
@@ -156,15 +156,15 @@ function diso_profile_extend() {
 	}//end foreach fieldset
 ?>
 
-	<div id="diso_preview" style="display: none">
+	<div id="profile_preview" style="display: none">
 		<h1>Profile Preview</h1>
 		<p>This is how your profile looks to people allowed to see all the information.</p>
 		<hr />
 		<div id="hcard-preview"></div>
 	</div>
 
-	<p><a id="diso_preview_link" href="#">Preview Profile</a></p>
-	<a id="profile_thickbox" href="#TB_inline?height=600&width=800&inlineId=diso_preview" class="thickbox"></a>
+	<p><a id="profile_preview_link" href="#">Preview Profile</a></p>
+	<a id="profile_thickbox" href="#TB_inline?height=600&width=800&inlineId=profile_preview" class="thickbox"></a>
 
 	<script type="text/javascript">
 		jQuery(function() {
@@ -173,7 +173,7 @@ function diso_profile_extend() {
 				jQuery("input[type=submit]").click();
 			});
 
-			jQuery('#diso_preview_link').click(function() {
+			jQuery('#profile_preview_link').click(function() {
 				preview_hcard();
 				jQuery('#profile_thickbox').click();
 				return false;
@@ -182,17 +182,15 @@ function diso_profile_extend() {
 
 	</script>
 <?php
-
-}//end function diso_profile_extend
+}
 
 
 /**
  * Include a link at the top of the WordPress profile page to import hCard data.
  */
-function diso_profile_extend_top() {
-	global $profileuser;
+function ext_profile_personal_options() {
 	echo '<p><input type="hidden" id="do_manual_hcard" name="do_manual_hcard" /><a href="#" id="hcard_link">Import hCard</a></p>';
-}//end finction diso_profile_extend_top
+}
 
 
 /**
@@ -200,9 +198,9 @@ function diso_profile_extend_top() {
  *
  * @param int $userid ID of user
  */
-function diso_profile_extend_save($userid) {
+function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
-		diso_profile_hcard_import($userid, true);
+		ext_profile_hcard_import($userid, true);
 	} else {
 		$userdata = get_userdata($userid);
 		$n = $userdata->n ? $userdata->n : array();
@@ -219,7 +217,7 @@ function diso_profile_extend_save($userid) {
 		update_usermeta($userdata->ID, 'user_url', $_POST['url']);
 		update_usermeta($userdata->ID, 'display_name', $_POST['display_name']);
 	}
-}//end function diso_profile_extend_save
+}
 
 
 /**
@@ -231,7 +229,7 @@ function diso_profile_extend_save($userid) {
  * @param bool $actionstream_aware should profile include actionstream URLs
  * @return string microformatted profile
  */
-function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
+function extended_profile($userid='', $echo=true, $actionstream_aware=false) {
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
 	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
@@ -245,7 +243,7 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 		$userdata = get_userdata($userid);
 	else
 		$userdata = get_userdatabylogin($userid);
-	$template = '<div class="vcard diso diso-profile">';
+	$template = '<div class="vcard hcard-profile">';
 	if($userdata->photo && diso_user_is($userdata->profile_permissions['photo'])) $template .= '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />'."\n";
 	$template .= '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
 	if( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
@@ -295,11 +293,11 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
 	$template .= '</dl>';
 	$template .= '</div>';
 
-	$template = apply_filters('diso_profile_template', $template);
+	$template = apply_filters('ext_profile_template', $template);
 
-	if($echo) {echo $template; echo '<!-- diso-profile time : '.(microtime(true)-$time).' seconds -->';}
+	if($echo) {echo $template; echo '<!-- ext-profile time : '.(microtime(true)-$time).' seconds -->';}
 	return $template;
-}//end function diso_profile
+}//end function extended_profile
 
 
 /**
@@ -307,7 +305,7 @@ function diso_profile($userid='', $echo=true, $actionstream_aware=false) {
  */
 function ext_profile_style() {
 	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
-}//end function diso_profile_head
+}
 add_action('init', 'ext_profile_style');
 add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
 
@@ -324,10 +322,10 @@ function ext_profile_admin_js() {
  * Register WordPress admin hooks.
  */
 function ext_profile_admin() {
-	add_action('profile_update', 'diso_profile_extend_save');
-	add_action('profile_personal_options', 'diso_profile_extend_top');
-	add_action('show_user_profile', 'diso_profile_extend');
-	add_action('edit_user_profile', 'diso_profile_extend');
+	add_action('profile_update', 'ext_profile_update');
+	add_action('profile_personal_options', 'ext_profile_personal_options');
+	add_action('show_user_profile', 'ext_profile_fields');
+	add_action('edit_user_profile', 'ext_profile_fields');
 
 	add_action('load-profile.php', 'ext_profile_admin_js');
 	add_action('load-user-edit.php', 'ext_profile_admin_js');
@@ -347,7 +345,7 @@ add_action('admin_init', 'ext_profile_admin');
  * @return string microformatted profile
  */
 function ext_profile_shortcode($attr, $content) {
-	return diso_profile($content, false);
+	return extended_profile($content, false);
 }
 add_shortcode('profile', 'ext_profile_shortcode');
 
@@ -359,11 +357,11 @@ add_shortcode('profile', 'ext_profile_shortcode');
  * @param id $user_id ID of user to get attribute for
  * @return string new value for attribute
  */
-function diso_profile_openid_sreg_country($value, $user_id) {
+function ext_profile_openid_sreg_country($value, $user_id) {
 	$country = get_usermeta($user_id, 'countryname');
 	return $country ? $country : $value;
 }
-add_filter('openid_server_sreg_country', 'diso_profile_openid_sreg_country', 10, 2);
+add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
 
 
 /**
@@ -373,9 +371,9 @@ add_filter('openid_server_sreg_country', 'diso_profile_openid_sreg_country', 10,
  * @param id $user_id ID of user to get attribute for
  * @return string new value for attribute
  */
-function diso_profile_openid_sreg_postcode($value, $user_id) {
+function ext_profile_openid_sreg_postcode($value, $user_id) {
 	$postcode = get_usermeta($user_id, 'postalcode');
 	return $postcode ? $postcode : $value;
 }
-add_filter('openid_server_sreg_postcode', 'diso_profile_openid_sreg_postcode', 10, 2);
+add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
 ?>
