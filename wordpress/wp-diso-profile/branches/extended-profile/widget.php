@@ -1,16 +1,15 @@
 <?php
 
-// TODO migrate existing diso-profile widget
-function widget_ext_profile_init() {
+function widget_user_profile_init() {
 
 	if (!function_exists('register_sidebar_widget'))
 		return;
 	
 	
-	function widget_ext_profile($args) {
+	function widget_user_profile($args) {
 		extract($args);
 				
-		$options = get_option('widget_ext_profile');
+		$options = get_option('widget_user_profile');
 		$title = $options['title'];
 
 		echo $before_widget;
@@ -19,8 +18,8 @@ function widget_ext_profile_init() {
 		echo $after_widget;
 	}
 	
-	function widget_ext_profile_control() {
-		$options = get_option('widget_ext_profile');
+	function widget_user_profile_control() {
+		$options = get_option('widget_user_profile');
 
 		if ( !is_array($options) )
 			$options = array('title'=>'User Profile', 'user'=>false);
@@ -28,7 +27,7 @@ function widget_ext_profile_init() {
 		if ( $_POST['profile_submit'] ) {
 			$options['title'] = strip_tags(stripslashes($_POST['profile_title']));
 			$options['user'] = strip_tags(stripslashes($_POST['profile_user']));
-			update_option('widget_ext_profile', $options);
+			update_option('widget_user_profile', $options);
 		}
 
 		$title = htmlspecialchars($options['title'], ENT_QUOTES);
@@ -49,10 +48,10 @@ function widget_ext_profile_init() {
 		<?php
 	}
 	
-	register_sidebar_widget('User Profile', 'widget_ext_profile');
-	register_widget_control('User Profile', 'widget_ext_profile_control');
+	register_sidebar_widget('User Profile', 'widget_user_profile');
+	register_widget_control('User Profile', 'widget_user_profile_control');
 }
 
-add_action('plugins_loaded', 'widget_ext_profile_init');
+add_action('plugins_loaded', 'widget_user_profile_init');
 
 ?>

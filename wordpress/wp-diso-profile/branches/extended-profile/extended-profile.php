@@ -15,6 +15,22 @@ require_once dirname(__FILE__).'/avatar.php';
 
 $hkit;
 
+// register actions
+add_action('user_register', 'ext_profile_hcard_import');
+add_action('init', 'ext_profile_style');
+add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
+add_action('admin_init', 'ext_profile_admin');
+add_shortcode('profile', 'ext_profile_shortcode');
+
+// provide SREG attributes for OpenID plugin
+add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
+add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
+
+register_activation_hook('extended-profile/extended-profile.php', 'ext_profile_activate');
+if ( function_exists('register_uninstall_hook') ) {
+	register_uninstall_hook('extended-profile/extended-profile.php', 'ext_profile_uninstall');
+}
+
 
 /**
  * Get the microformatted profile for the specified user.
@@ -31,6 +47,21 @@ function extended_profile($userid, $echo=true, $actionstream_aware=false) {
 	$profile = get_extended_profile($userid, $actionstream_aware);
 	if ($echo) echo $profile;
 	return $profile;
+}
+
+/**
+ * Activate plugin.
+ */
+function ext_profile_activate() {
+	ext_profile_migrate_widget_data();
+}
+
+
+/**
+ * Uninstall plugin.
+ */
+function ext_profile_uninstall() {
+	delete_option('widget_user_profile');
 }
 
 
@@ -126,7 +157,6 @@ function ext_profile_hcard_import($userid, $override=false) {
 	foreach($phcard as $key => $val)
 		if($key && $val && ($override || !$userdata->$key)) update_usermeta($userid, $key, $val);
 }
-add_action('user_register', 'ext_profile_hcard_import');
 
 
 /**
@@ -362,8 +392,6 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 function ext_profile_style() {
 	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
 }
-add_action('init', 'ext_profile_style');
-add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
 
 
 /**
@@ -388,7 +416,6 @@ function ext_profile_admin() {
 	add_action('admin_head-profile.php', 'ext_profile_style');
 	add_action('admin_head-user-edit.php', 'ext_profile_style');
 }
-add_action('admin_init', 'ext_profile_admin');
 
 
 /**
@@ -403,7 +430,6 @@ add_action('admin_init', 'ext_profile_admin');
 function ext_profile_shortcode($attr, $content) {
 	return get_extended_profile($content);
 }
-add_shortcode('profile', 'ext_profile_shortcode');
 
 
 /**
@@ -417,7 +443,6 @@ function ext_profile_openid_sreg_country($value, $user_id) {
 	$country = get_usermeta($user_id, 'countryname');
 	return $country ? $country : $value;
 }
-add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
 
 
 /**
@@ -431,5 +456,35 @@ function ext_profile_openid_sreg_postcode($value, $user_id) {
 	$postcode = get_usermeta($user_id, 'postalcode');
 	return $postcode ? $postcode : $value;
 }
-add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
+
+
+/**
+ * Migrate old widget data to new format.
+ */
+function ext_profile_migrate_widget_data() {
+	$migrate = false;
+	$sidebars = get_option('sidebars_widgets');
+
+	foreach ($sidebars as $name => $widgets) {
+		for($i=0; $i<sizeof($widgets); $i++) {
+			if ($widgets[$i] == 'diso-profile') {
+				$sidebars[$name][$i] = 'user-profile';
+				$migrate = true;
+			}
+		}
+	}
+
+	if ($migrate) {
+		update_option('sidebars_widgets', $sidebars);
+
+		$options = get_option('widget_diso_profile');
+		delete_option('widget_diso_profile');
+
+		if ($options) {
+			$options['user'] = $options['userid'];
+			unset($options['userid']);
+			update_option('widget_user_profile', $options);
+		}
+	}
+}
 ?>
