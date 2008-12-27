@@ -9,7 +9,7 @@ Author URI: http://code.google.com/p/diso/
 */
 
 require_once dirname(__FILE__).'/recent-visitors.php';
-require_once dirname(__FILE__).'/profile-widget.php';
+require_once dirname(__FILE__).'/widget.php';
 require_once dirname(__FILE__).'/permissions.php';
 require_once dirname(__FILE__).'/avatar.php';
 
@@ -371,7 +371,7 @@ add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
  */
 function ext_profile_admin_js() {
 	add_thickbox();
-	wp_enqueue_script('ext-profile', plugins_url('extended-profile/profile_preview.js'), array('thickbox'));
+	wp_enqueue_script('ext-profile', plugins_url('extended-profile/preview.js'), array('thickbox'));
 }
 
 /**
