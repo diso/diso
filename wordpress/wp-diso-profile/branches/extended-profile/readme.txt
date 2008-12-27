@@ -36,3 +36,7 @@ Use the `profile` shortcode with the username or ID of the user whose profile yo
 
 	[profile]admin[/profile]
 
+You may include a profile directly from your PHP templates by calling:
+
+	extended_profile('admin');
+
