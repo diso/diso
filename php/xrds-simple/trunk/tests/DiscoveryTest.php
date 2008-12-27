@@ -28,9 +28,9 @@ class DiscoveryTest extends PHPUnit_Framework_TestCase {
 		$this->assertNotNull($xrds);
 	}
 
-	public function testHtmlLink() {
+	public function testHtmlMeta() {
 		$disco = new XRDS_Discovery();
-		$disco->discovery_methods = array('XRDS_Discovery_HTML_Link');
+		$disco->discovery_methods = array('XRDS_Discovery_HTML_Meta');
 		$xrds = $disco->discover('http://willnorris.myvidoop.com/');
 
 		$this->assertNotNull($xrds);
