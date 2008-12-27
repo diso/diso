@@ -4,7 +4,7 @@
  * This hooks into the Wordpress default avatar logic, and inserts
  * avatars detected from hCards / set in the proflie where appropriate.
  */
-function diso_get_avatar($gravatar, $id_or_email, $size) {
+function ext_profile_avatar($gravatar, $id_or_email, $size) {
 	if(is_numeric($id_or_email)) {
 		$user = get_userdata((int)$id_or_email);
 		if($user && $user->photo)
@@ -23,6 +23,6 @@ function diso_get_avatar($gravatar, $id_or_email, $size) {
 	return $gravatar;
 }
 
-add_filter('get_avatar', 'diso_get_avatar', 10, 3);
+add_filter('get_avatar', 'ext_profile_avatar', 10, 3);
 
 ?>

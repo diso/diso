@@ -17,6 +17,24 @@ $hkit;
 
 
 /**
+ * Get the microformatted profile for the specified user.
+ *
+ * @param mixed $userid username or ID of user to get profile for.  If not 
+ *                      specified, administrator user will be used.
+ * @param bool $echo should profile be echo()'ed
+ * @param bool $actionstream_aware should profile exclude actionstream URLs
+ * @return string microformatted profile
+ * @access public
+ * @since 0.6
+ */
+function extended_profile($userid, $echo=true, $actionstream_aware=false) {
+	$profile = get_extended_profile($userid, $actionstream_aware);
+	if ($echo) echo $profile;
+	return $profile;
+}
+
+
+/**
  * Fetch hCard for the specified URL.
  *
  * @param string $url URL to get hCard from
@@ -220,84 +238,122 @@ function ext_profile_update($userid) {
 }
 
 
+
 /**
  * Get the microformatted profile for the specified user.
  *
  * @param mixed $userid username or ID of user to get profile for.  If not 
  *                      specified, administrator user will be used.
  * @param bool $echo should profile be echo()'ed
- * @param bool $actionstream_aware should profile include actionstream URLs
+ * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
  */
-function extended_profile($userid='', $echo=true, $actionstream_aware=false) {
+function get_extended_profile($userid, $actionstream_aware=false) {
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
 	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
 
-	$time = microtime(true);
-	if(!$userid) {//get administrator
-		global $wpdb;
-		$userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
-	}//end if ! userid
 	if(is_numeric($userid))
 		$userdata = get_userdata($userid);
 	else
 		$userdata = get_userdatabylogin($userid);
+	if (!$userdata) return;
+
 	$template = '<div class="vcard hcard-profile">';
 	if($userdata->photo && diso_user_is($userdata->profile_permissions['photo'])) $template .= '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />'."\n";
+
+	// Name
 	$template .= '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
-	if( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
-		if($userdata->user_url)
+	if ( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
+		if ($userdata->user_url)
 			$template .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
 		else
 			$template .= '<span class="n">';
-		if($userdata->last_name && diso_user_is($userdata->profile_permissions['family-name'])) $template .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
-		if($userdata->first_name && diso_user_is($userdata->profile_permissions['given-name'])) $template .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
-		if($userdata->n['additional-name'] && diso_user_is($userdata->profile_permissions['additional-name'])) $template .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
-		if($userdata->user_url)
+
+		if ($userdata->last_name && diso_user_is($userdata->profile_permissions['family-name'])) 
+			$template .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
+
+		if ($userdata->first_name && diso_user_is($userdata->profile_permissions['given-name'])) 
+			$template .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
+
+		if ($userdata->n['additional-name'] && diso_user_is($userdata->profile_permissions['additional-name'])) 
+			$template .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
+		
+		if ($userdata->user_url)
 			$template .= '</a>';
 		else
 			$template .= '</span>';
-	}//end if name
+	}
+
 	if($userdata->nickname && diso_user_is($userdata->profile_permissions['nickname'])) $template .= '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"'."\n";
 	if($userdata->org && diso_user_is($userdata->profile_permissions['org'])) $template .= '(<span class="org">'.htmlentities($userdata->org).'</span>)'."\n";
 	if($userdata->description && diso_user_is($userdata->profile_permissions['note'])) $template .= '<p class="note">'.htmlentities($userdata->description).'</p>'."\n";
 
 	$template .= '<h3>Contact Information</h3>';
 	$template .= '<dl class="contact">';
-	if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-	if(count($userdata->urls) && diso_user_is($userdata->profile_permissions['urls'])) {
+
+	// URLs
+	if (!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
+	if (count($userdata->urls) && diso_user_is($userdata->profile_permissions['urls'])) {
 		$template .= '<dt>On the web:</dt> <dd> <ul>';
-      if($actionstream_aware) $actionstream = actionstream_services($userdata->ID, true);
-      foreach($userdata->urls as $url) {
-         if($actionstream_aware && in_array($url,$actionstream)) continue;
-         $template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities(preg_replace('/^www\./','',preg_replace('/^http:\/\//','',$url))).'</a></li>';
-      }//end foreach
+		if ($actionstream_aware && function_exists('actionstream_services')) {
+			$actionstream = actionstream_services($userdata->ID, true);
+		}
+		foreach($userdata->urls as $url) {
+			if($actionstream_aware && in_array($url,$actionstream)) continue;
+			$template .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities(preg_replace('/^www\./','',preg_replace('/^http:\/\//','',$url))).'</a></li>';
+		}
 		$template .= '</ul> </dd>'."\n";
-	}//end if urls
-	if($userdata->aim && diso_user_is($userdata->profile_permissions['aim'])) $template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
-	if($userdata->yim && diso_user_is($userdata->profile_permissions['yim'])) $template .= '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>'."\n";
-	if($userdata->jabber && diso_user_is($userdata->profile_permissions['jabber'])) $template .= '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>'."\n";
-	if($userdata->user_email && diso_user_is($userdata->profile_permissions['email'])) $template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
-	if($userdata->tel && diso_user_is($userdata->profile_permissions['tel'])) $template .= '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>'."\n";
-	if( ($userdata->streetaddress || $userdata->locality || $userdata->region || $userdata->postalcode || $userdata->countryname)  &&
-	 (diso_user_is($userdata->profile_permissions['street-address']) || diso_user_is($userdata->profile_permissions['locality']) || diso_user_is($userdata->profile_permissions['region']) || diso_user_is($userdata->profile_permissions['postal-code']) || diso_user_is($userdata->profile_permissions['country-name']) ) ) {
-		$template .= '<dt>Current Address:</dt> <dd class="adr">';
-		if($userdata->streetaddress && diso_user_is($userdata->profile_permissions['street-address'])) $template .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
-		if($userdata->locality && diso_user_is($userdata->profile_permissions['locality'])) $template .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
-		if($userdata->region && diso_user_is($userdata->profile_permissions['region'])) $template .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
-		if($userdata->postalcode && diso_user_is($userdata->profile_permissions['postal-code'])) $template .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
-		if($userdata->countryname && diso_user_is($userdata->profile_permissions['country-name'])) $template .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
-		$template .= '</dd>';
-	}//end if adr
+	}
+
+	// Contact Information
+	if ($userdata->aim && diso_user_is($userdata->profile_permissions['aim'])) 
+		$template .= '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>'."\n";
+
+	if ($userdata->yim && diso_user_is($userdata->profile_permissions['yim'])) 
+		$template .= '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>'."\n";
+
+	if ($userdata->jabber && diso_user_is($userdata->profile_permissions['jabber'])) 
+		$template .= '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>'."\n";
+
+	if ($userdata->user_email && diso_user_is($userdata->profile_permissions['email'])) 
+		$template .= '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>'."\n";
+
+	if ($userdata->tel && diso_user_is($userdata->profile_permissions['tel'])) 
+		$template .= '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>'."\n";
+
+
+	// Address
+	$adr = '';
+
+	if ($userdata->streetaddress && diso_user_is($userdata->profile_permissions['street-address'])) 
+		$adr .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
+
+	if ($userdata->locality && diso_user_is($userdata->profile_permissions['locality'])) 
+		$adr .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
+
+	if ($userdata->region && diso_user_is($userdata->profile_permissions['region'])) 
+		$adr .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
+
+	if ($userdata->postalcode && diso_user_is($userdata->profile_permissions['postal-code'])) 
+		$adr .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
+
+	if ($userdata->countryname && diso_user_is($userdata->profile_permissions['country-name'])) 
+		$adr .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
+
+	if ($adr) {
+		$template .= '<dt>Current Address:</dt> <dd class="adr">' . $adr . '</dd>';
+	}
+
 	$template .= '</dl>';
 	$template .= '</div>';
 
 	$template = apply_filters('ext_profile_template', $template);
 
-	if($echo) {echo $template; echo '<!-- ext-profile time : '.(microtime(true)-$time).' seconds -->';}
+	//echo '<!-- ext-profile time : '.(microtime(true)-$time).' seconds -->';
+
 	return $template;
-}//end function extended_profile
+}//end function get_extended_profile
 
 
 /**
@@ -345,7 +401,7 @@ add_action('admin_init', 'ext_profile_admin');
  * @return string microformatted profile
  */
 function ext_profile_shortcode($attr, $content) {
-	return extended_profile($content, false);
+	return get_extended_profile($content);
 }
 add_shortcode('profile', 'ext_profile_shortcode');
 
