@@ -44,13 +44,6 @@ if ( function_exists('register_uninstall_hook') ) {
  * @since 0.6
  */
 function extended_profile($userid=null, $echo=true, $actionstream_aware=false) {
-
-	if (empty($userid) && is_author()) {
-		global $wp_query;
-		$user = $wp_query->get_queried_object();
-		$userid = $user->ID;
-	}
-
 	$profile = get_extended_profile($userid, $actionstream_aware);
 	if ($echo) echo $profile;
 	return $profile;
@@ -280,7 +273,7 @@ function ext_profile_update($userid) {
  * Get the microformatted profile for the specified user.
  *
  * @param mixed $userid username or ID of user to get profile for.  If not 
- *                      specified, administrator user will be used.
+ *                      specified, the queried author will be used.
  * @param bool $echo should profile be echo()'ed
  * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
@@ -289,6 +282,13 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
 	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
+
+	// Use queried author if userid not provided
+	if (empty($userid) && is_author()) {
+		global $wp_query;
+		$user = $wp_query->get_queried_object();
+		$userid = $user->ID;
+	}
 
 	if(is_numeric($userid))
 		$userdata = get_userdata($userid);
