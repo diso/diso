@@ -36,14 +36,21 @@ if ( function_exists('register_uninstall_hook') ) {
  * Get the microformatted profile for the specified user.
  *
  * @param mixed $userid username or ID of user to get profile for.  If not 
- *                      specified, administrator user will be used.
+ *                      specified, queried author will be used.
  * @param bool $echo should profile be echo()'ed
  * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
  * @access public
  * @since 0.6
  */
-function extended_profile($userid, $echo=true, $actionstream_aware=false) {
+function extended_profile($userid=null, $echo=true, $actionstream_aware=false) {
+
+	if (empty($userid) && is_author()) {
+		global $wp_query;
+		$user = $wp_query->get_queried_object();
+		$userid = $user->ID;
+	}
+
 	$profile = get_extended_profile($userid, $actionstream_aware);
 	if ($echo) echo $profile;
 	return $profile;
