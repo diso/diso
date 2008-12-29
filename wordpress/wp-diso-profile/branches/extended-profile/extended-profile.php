@@ -297,13 +297,13 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 
 	do_action('pre_extended_profile', $userdata->ID);
 
-	$profile = '';
+	ob_start();
 
 	// Photo
 	if ($userdata->photo && diso_user_is($userdata->profile_permissions['photo'])) {
 		$photo = '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />';
 		$photo = apply_filters('extended_profile_photo', $photo, $userdata->ID);
-		if ($photo) $profile .= $photo . "\n";
+		if ($photo) echo $photo . "\n";
 	}
 
 	// Name
@@ -329,27 +329,27 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 			$name .= '</span>';
 	}
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
-	if ($name) $profile .= $name;
+	if ($name) echo $name;
 
 	// Nickname
 	if ($userdata->nickname && diso_user_is($userdata->profile_permissions['nickname'])) {
 		$nickname = '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"';
 		$nickname = apply_filters('extended_profile_nickname', $nickname, $userdata->ID);
-		if ($nickname) $profile .= $nickname . "\n";
+		if ($nickname) echo $nickname . "\n";
 	}
 
 	/// Org
 	if ($userdata->org && diso_user_is($userdata->profile_permissions['org'])) {
 		$org = '(<span class="org">'.htmlentities($userdata->org).'</span>)';
 		$org = apply_filters('extended_profile_org', $org, $userdata->ID);
-		if ($org) $profile .= $org . "\n";
+		if ($org) echo $org . "\n";
 	}
 
 	// Note
 	if ($userdata->description && diso_user_is($userdata->profile_permissions['note'])) {
 		$note = '<p class="note">'.htmlentities($userdata->description).'</p>';
 		$note = apply_filters('extended_profile_note', $note, $userdata->ID);
-		if ($note) $profile .= $note . "\n";
+		if ($note) echo $note . "\n";
 	}
 
 	$contact = '<h3>Contact Information</h3>';
@@ -432,17 +432,15 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 		if ($adr) $contact .= $adr;
 	}
 
-
 	$contact .= '</dl>';
 	$contact = apply_filters('extended_profile_contact', $contact, $userdata->ID);
-	if ($contact) $profile .= $contact;
+	if ($contact) echo $contact;
 
-	$profile = '<div class="vcard hcard-profile">' . $profile . '</div>';
-	
+	$profile = '<div class="vcard hcard-profile">' . ob_get_contents() . '</div>';
 	$profile = apply_filters('extended_profile', $profile);
-
 	//echo '<!-- ext-profile time : '.(microtime(true)-$time).' seconds -->';
 
+	ob_end_clean();
 	return $profile;
 }//end function get_extended_profile
 
