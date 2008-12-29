@@ -81,6 +81,7 @@ function extended_profile($userid=null, $echo=true, $actionstream_aware=false) {
  */
 function ext_profile_activate() {
 	ext_profile_migrate_widget_data();
+	ext_profile_migrate_profile_data();
 }
 
 
@@ -414,20 +415,53 @@ function extended_profile_photo($userid) {
 function extended_profile_name($userid) {
 	$userdata = get_userdata($userid);
 
+	// N (individual name components)
+	$n = '';
+
+	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) {
+		$last_name = '<span class="family-name">' . $userdata->last_name . '</span>';
+		$last_name = apply_filters('extended_profile_last_name', $last_name, $userdata->ID);
+		if ($last_name) $n .= $last_name . ', ';
+	}
+
+	if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) {
+		$first_name = '<span class="given-name">' . $userdata->first_name . '</span>';
+		$first_name = apply_filters('extended_profile_first_name', $first_name, $userdata->ID);
+		if ($first_name) $n .= $first_name . ' ';
+	}
+
+	if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) {
+		$additional_name = '<span class="additional-name">' . $userdata->additional_name . '</span>';
+		$additional_name = apply_filters('extended_profile_additional_name', $additional_name, $userdata->ID);
+		if ($additional_name) $n .= $additional_name;
+	}
+
+	if ($n) $n = '<span class="n">' . $n . '</span>';
+	$n = apply_filters('extended_profile_n', $n, $userdata->ID);
+	
+	// FN (formatted name)
+	$fn = $userdata->display_name;
+
+	if (!@$additional_name) {
+		// if display_name is equal to the un-marked-up name concatenation, then just use the marked-up concatenation
+		// checking for the trimmed concatenation covers the use case where the user profile only has one name
+		if ($fn == trim(strip_tags($first_name . ' ' . $last_name))) {
+			$fn = trim($first_name . ' ' . $last_name);
+			$n = '';
+		} else if ($fn == strip_tags($userdata->last_name . ' ' . $userdata->first_name)) {
+			$fn = $last_name . ' ' . $first_name;
+			$n = '';
+		}
+	}
+
+	$fn = '<h2 class="fn">' . $fn . '</h2>';
+	$fn = apply_filters('extended_profile_fn', $fn, $userdata->ID);
+
 	$name = '';
-
-	if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
-		$name .= '<span class="given-name">' . $userdata->first_name . '</span> ';
-
-	if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
-		$name .= '<span class="additional-name">' . $userdata->additional_name . '</span> ';
-
-	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
-		$name .= '<span class="family-name">' . $userdata->last_name . '</span>';
-
-	$name = '<h2 class="fn n">' . $name . '</h2>';
-
+	if ($fn) $name .= $fn;
+	if ($n) $name .= $n;
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
+
 	if ($name) echo $name . "\n";
 }
 
@@ -663,6 +697,36 @@ function ext_profile_migrate_widget_data() {
 			unset($options['userid']);
 			update_option('widget_user_profile', $options);
 		}
+	}
+}
+
+
+/**
+ * Migrate old user data for all users.
+ */
+function ext_profile_migrate_profile_data() {
+	$users = get_users_of_blog();
+
+	foreach ($users as $user) {
+		update_usermeta($user->user_id, 'postal_code', get_usermeta($user->user_id, 'postalcode'));
+		delete_usermeta($user->user_id, 'postalcode');
+
+		update_usermeta($user->user_id, 'street_address', get_usermeta($user->user_id, 'streetaddress'));
+		delete_usermeta($user->user_id, 'streetaddress');
+
+		update_usermeta($user->user_id, 'country_name', get_usermeta($user->user_id, 'countryname'));
+		delete_usermeta($user->user_id, 'countryname');
+
+		update_usermeta($user->user_id, 'additional_urls', get_usermeta($user->user_id, 'urls'));
+		delete_usermeta($user->user_id, 'urls');
+
+		$n = get_usermeta($user->user_id, 'n');
+		update_usermeta($user->user_id, 'additional_name', @$n['additional_name']);
+		delete_usermeta($user->user_id, 'n');
+
+		delete_usermeta($user->user_id, 'fn');
+		delete_usermeta($user->user_id, 'user_url');
+		delete_usermeta($user->user_id, 'display_name');
 	}
 }
 ?>
