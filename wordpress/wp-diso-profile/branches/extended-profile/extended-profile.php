@@ -8,7 +8,6 @@ Author: DiSo Development Team
 Author URI: http://diso-project.org/
 */
 
-require_once dirname(__FILE__).'/recent-visitors.php';
 require_once dirname(__FILE__).'/widget.php';
 require_once dirname(__FILE__).'/permissions.php';
 require_once dirname(__FILE__).'/avatar.php';
