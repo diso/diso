@@ -388,23 +388,22 @@ function extended_profile_name($userid) {
 
 	$name = '';
 
-	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
-		$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,';
-
 	if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
-		$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>';
+		$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span> ';
 
 	if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
-		$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span>';
+		$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span> ';
+
+	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
+		$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>';
 
 	if ($name) {
-		if ($userdata->user_url)
+		if (@$userdata->user_url) {
 			$name = '<a class="url uid" rel="me" href="' . clean_url($userdata->user_url) . '">' . $name . '</a>';
-		else
-			$name = '<span class="n">' . $name . '</span>';
+		}
 	}
 
-	$name = '<h2 class="fn">' . htmlentities($userdata->display_name) . '</h2>' . $name;
+	$name = '<h2 class="fn n">' . $name . '</h2>';
 
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
 	if ($name) echo $name . "\n";
