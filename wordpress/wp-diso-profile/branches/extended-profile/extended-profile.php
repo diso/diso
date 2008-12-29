@@ -386,30 +386,28 @@ function extended_profile_photo($userid) {
 function extended_profile_name($userid) {
 	$userdata = get_userdata($userid);
 
-	$name = '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
+	$name = '';
 
-	if ( $userdata->first_name || $userdata->additional_name || $userdata->last_name ) {
+	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
+		$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,';
+
+	if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
+		$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>';
+
+	if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
+		$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span>';
+
+	if ($name) {
 		if ($userdata->user_url)
-			$name .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
+			$name = '<a class="url uid" rel="me" href="' . clean_url($userdata->user_url) . '">' . $name . '</a>';
 		else
-			$name .= '<span class="n">';
-
-		if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
-			$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
-
-		if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
-			$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
-
-		if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
-			$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span>'."\n";
-		
-		if (@$userdata->user_url)
-			$name .= '</a>';
-		else
-			$name .= '</span>';
+			$name = '<span class="n">' . $name . '</span>';
 	}
+
+	$name = '<h2 class="fn">' . htmlentities($userdata->display_name) . '</h2>' . $name;
+
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
-	if ($name) echo $name;
+	if ($name) echo $name . "\n";
 }
 
 
