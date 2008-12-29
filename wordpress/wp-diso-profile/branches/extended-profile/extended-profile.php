@@ -30,6 +30,25 @@ add_action('extended_profile', 'extended_profile_org', 6);
 add_action('extended_profile', 'extended_profile_note', 8);
 add_action('extended_profile', 'extended_profile_contact', 10, 2);
 
+// default filters
+$filters = array('additional_name', 'org', 'street_address', 'locality', 'region', 'country_name', 'postal_code', 'tel');
+foreach ( $filters as $filter ) {
+	$filter = 'pre_ext_profile_' . $filter;
+	add_filter($filter, 'strip_tags');
+	add_filter($filter, 'trim');
+	add_filter($filter, 'wp_filter_kses');
+	add_filter($filter, 'wp_specialchars', 30);
+}
+
+$filters = array('photo', 'url');
+foreach ( $filters as $filter ) {
+	$filter = 'pre_ext_profile_' . $filter;
+	add_filter($filter, 'strip_tags');
+	add_filter($filter, 'trim');
+	add_filter($filter, 'sanitize_url');
+	add_filter($filter, 'wp_filter_kses');
+}
+
 // provide SREG attributes for OpenID plugin
 add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
 add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
@@ -225,8 +244,8 @@ function ext_profile_fields() {
 	echo '<table class="form-table">';
 		echo '	<tr><th><label for="photo">Photo URL</label></th><td>'; 
 	if($userdata->photo)
-		echo'<a href="'.$userdata->photo.'"><img src="'.$userdata->photo.'" alt="Avatar" class="photo" style="float: right; max-height: 200px" /></a>';
-	echo '<input type="text" id="photo" name="hcard[photo]" value="'.htmlentities($userdata->photo).'" onchange="preview_hcard();" />';
+		echo'<a href="' . clean_url($userdata->photo) . '"><img src="' . clean_url($userdata->photo) . '" alt="Avatar" class="photo" style="float: right; max-height: 200px" /></a>';
+	echo '<input type="text" id="photo" name="hcard[photo]" value="' . attribute_escape($userdata->photo) . '" onchange="preview_hcard();" />';
 	echo '</td></tr></table>';
 
 	//ORGANIZATION AND ADDRESS
@@ -235,11 +254,11 @@ function ext_profile_fields() {
 				'org' => 'Organization',
 			),
 			'Address' => array(
-				'streetaddress' => 'Street Address',
+				'street_address' => 'Street Address',
 				'locality' => 'City',
 				'region' => 'Province/State',
-				'postalcode' => 'Postal Code',
-				'countryname' => 'Country',
+				'postal_code' => 'Postal Code',
+				'country_name' => 'Country',
 				'tel' => 'Telephone Number',
 			),
 		);
@@ -247,13 +266,13 @@ function ext_profile_fields() {
 		echo '<h3>'.$legend.'</h3>';
 		echo '<table class="form-table">';
 		if($legend == 'Miscellaneous') {
-			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="hcard[additional_name]" value="'.$userdata->additional_name.'" /></td></tr>';
+			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="hcard[additional_name]" value="'.@$userdata->additional_name.'" /></td></tr>';
 			if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
 			if(!is_array($userdata->urls) || !count($userdata->urls)) $userdata->urls = array($userdata->user_url);
 			echo '	<tr><th><label for="urls">Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls">'.htmlentities(implode("\n",$userdata->urls)).'</textarea></td></tr>';
 		}//end if Miscellaneous
 		foreach($fields as $key => $label)
-			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.$userdata->$key.'" /></td></tr>';
+			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.@$userdata->$key.'" /></td></tr>';
 		echo '</table>';
 	}//end foreach fieldset
 ?>
@@ -304,12 +323,18 @@ function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
 		ext_profile_hcard_import($userid, true);
 	} else {
-		$urls = preg_split('/[\s]+/',$_POST['urls']);
-		update_usermeta($userid, 'urls', $urls);
+		$post_urls = preg_split('/[\s]+/',$_POST['urls']);
+		$urls = array();
+		foreach ($post_urls as $u) {
+			$urls[] = apply_filters('pre_ext_profile_url', $u);
+		}
+		update_usermeta($userid, 'urls', array_filter($urls));
 
 		if (is_array($_POST['hcard'])) {
-			foreach($_POST['hcard'] as $key => $val)
-				update_usermeta($userid, $key, $val);
+			foreach($_POST['hcard'] as $key => $value) {
+				$value = apply_filters("pre_ext_profile_$key", $value);
+				update_usermeta($userid, $key, $value);
+			}
 		}
 	}
 }
@@ -370,7 +395,7 @@ function extended_profile_photo($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->photo && diso_user_is(@$userdata->profile_permissions['photo'])) {
-		$photo = '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />';
+		$photo = '<img class="photo" alt="photo" src="' . clean_url($userdata->photo) . '" />';
 		$photo = apply_filters('extended_profile_photo', $photo, $userdata->ID);
 		if ($photo) echo $photo . "\n";
 	}
@@ -389,13 +414,13 @@ function extended_profile_name($userid) {
 	$name = '';
 
 	if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
-		$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span> ';
+		$name .= '<span class="given-name">' . $userdata->first_name . '</span> ';
 
 	if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
-		$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span> ';
+		$name .= '<span class="additional-name">' . $userdata->additional_name . '</span> ';
 
 	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
-		$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>';
+		$name .= '<span class="family-name">' . $userdata->last_name . '</span>';
 
 	if ($name) {
 		if (@$userdata->user_url) {
@@ -420,7 +445,7 @@ function extended_profile_nickname($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->nickname && diso_user_is(@$userdata->profile_permissions['nickname'])) {
-		$nickname = '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"';
+		$nickname = '"<span class="nickname">' . $userdata->nickname . '</span>"';
 		$nickname = apply_filters('extended_profile_nickname', $nickname, $userdata->ID);
 		if ($nickname) echo $nickname . "\n";
 	}
@@ -437,7 +462,7 @@ function extended_profile_org($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->org && diso_user_is(@$userdata->profile_permissions['org'])) {
-		$org = '(<span class="org">'.htmlentities($userdata->org).'</span>)';
+		$org = '(<span class="org">' . $userdata->org . '</span>)';
 		$org = apply_filters('extended_profile_org', $org, $userdata->ID);
 		if ($org) echo $org . "\n";
 	}
@@ -454,7 +479,7 @@ function extended_profile_note($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->description && diso_user_is(@$userdata->profile_permissions['note'])) {
-		$note = '<p class="note">'.htmlentities($userdata->description).'</p>';
+		$note = '<p class="note">' . $userdata->description . '</p>';
 		$note = apply_filters('extended_profile_note', $note, $userdata->ID);
 		if ($note) echo $note . "\n";
 	}
@@ -481,7 +506,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
 		}
 		foreach($userdata->urls as $url) {
 			if($actionstream_aware && in_array($url,$actionstream)) continue;
-			$urls .= '<li><a class="url" rel="me" href="'.htmlentities($url).'">'.htmlentities(preg_replace('/^www\./','',preg_replace('/^http:\/\//','',$url))).'</a></li>';
+			$urls .= '<li><a class="url" rel="me" href="' . clean_url($url) . '">' . ext_profile_display_url($url) . '</a></li>';
 		}
 		$urls .= '</ul> </dd>';
 
@@ -491,35 +516,35 @@ function extended_profile_contact($userid, $actionstream_aware) {
 
 	// AIM
 	if (@$userdata->aim && diso_user_is(@$userdata->profile_permissions['aim'])) {
-		$aim = '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>';
+		$aim = '<dt>AIM:</dt> <dd><a class="url" href="' . clean_url("aim:goim?screenname=$userdata->aim", array('aim')) . '">' . $userdata->aim . '</a></dd>';
 		$aim = apply_filters('extended_profile_aim', $aim, $userdata->ID);
 		if ($aim) $contact .= $aim . "\n";
 	}
 
 	// YIM
 	if (@$userdata->yim && diso_user_is(@$userdata->profile_permissions['yim'])) {
-		$yim = '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>';
+		$yim = '<dt>Y!IM:</dt> <dd><a class="url" href="' . clean_url("ymsgr:sendIM?$userdata->yim", array('ymsgr')) . '">' . $userdata->yim . '</a></dd>';
 		$yim = apply_filters('extended_profile_yim', $yim, $userdata->ID);
 		if ($yim) $contact .= $yim . "\n";
 	}
 
 	// Jabber
 	if (@$userdata->jabber && diso_user_is(@$userdata->profile_permissions['jabber'])) {
-		$jabber = '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>';
+		$jabber = '<dt>Jabber:</dt> <dd><a class="url" href="' . clean_url("xmpp:$userdata->jabber", array('xmpp')) . '">' . $userdata->jabber . '</a></dd>';
 		$jabber = apply_filters('extended_profile_jabber', $jabber, $userdata->ID);
 		if ($jabber) $contact .= $jabber . "\n";
 	}
 
 	// Email
 	if ($userdata->user_email && diso_user_is(@$userdata->profile_permissions['email'])) {
-		$email = '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>';
+		$email = '<dt>Email:</dt> <dd><a class="email" href="' . clean_url("mailto:$userdata->user_email") . '">' . $userdata->user_email . '</a></dd>';
 		$email = apply_filters('extended_profile_email', $email, $userdata->ID);
 		if ($email) $contact .= $email . "\n";
 	}
 
 	// Telephone
 	if (@$userdata->tel && diso_user_is(@$userdata->profile_permissions['tel'])) {
-		$tel = '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>';
+		$tel = '<dt>Telephone:</dt> <dd class="tel">' . $userdata->tel . '</dd>';
 		$tel = apply_filters('extended_profile_tel', $tel, $userdata->ID);
 		if ($tel) $contact .= $tel . "\n";
 	}
@@ -528,20 +553,20 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	// Address
 	$adr = '';
 
-	if (@$userdata->streetaddress && diso_user_is(@$userdata->profile_permissions['street-address'])) 
-		$adr .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
+	if (@$userdata->street_address && diso_user_is(@$userdata->profile_permissions['street-address'])) 
+		$adr .= '<div class="street-address">' . $userdata->street_address . '</div>'."\n";
 
 	if (@$userdata->locality && diso_user_is(@$userdata->profile_permissions['locality'])) 
-		$adr .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
+		$adr .= '<span class="locality">' . $userdata->locality . '</span>,'."\n";
 
 	if (@$userdata->region && diso_user_is(@$userdata->profile_permissions['region'])) 
-		$adr .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
+		$adr .= '<span class="region">' . $userdata->region . '</span>'."\n";
 
-	if (@$userdata->postalcode && diso_user_is(@$userdata->profile_permissions['postal-code'])) 
-		$adr .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
+	if (@$userdata->postal_code && diso_user_is(@$userdata->profile_permissions['postal-code'])) 
+		$adr .= '<div class="postal-code">' . $userdata->postal_code . '</div>'."\n";
 
-	if (@$userdata->countryname && diso_user_is(@$userdata->profile_permissions['country-name'])) 
-		$adr .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
+	if (@$userdata->country_name && diso_user_is(@$userdata->profile_permissions['country-name'])) 
+		$adr .= '<div class="country-name">' . $userdata->country_name . '</div>'."\n";
 
 	if ($adr) {
 		$adr = '<dt>Current Address:</dt> <dd class="adr">' . $adr . '</dd>';
@@ -559,6 +584,24 @@ function extended_profile_contact($userid, $actionstream_aware) {
 
 
 /**
+ * Cleanup URL for display in profile.  The URL scheme is hidden, along with 
+ * the preceding 'www.' portion of the hostname if present.  If the URL path 
+ * includes only '/', it is hidden.
+ *
+ * @param string $url URL to be cleaned up for display
+ * @return string the cleaned up URL
+ */
+function ext_profile_display_url($url) {
+	$parts = parse_url($url);
+
+	$url = preg_replace('/^www\./', '', $parts['host']);
+	if ($parts['path'] != '/') $url .= $parts['path'];
+
+	return $url;
+}
+
+
+/**
  * Provide value of 'country' SREG attribute.
  *
  * @param string $value current value for attribute
@@ -566,7 +609,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
  * @return string new value for attribute
  */
 function ext_profile_openid_sreg_country($value, $user_id) {
-	$country = get_usermeta($user_id, 'countryname');
+	$country = get_usermeta($user_id, 'country_name');
 	return $country ? $country : $value;
 }
 
@@ -579,7 +622,7 @@ function ext_profile_openid_sreg_country($value, $user_id) {
  * @return string new value for attribute
  */
 function ext_profile_openid_sreg_postcode($value, $user_id) {
-	$postcode = get_usermeta($user_id, 'postalcode');
+	$postcode = get_usermeta($user_id, 'postal_code');
 	return $postcode ? $postcode : $value;
 }
 
