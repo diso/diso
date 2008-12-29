@@ -267,8 +267,8 @@ function ext_profile_fields() {
 		echo '<h3>'.$legend.'</h3>';
 		echo '<table class="form-table">';
 		if($legend == 'Miscellaneous') {
-			$urls = is_array($userdata->urls) ? $userdata->urls : array();
-			echo '	<tr><th><label for="urls">Additional Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls">';
+			$urls = is_array($userdata->additional_urls) ? $userdata->additional_urls : array();
+			echo '	<tr><th><label for="additional_urls">Additional Website(s)<br />(one per line)</label></th> <td><textarea id="additional_urls" name="additional_urls">';
 			foreach ($urls as $url) {
 				echo clean_url($url) . "\n";
 			}
@@ -326,12 +326,12 @@ function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
 		ext_profile_hcard_import($userid, true);
 	} else {
-		$post_urls = preg_split('/[\s]+/',$_POST['urls']);
+		$additional_urls = preg_split('/[\s]+/',$_POST['additional_urls']);
 		$urls = array();
-		foreach ($post_urls as $u) {
+		foreach ($additional_urls as $u) {
 			$urls[] = apply_filters('pre_ext_profile_url', $u);
 		}
-		update_usermeta($userid, 'urls', array_filter($urls));
+		update_usermeta($userid, 'additional_urls', array_filter($urls));
 
 		if (is_array($_POST['hcard'])) {
 			foreach($_POST['hcard'] as $key => $value) {
@@ -501,7 +501,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$contact = '';
 
 	// URLs
-	$user_urls = array_merge(array($userdata->user_url), @$userdata->urls);
+	$user_urls = array_merge(array($userdata->user_url), @$userdata->additional_urls);
 	$user_urls = array_unique(array_filter($user_urls));
 	if (count($user_urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
 		$urls = '<dt>On the web:</dt> <dd> <ul>';
