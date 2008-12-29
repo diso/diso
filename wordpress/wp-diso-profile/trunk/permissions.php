@@ -1,7 +1,12 @@
 <?php
 
-
-function diso_profile_permissions($permissions) {
+/**
+ * Provide profile attributes which should be included in the Permissions plugin.
+ *
+ * @param array $permissions existing permissions
+ * @return array new permissions
+ */
+function ext_profile_permissions($permissions) {
 	$permissions['profile'] = array(
 		'name' => 'Profile Permissions',
 		'order' => 1,
@@ -34,6 +39,6 @@ function diso_profile_permissions($permissions) {
 	return $permissions;
 }
 
-add_filter('diso_permission_fields', 'diso_profile_permissions');
+add_filter('diso_permission_fields', 'ext_profile_permissions');
 
 ?>
