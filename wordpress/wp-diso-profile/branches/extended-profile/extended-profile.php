@@ -476,7 +476,7 @@ function extended_profile_nickname($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->nickname && diso_user_is(@$userdata->profile_permissions['nickname'])) {
-		$nickname = '"<span class="nickname">' . $userdata->nickname . '</span>"';
+		$nickname = '<span class="nickname">' . $userdata->nickname . '</span>';
 		$nickname = apply_filters('extended_profile_nickname', $nickname, $userdata->ID);
 		if ($nickname) echo $nickname . "\n";
 	}
@@ -493,7 +493,7 @@ function extended_profile_org($userid) {
 	$userdata = get_userdata($userid);
 
 	if (@$userdata->org && diso_user_is(@$userdata->profile_permissions['org'])) {
-		$org = '(<span class="org">' . $userdata->org . '</span>)';
+		$org = '<span class="org">' . $userdata->org . '</span>';
 		$org = apply_filters('extended_profile_org', $org, $userdata->ID);
 		if ($org) echo $org . "\n";
 	}
