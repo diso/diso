@@ -1,11 +1,21 @@
 <?php
 
+add_action('plugins_loaded', 'widget_user_profile_init');
+
+/**
+ * Initialize User Profile widget.  This includes all of the logic for managing and displaying the widget.
+ */
 function widget_user_profile_init() {
 
-	if (!function_exists('register_sidebar_widget'))
+	if (!function_exists('register_sidebar_widget')) {
 		return;
+	}
 	
-	
+	/**
+	 * Display user profile widget.
+	 *
+	 * @param array $args widget configuration.
+	 */
 	function widget_user_profile($args) {
 		extract($args);
 				
@@ -18,6 +28,10 @@ function widget_user_profile_init() {
 		echo $after_widget;
 	}
 	
+
+	/**
+	 * Manage user profile widget.
+	 */
 	function widget_user_profile_control() {
 		$options = get_option('widget_user_profile');
 
@@ -51,7 +65,5 @@ function widget_user_profile_init() {
 	register_sidebar_widget('User Profile', 'widget_user_profile');
 	register_widget_control('User Profile', 'widget_user_profile_control');
 }
-
-add_action('plugins_loaded', 'widget_user_profile_init');
 
 ?>
