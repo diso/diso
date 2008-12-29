@@ -473,8 +473,7 @@ function extended_profile_note($userid) {
 function extended_profile_contact($userid, $actionstream_aware) {
 	$userdata = get_userdata($userid);
 
-	$contact = '<h3>Contact Information</h3>';
-	$contact .= '<dl class="contact">';
+	$contact = '';
 
 	// URLs
 	if (!count(@$userdata->urls)) $userdata->urls = array($userdata->user_url);
@@ -549,11 +548,14 @@ function extended_profile_contact($userid, $actionstream_aware) {
 
 	if ($adr) {
 		$adr = '<dt>Current Address:</dt> <dd class="adr">' . $adr . '</dd>';
-		$adr = apply_filters('extended_profile_adr', $adr, $userdata->ID);
-		if ($adr) $contact .= $adr;
 	}
+	$adr = apply_filters('extended_profile_adr', $adr, $userdata->ID);
+	if ($adr) $contact .= $adr;
 
-	$contact .= '</dl>';
+	// Finish up
+	if ($contact) {
+		$contact = '<h3>Contact Information</h3> <dl class="contact">' . $contact . '</dl>';
+	}
 	$contact = apply_filters('extended_profile_contact', $contact, $userdata->ID);
 	if ($contact) echo $contact;
 }
