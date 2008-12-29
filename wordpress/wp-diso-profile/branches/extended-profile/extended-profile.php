@@ -425,12 +425,6 @@ function extended_profile_name($userid) {
 	if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
 		$name .= '<span class="family-name">' . $userdata->last_name . '</span>';
 
-	if ($name) {
-		if (@$userdata->user_url) {
-			$name = '<a class="url uid" rel="me" href="' . clean_url($userdata->user_url) . '">' . $name . '</a>';
-		}
-	}
-
 	$name = '<h2 class="fn n">' . $name . '</h2>';
 
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
@@ -504,15 +498,26 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$user_urls = array_merge(array($userdata->user_url), @$userdata->additional_urls);
 	$user_urls = array_unique(array_filter($user_urls));
 	if (count($user_urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
-		$urls = '<dt>On the web:</dt> <dd> <ul>';
 		if ($actionstream_aware && function_exists('actionstream_services')) {
 			$actionstream = actionstream_services($userdata->ID, true);
 		}
+
+		$urls = '';
 		foreach($user_urls as $url) {
+			// treat primary website special
+			if ($url == $userdata->user_url) {
+				$urls .= '<li><a class="url uid" rel="me" href="' . clean_url($url) . '">' . ext_profile_display_url($url) . '</a></li>';
+				continue;
+			}
+
 			if($actionstream_aware && in_array($url,$actionstream)) continue;
+
 			$urls .= '<li><a class="url" rel="me" href="' . clean_url($url) . '">' . ext_profile_display_url($url) . '</a></li>';
 		}
-		$urls .= '</ul> </dd>';
+
+		if ($urls) {
+			$urls = '<dt>On the web:</dt> <dd><ul>' . $urls . '</ul></dd>';
+		}
 
 		$urls = apply_filters('extended_profile_urls', $urls, $userdata->ID);
 		if ($urls) $contact .= $urls . "\n";
