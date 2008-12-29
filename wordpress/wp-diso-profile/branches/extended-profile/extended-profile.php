@@ -321,6 +321,7 @@ function ext_profile_personal_options() {
  * Save extended profile attributes.
  *
  * @param int $userid ID of user
+ * @uses apply_filters() Calls 'pre_ext_profile_$name' before saving each profile attribute.
  */
 function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
@@ -351,6 +352,8 @@ function ext_profile_update($userid) {
  * @param bool $echo should profile be echo()'ed
  * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
+ * @uses do_action() Calls 'extended_profile' to build the user profile
+ * @uses apply_filters() Calls 'post_extended_profile' after building the entire profile, but before returning it.
  * @access private
  */
 function get_extended_profile($userid, $actionstream_aware=false) {
@@ -392,6 +395,7 @@ function get_extended_profile($userid, $actionstream_aware=false) {
  * Print the microformatted photo for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_photo' after generating the photo markup
  * @access private
  */
 function extended_profile_photo($userid) {
@@ -409,6 +413,12 @@ function extended_profile_photo($userid) {
  * Print the microformatted name for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_{field}' after generating the
+ *                       markup for each of the following individual fields 
+ *                       (last_name, first_name, additional_name, fn)
+ * @uses apply_filters() Calls 'extended_profile_{field}' after generating the
+ *                       markup for each of the following combined fields 
+ *                       (n, name)
  * @access private
  */
 function extended_profile_name($userid) {
@@ -469,6 +479,7 @@ function extended_profile_name($userid) {
  * Print the microformatted nickname for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_nickname' after generating the nickname markup
  * @access private
  */
 function extended_profile_nickname($userid) {
@@ -486,6 +497,7 @@ function extended_profile_nickname($userid) {
  * Print the microformatted org for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_org' after generating the org markup
  * @access private
  */
 function extended_profile_org($userid) {
@@ -503,6 +515,7 @@ function extended_profile_org($userid) {
  * Print the microformatted note for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_note' after generating the note markup
  * @access private
  */
 function extended_profile_note($userid) {
@@ -520,6 +533,13 @@ function extended_profile_note($userid) {
  * Print the microformatted contact information for the user.
  *
  * @param int $userid ID of user to get profile information for.
+ * @uses apply_filters() Calls 'extended_profile_{field}' after generating the
+ *                       markup for each of the following individual fields 
+ *                       (urls, aim, yim, jabber, email, tel)
+ *                       locality, region, postal_code, country_name
+ * @uses apply_filters() Calls 'extended_profile_{field}' after generating the
+ *                       markup for each of the following combined fields 
+ *                       (adr, contact)
  * @access private
  */
 function extended_profile_contact($userid, $actionstream_aware) {
