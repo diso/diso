@@ -247,13 +247,13 @@ function ext_profile_fields() {
 		echo '<h3>'.$legend.'</h3>';
 		echo '<table class="form-table">';
 		if($legend == 'Miscellaneous') {
-			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="additional-name" value="'.$userdata->n['additional-name'].'" onkeyup="preview_hcard();" /></td></tr>';
+			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="hcard[additional_name]" value="'.$userdata->additional_name.'" /></td></tr>';
 			if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
 			if(!is_array($userdata->urls) || !count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-			echo '	<tr><th><label for="urls">Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls" onkeyup="preview_hcard();">'.htmlentities(implode("\n",$userdata->urls)).'</textarea></td></tr>';
+			echo '	<tr><th><label for="urls">Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls">'.htmlentities(implode("\n",$userdata->urls)).'</textarea></td></tr>';
 		}//end if Miscellaneous
 		foreach($fields as $key => $label)
-			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.$userdata->$key.'" onkeyup="preview_hcard();" /></td></tr>';
+			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.$userdata->$key.'" /></td></tr>';
 		echo '</table>';
 	}//end foreach fieldset
 ?>
@@ -304,20 +304,13 @@ function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
 		ext_profile_hcard_import($userid, true);
 	} else {
-		$userdata = get_userdata($userid);
-		$n = $userdata->n ? $userdata->n : array();
-		$n['given-name'] = $_POST['first_name'];
-		$n['additional-name'] = $_POST['additional-name'];
-		$n['family-name'] = $_POST['last_name'];
-		update_usermeta($userdata->ID, 'n', $n);
 		$urls = preg_split('/[\s]+/',$_POST['urls']);
-		update_usermeta($userdata->ID, 'urls', $urls);
+		update_usermeta($userid, 'urls', $urls);
+
 		if (is_array($_POST['hcard'])) {
 			foreach($_POST['hcard'] as $key => $val)
-				update_usermeta($userdata->ID, $key, $val);
+				update_usermeta($userid, $key, $val);
 		}
-		update_usermeta($userdata->ID, 'user_url', $_POST['url']);
-		update_usermeta($userdata->ID, 'display_name', $_POST['display_name']);
 	}
 }
 
@@ -395,7 +388,7 @@ function extended_profile_name($userid) {
 
 	$name = '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
 
-	if ( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
+	if ( $userdata->first_name || $userdata->additional_name || $userdata->last_name ) {
 		if ($userdata->user_url)
 			$name .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
 		else
@@ -407,8 +400,8 @@ function extended_profile_name($userid) {
 		if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
 			$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
 
-		if (@$userdata->n['additional-name'] && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
-			$name .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
+		if (@$userdata->additional_name && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
+			$name .= '<span class="additional-name">'.htmlentities($userdata->additional_name).'</span>'."\n";
 		
 		if (@$userdata->user_url)
 			$name .= '</a>';
