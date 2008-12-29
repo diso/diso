@@ -384,7 +384,7 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 	ob_end_clean();
 
 	$profile = '<div class="vcard hcard-profile">' . $profile . '</div>';
-	$profile = apply_filters('post_extended_profile', $profile);
+	$profile = apply_filters('post_extended_profile', $profile, $userdata->ID);
 
 	if (defined('WP_DEBUG') && WP_DEBUG) error_log('extended-profile build time = ' . (microtime(true) - $time) . ' seconds');
 	return $profile;
