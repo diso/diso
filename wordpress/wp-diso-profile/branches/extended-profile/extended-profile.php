@@ -251,6 +251,7 @@ function ext_profile_fields() {
 	//ORGANIZATION AND ADDRESS
 	$fieldset = array(
 			'Miscellaneous' => array(
+				'additional_name' => 'Middle Name(s)',
 				'org' => 'Organization',
 			),
 			'Address' => array(
@@ -266,10 +267,12 @@ function ext_profile_fields() {
 		echo '<h3>'.$legend.'</h3>';
 		echo '<table class="form-table">';
 		if($legend == 'Miscellaneous') {
-			echo '	<tr><th><label for="additional-name">Middle Name(s)</label></th> <td><input type="text" id="additional-name" name="hcard[additional_name]" value="'.@$userdata->additional_name.'" /></td></tr>';
-			if(!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-			if(!is_array($userdata->urls) || !count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-			echo '	<tr><th><label for="urls">Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls">'.htmlentities(implode("\n",$userdata->urls)).'</textarea></td></tr>';
+			$urls = is_array($userdata->urls) ? $userdata->urls : array();
+			echo '	<tr><th><label for="urls">Additional Website(s)<br />(one per line)</label></th> <td><textarea id="urls" name="urls">';
+			foreach ($urls as $url) {
+				echo clean_url($url) . "\n";
+			}
+			echo '</textarea></td></tr>';
 		}//end if Miscellaneous
 		foreach($fields as $key => $label)
 			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.@$userdata->$key.'" /></td></tr>';
@@ -498,13 +501,14 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$contact = '';
 
 	// URLs
-	if (!count(@$userdata->urls)) $userdata->urls = array($userdata->user_url);
-	if (count($userdata->urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
+	$user_urls = array_merge(array($userdata->user_url), @$userdata->urls);
+	$user_urls = array_unique(array_filter($user_urls));
+	if (count($user_urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
 		$urls = '<dt>On the web:</dt> <dd> <ul>';
 		if ($actionstream_aware && function_exists('actionstream_services')) {
 			$actionstream = actionstream_services($userdata->ID, true);
 		}
-		foreach($userdata->urls as $url) {
+		foreach($user_urls as $url) {
 			if($actionstream_aware && in_array($url,$actionstream)) continue;
 			$urls .= '<li><a class="url" rel="me" href="' . clean_url($url) . '">' . ext_profile_display_url($url) . '</a></li>';
 		}
