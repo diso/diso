@@ -22,6 +22,14 @@ add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
 add_action('admin_init', 'ext_profile_admin');
 add_shortcode('profile', 'ext_profile_shortcode');
 
+// register profile actions
+add_action('extended_profile', 'extended_profile_photo', 0);
+add_action('extended_profile', 'extended_profile_name', 2);
+add_action('extended_profile', 'extended_profile_nickname', 4);
+add_action('extended_profile', 'extended_profile_org', 6);
+add_action('extended_profile', 'extended_profile_note', 8);
+add_action('extended_profile', 'extended_profile_contact', 10, 2);
+
 // provide SREG attributes for OpenID plugin
 add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
 add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
@@ -276,6 +284,7 @@ function ext_profile_update($userid) {
  * @param bool $echo should profile be echo()'ed
  * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
+ * @access private
  */
 function get_extended_profile($userid, $actionstream_aware=false) {
 
@@ -289,76 +298,149 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 		$userid = $user->ID;
 	}
 
+	// Get user data 
 	if(is_numeric($userid))
 		$userdata = get_userdata($userid);
 	else
 		$userdata = get_userdatabylogin($userid);
 	if (!$userdata) return;
 
-	do_action('pre_extended_profile', $userdata->ID);
+	$time = microtime(true);
 
+	// Build profile
 	ob_start();
+	do_action('extended_profile', $userdata->ID, $actionstream_aware);
+	$profile = ob_get_contents();
+	ob_end_clean();
 
-	// Photo
-	if ($userdata->photo && diso_user_is($userdata->profile_permissions['photo'])) {
+	$profile = '<div class="vcard hcard-profile">' . $profile . '</div>';
+	$profile = apply_filters('post_extended_profile', $profile);
+
+	if (defined('WP_DEBUG') && WP_DEBUG) error_log('extended-profile build time = ' . (microtime(true) - $time) . ' seconds');
+	return $profile;
+}
+
+
+/**
+ * Print the microformatted photo for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_photo($userid) {
+	$userdata = get_userdata($userid);
+
+	if (@$userdata->photo && diso_user_is(@$userdata->profile_permissions['photo'])) {
 		$photo = '<img class="photo" alt="photo" src="'.htmlentities($userdata->photo).'" />';
 		$photo = apply_filters('extended_profile_photo', $photo, $userdata->ID);
 		if ($photo) echo $photo . "\n";
 	}
+}
 
-	// Name
-	$name .= '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
+
+/**
+ * Print the microformatted name for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_name($userid) {
+	$userdata = get_userdata($userid);
+
+	$name = '<h2 class="fn">'.htmlentities($userdata->display_name).'</h2>';
+
 	if ( $userdata->first_name || $userdata->additional-name || $userdata->last_name ) {
 		if ($userdata->user_url)
 			$name .= '<a class="url uid" rel="me" href="'.htmlentities($userdata->user_url).'">';
 		else
 			$name .= '<span class="n">';
 
-		if ($userdata->last_name && diso_user_is($userdata->profile_permissions['family-name'])) 
+		if (@$userdata->last_name && diso_user_is(@$userdata->profile_permissions['family-name'])) 
 			$name .= '<span class="family-name">'.htmlentities($userdata->last_name).'</span>,'."\n";
 
-		if ($userdata->first_name && diso_user_is($userdata->profile_permissions['given-name'])) 
+		if (@$userdata->first_name && diso_user_is(@$userdata->profile_permissions['given-name'])) 
 			$name .= '<span class="given-name">'.htmlentities($userdata->first_name).'</span>'."\n";
 
-		if ($userdata->n['additional-name'] && diso_user_is($userdata->profile_permissions['additional-name'])) 
+		if (@$userdata->n['additional-name'] && diso_user_is(@$userdata->profile_permissions['additional-name'])) 
 			$name .= '<span class="additional-name">'.htmlentities($userdata->n['additional-name']).'</span>'."\n";
 		
-		if ($userdata->user_url)
+		if (@$userdata->user_url)
 			$name .= '</a>';
 		else
 			$name .= '</span>';
 	}
 	$name = apply_filters('extended_profile_name', $name, $userdata->ID);
 	if ($name) echo $name;
+}
 
-	// Nickname
-	if ($userdata->nickname && diso_user_is($userdata->profile_permissions['nickname'])) {
+
+/**
+ * Print the microformatted nickname for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_nickname($userid) {
+	$userdata = get_userdata($userid);
+
+	if (@$userdata->nickname && diso_user_is(@$userdata->profile_permissions['nickname'])) {
 		$nickname = '"<span class="nickname">'.htmlentities($userdata->nickname).'</span>"';
 		$nickname = apply_filters('extended_profile_nickname', $nickname, $userdata->ID);
 		if ($nickname) echo $nickname . "\n";
 	}
+}
 
-	/// Org
-	if ($userdata->org && diso_user_is($userdata->profile_permissions['org'])) {
+
+/**
+ * Print the microformatted org for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_org($userid) {
+	$userdata = get_userdata($userid);
+
+	if (@$userdata->org && diso_user_is(@$userdata->profile_permissions['org'])) {
 		$org = '(<span class="org">'.htmlentities($userdata->org).'</span>)';
 		$org = apply_filters('extended_profile_org', $org, $userdata->ID);
 		if ($org) echo $org . "\n";
 	}
+}
 
-	// Note
-	if ($userdata->description && diso_user_is($userdata->profile_permissions['note'])) {
+
+/**
+ * Print the microformatted note for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_note($userid) {
+	$userdata = get_userdata($userid);
+
+	if (@$userdata->description && diso_user_is(@$userdata->profile_permissions['note'])) {
 		$note = '<p class="note">'.htmlentities($userdata->description).'</p>';
 		$note = apply_filters('extended_profile_note', $note, $userdata->ID);
 		if ($note) echo $note . "\n";
 	}
+}
+
+
+/**
+ * Print the microformatted contact information for the user.
+ *
+ * @param int $userid ID of user to get profile information for.
+ * @access private
+ */
+function extended_profile_contact($userid, $actionstream_aware) {
+	$userdata = get_userdata($userid);
 
 	$contact = '<h3>Contact Information</h3>';
 	$contact .= '<dl class="contact">';
 
 	// URLs
-	if (!count($userdata->urls)) $userdata->urls = array($userdata->user_url);
-	if (count($userdata->urls) && diso_user_is($userdata->profile_permissions['urls'])) {
-		$urls .= '<dt>On the web:</dt> <dd> <ul>';
+	if (!count(@$userdata->urls)) $userdata->urls = array($userdata->user_url);
+	if (count($userdata->urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
+		$urls = '<dt>On the web:</dt> <dd> <ul>';
 		if ($actionstream_aware && function_exists('actionstream_services')) {
 			$actionstream = actionstream_services($userdata->ID, true);
 		}
@@ -373,35 +455,35 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 	}
 
 	// AIM
-	if ($userdata->aim && diso_user_is($userdata->profile_permissions['aim'])) {
+	if (@$userdata->aim && diso_user_is(@$userdata->profile_permissions['aim'])) {
 		$aim = '<dt>AIM:</dt> <dd><a class="url" href="aim:goim?screenname='.htmlentities($userdata->aim).'">'.htmlentities($userdata->aim).'</a></dd>';
 		$aim = apply_filters('extended_profile_aim', $aim, $userdata->ID);
 		if ($aim) $contact .= $aim . "\n";
 	}
 
 	// YIM
-	if ($userdata->yim && diso_user_is($userdata->profile_permissions['yim'])) {
+	if (@$userdata->yim && diso_user_is(@$userdata->profile_permissions['yim'])) {
 		$yim = '<dt>Y!IM:</dt> <dd><a class="url" href="ymsgr:sendIM?'.htmlentities($userdata->yim).'">'.htmlentities($userdata->yim).'</a></dd>';
 		$yim = apply_filters('extended_profile_yim', $yim, $userdata->ID);
 		if ($yim) $contact .= $yim . "\n";
 	}
 
 	// Jabber
-	if ($userdata->jabber && diso_user_is($userdata->profile_permissions['jabber'])) {
+	if (@$userdata->jabber && diso_user_is(@$userdata->profile_permissions['jabber'])) {
 		$jabber = '<dt>Jabber:</dt> <dd><a class="url" href="xmpp:'.htmlentities($userdata->jabber).'">'.htmlentities($userdata->jabber).'</a></dd>';
 		$jabber = apply_filters('extended_profile_jabber', $jabber, $userdata->ID);
 		if ($jabber) $contact .= $jabber . "\n";
 	}
 
 	// Email
-	if ($userdata->user_email && diso_user_is($userdata->profile_permissions['email'])) {
+	if ($userdata->user_email && diso_user_is(@$userdata->profile_permissions['email'])) {
 		$email = '<dt>Email:</dt> <dd><a class="email" href="mailto:'.htmlentities($userdata->user_email).'">'.htmlentities($userdata->user_email).'</a></dd>';
 		$email = apply_filters('extended_profile_email', $email, $userdata->ID);
 		if ($email) $contact .= $email . "\n";
 	}
 
 	// Telephone
-	if ($userdata->tel && diso_user_is($userdata->profile_permissions['tel'])) {
+	if (@$userdata->tel && diso_user_is(@$userdata->profile_permissions['tel'])) {
 		$tel = '<dt>Telephone:</dt> <dd class="tel">'.htmlentities($userdata->tel).'</dd>';
 		$tel = apply_filters('extended_profile_tel', $tel, $userdata->ID);
 		if ($tel) $contact .= $tel . "\n";
@@ -411,19 +493,19 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 	// Address
 	$adr = '';
 
-	if ($userdata->streetaddress && diso_user_is($userdata->profile_permissions['street-address'])) 
+	if (@$userdata->streetaddress && diso_user_is(@$userdata->profile_permissions['street-address'])) 
 		$adr .= '<div class="street-address">'.htmlentities($userdata->streetaddress).'</div>'."\n";
 
-	if ($userdata->locality && diso_user_is($userdata->profile_permissions['locality'])) 
+	if (@$userdata->locality && diso_user_is(@$userdata->profile_permissions['locality'])) 
 		$adr .= '<span class="locality">'.htmlentities($userdata->locality).'</span>,'."\n";
 
-	if ($userdata->region && diso_user_is($userdata->profile_permissions['region'])) 
+	if (@$userdata->region && diso_user_is(@$userdata->profile_permissions['region'])) 
 		$adr .= '<span class="region">'.htmlentities($userdata->region).'</span>'."\n";
 
-	if ($userdata->postalcode && diso_user_is($userdata->profile_permissions['postal-code'])) 
+	if (@$userdata->postalcode && diso_user_is(@$userdata->profile_permissions['postal-code'])) 
 		$adr .= '<div class="postal-code">'.htmlentities($userdata->postalcode).'</div>'."\n";
 
-	if ($userdata->countryname && diso_user_is($userdata->profile_permissions['country-name'])) 
+	if (@$userdata->countryname && diso_user_is(@$userdata->profile_permissions['country-name'])) 
 		$adr .= '<div class="country-name">'.htmlentities($userdata->countryname).'</div>'."\n";
 
 	if ($adr) {
@@ -435,14 +517,7 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 	$contact .= '</dl>';
 	$contact = apply_filters('extended_profile_contact', $contact, $userdata->ID);
 	if ($contact) echo $contact;
-
-	$profile = '<div class="vcard hcard-profile">' . ob_get_contents() . '</div>';
-	$profile = apply_filters('extended_profile', $profile);
-	//echo '<!-- ext-profile time : '.(microtime(true)-$time).' seconds -->';
-
-	ob_end_clean();
-	return $profile;
-}//end function get_extended_profile
+}
 
 
 /**
