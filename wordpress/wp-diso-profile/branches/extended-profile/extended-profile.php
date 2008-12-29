@@ -45,8 +45,8 @@ if ( function_exists('register_uninstall_hook') ) {
  *
  * @param mixed $userid username or ID of user to get profile for.  If not 
  *                      specified, queried author will be used.
- * @param bool $echo should profile be echo()'ed
- * @param bool $actionstream_aware should profile exclude actionstream URLs
+ * @param bool $echo if true, the profile will be echo()'ed out
+ * @param bool $actionstream_aware should the profile exclude actionstream service URLs
  * @return string microformatted profile
  * @access public
  * @since 0.6
@@ -70,6 +70,52 @@ function ext_profile_activate() {
  */
 function ext_profile_uninstall() {
 	delete_option('widget_user_profile');
+}
+
+
+/**
+ * Include stylesheet for displaying profiles.
+ */
+function ext_profile_style() {
+	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
+}
+
+
+/**
+ * Register WordPress admin hooks.
+ */
+function ext_profile_admin() {
+	add_action('profile_update', 'ext_profile_update');
+	add_action('profile_personal_options', 'ext_profile_personal_options');
+	add_action('show_user_profile', 'ext_profile_fields');
+	add_action('edit_user_profile', 'ext_profile_fields');
+
+	add_action('load-profile.php', 'ext_profile_admin_js');
+	add_action('load-user-edit.php', 'ext_profile_admin_js');
+	add_action('admin_head-profile.php', 'ext_profile_style');
+	add_action('admin_head-user-edit.php', 'ext_profile_style');
+}
+
+
+/**
+ * Load the javascript necessary for the WordPress profile page.
+ */
+function ext_profile_admin_js() {
+	add_thickbox();
+	wp_enqueue_script('ext-profile', plugins_url('extended-profile/preview.js'), array('thickbox'));
+}
+
+/**
+ * Handle the 'profile' shortcode.
+ *
+ * @param array $attr attributes passed to the shortcode
+ * @param string $content content passed to the shortcode.  This should 
+ *                        include the name or ID of the user to print the 
+ *                        profile for.
+ * @return string microformatted profile
+ */
+function ext_profile_shortcode($attr, $content) {
+	return get_extended_profile($content);
 }
 
 
@@ -517,52 +563,6 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$contact .= '</dl>';
 	$contact = apply_filters('extended_profile_contact', $contact, $userdata->ID);
 	if ($contact) echo $contact;
-}
-
-
-/**
- * Include stylesheet for displaying profiles.
- */
-function ext_profile_style() {
-	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
-}
-
-
-/**
- * Load the javascript necessary for the WordPress profile page.
- */
-function ext_profile_admin_js() {
-	add_thickbox();
-	wp_enqueue_script('ext-profile', plugins_url('extended-profile/preview.js'), array('thickbox'));
-}
-
-/**
- * Register WordPress admin hooks.
- */
-function ext_profile_admin() {
-	add_action('profile_update', 'ext_profile_update');
-	add_action('profile_personal_options', 'ext_profile_personal_options');
-	add_action('show_user_profile', 'ext_profile_fields');
-	add_action('edit_user_profile', 'ext_profile_fields');
-
-	add_action('load-profile.php', 'ext_profile_admin_js');
-	add_action('load-user-edit.php', 'ext_profile_admin_js');
-	add_action('admin_head-profile.php', 'ext_profile_style');
-	add_action('admin_head-user-edit.php', 'ext_profile_style');
-}
-
-
-/**
- * Handle the 'profile' shortcode.
- *
- * @param array $attr attributes passed to the shortcode
- * @param string $content content passed to the shortcode.  This should 
- *                        include the name or ID of the user to print the 
- *                        profile for.
- * @return string microformatted profile
- */
-function ext_profile_shortcode($attr, $content) {
-	return get_extended_profile($content);
 }
 
 
