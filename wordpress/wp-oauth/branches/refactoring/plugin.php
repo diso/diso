@@ -1,14 +1,4 @@
 <?php
-/*
-Plugin Name: WP-OAuth
-Plugin URI: http://singpolyma.net/plugins/oauth/
-Description: Enables OAuth services on your Wordpress blog.
-Version: 0.13
-Author: Stephen Paul Weber
-Author URI: http://singpolyma.net/
-*/
-
-//Licensed under an MIT-style licence
 
 /**
  * Register XRDS Services.
