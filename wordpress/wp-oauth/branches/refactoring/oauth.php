@@ -342,8 +342,8 @@ function oauth_authorize_token() {
 
 	<form method="get">
 
-		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="true" /> Yes</label>
-		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="false" /> No</label>
+		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="1" /> Yes</label>
+		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label>
 		
 		<?php wp_nonce_field('oauth_authorize_token'); ?>
 		<input type="hidden" name="_oauth_endpoint" value="<?php echo $_REQUEST['_oauth_endpoint']; ?>" />
