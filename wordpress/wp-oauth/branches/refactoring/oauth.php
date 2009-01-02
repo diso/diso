@@ -279,11 +279,7 @@ function oauth_require_auth() {
 
 
 function oauth_options_page() {
-	set_include_path(dirname(__FILE__) . '/lib' . PATH_SEPARATOR . get_include_path());
-	require_once('OAuthStore.php');
-
-	$store = OAuthStore::instance('WordPress', array());
-
+	$store = oauth_store();
 
 	if (false) { // clear out consumer tokens
 		$tokens = get_option('oauth_consumer_tokens');
