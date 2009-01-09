@@ -5,7 +5,7 @@
  * This implementation uses the WordPress options table.
  */
 
-class OAuthStoreWordPress implements
+class OAuthStoreWordPress
 {
 
 	/**
@@ -79,7 +79,32 @@ class OAuthStoreWordPress implements
 	 * @exception OAuthException when no credentials found
 	 * @return array
 	 */
-	public function getSecretsForSignature ( $uri, $user_id ) { }
+	public function getSecretsForSignature ( $uri, $user_id ) { 
+		$secrets = array();
+
+		// Find a consumer key and token for the given uri
+		$ps		= parse_url($uri);
+		$host	= isset($ps['host']) ? strtolower($ps['host']) : 'localhost';
+		$path	= isset($ps['path']) ? $ps['path'] : '';
+		$path = trailingslashit($path);
+
+		$tokens = get_option('oauth_server_tokens');
+		$servers = get_option('oauth_servers');
+
+		foreach ($tokens as $key => $token) {
+			$server = $servers[$token['consumer_key']];
+			if ($token['type'] != 'access') continue;
+			if ($token['user'] != $user_id) continue;
+			//if ($server['user'] != $user_id) continue;
+			if ($server['server_uri_host'] != $host) continue;
+			if (strpos($path, $server['path']) !== 0) continue;
+
+			$secrets = array_merge($server, $token);
+			$secrets['token_secret'] = $secrets['secret'];
+		}
+
+		return $secrets;
+	}
 
 
 	/**
@@ -88,11 +113,32 @@ class OAuthStoreWordPress implements
 	 * @param string	consumer_key
 	 * @param string 	token
 	 * @param string	token_type
-	 * @param int		usr_id			the user requesting the token, 0 for public secrets
+	 * @param int		user_id			the user requesting the token, 0 for public secrets
 	 * @exception OAuthException when no credentials found
 	 * @return array
 	 */
-	public function getServerTokenSecrets ( $consumer_key, $token, $token_type, $usr_id = 0 ) { }
+	public function getServerTokenSecrets ( $consumer_key, $token, $token_type, $user_id = 0 ) { 
+		if ($token_type != 'request' && $token_type != 'access') {
+			throw new OAuthException('Unkown token type "'.$token_type.'", must be either "request" or "access"');
+		}
+
+		$secrets = array();
+		$tokens = get_option('oauth_server_tokens');
+		$servers = get_option('oauth_servers');
+
+		$server_token = $tokens[$token];
+		$server = $servers[$consumer_key];
+
+		if (!$server_token || !$server) return $secrets;
+		if ($server_token['consumer_key'] != $consumer_key) return $secrets;
+		if ($server_token['type'] != $token_type) return $secrets;
+		if ($user_id && $server_token['user'] != $user_id) return $secrets;
+
+		$secrets = array_merge($server, $server_token);
+		$secrets['token_secret'] = $secrets['secret'];
+
+		return $secrets;
+	}
 
 
 	/**
@@ -103,11 +149,32 @@ class OAuthStoreWordPress implements
 	 * @param string token_type		one of 'request' or 'access'
 	 * @param string token
 	 * @param string token_secret
-	 * @param int 	 usr_id			the user this token owns
+	 * @param int 	 user_id			the user this token owns
 	 * @exception OAuthException when server is not known
 	 * @exception OAuthException when we received a duplicate token
 	 */
-	public function addServerToken ( $consumer_key, $token_type, $token, $token_secret, $usr_id ) { }
+	public function addServerToken ( $consumer_key, $token_type, $token, $token_secret, $user_id ) { 
+		if ($token_type != 'request' && $token_type != 'access') {
+			throw new OAuthException('Unkwown token type "'.$token_type.'", must be either "request" or "access"');
+		}
+
+		$servers = get_option('oauth_servers');
+		if (!array_key_exists($consumer_key, $servers)) {
+			throw new OAuthException('No server associated with consumer_key "'.$consumer_key.'"');
+		}
+
+		$server_token = array(
+			'consumer_key' => $consumer_key,
+			'token' => $token,
+			'secret' => $token_secret,
+			'type' => $token_type,
+			'user' => $user_id,
+		);
+
+		$tokens = get_option('oauth_server_tokens');
+		$tokens[$token] = $server_token;
+		update_option('oauth_server_tokens', $tokens);
+	}
 
 
 	/**
@@ -117,7 +184,13 @@ class OAuthStoreWordPress implements
 	 * @param int user_id	user registering this server
 	 * @param boolean user_is_admin
 	 */
-	public function deleteServer ( $consumer_key, $user_id, $user_is_admin = false ) { }
+	public function deleteServer ( $key, $user_id, $user_is_admin = false ) { 
+		$servers = get_option('oauth_servers');
+		if (array_key_exists($key, $servers)) {
+			unset($servers[$key]);
+			update_option('oauth_servers', $servers);
+		}
+	}
 
 
 	/**
@@ -127,7 +200,7 @@ class OAuthStoreWordPress implements
 	 * @exception OAuthException when server is not found
 	 * @return array
 	 */	
-	public function getServer( $consumer_key ) { 
+	public function getServer( $key ) { 
 		$servers = get_option('oauth_servers');
 		if (array_key_exists($key, $servers)) {
 			return $servers[$key];
@@ -159,13 +232,23 @@ class OAuthStoreWordPress implements
 		return $user_tokens;
 	}
 
+
 	/**
 	 * Count how many tokens we have for the given server
 	 * 
 	 * @param string consumer_key
 	 * @return int
 	 */
-	public function countServerTokens ( $consumer_key ) { }
+	public function countServerTokens ( $consumer_key ) { 
+		$count = 0;
+
+		$tokens = get_option('oauth_server_tokens');
+		foreach ($tokens as $token) {
+			if ($token['consumer_key'] == $consumer_key) $count++;
+		}
+
+		return $count;
+	}
 
 
 	/**
@@ -177,7 +260,12 @@ class OAuthStoreWordPress implements
 	 * @exception OAuthException when no such token found
 	 * @return array
 	 */
-	public function getServerToken ( $consumer_key, $token, $user_id ) { }
+	public function getServerToken ( $consumer_key, $token, $user_id ) { 
+		$tokens = get_option('oauth_server_tokens');
+		if (array_key_exists($token, $tokens)) {
+			return $tokens[$token];
+		}
+	}
 
 
 	/**
@@ -188,7 +276,13 @@ class OAuthStoreWordPress implements
 	 * @param int user_id
 	 * @param boolean no_user_check
 	 */
-	public function deleteServerToken ( $consumer_key, $token, $user_id, $no_user_check = false ) { }
+	public function deleteServerToken ( $consumer_key, $token, $user_id, $no_user_check = false ) { 
+		$tokens = get_option('oauth_server_tokens');
+		if (array_key_exists($token, $tokens)) {
+			unset($tokens[$token]);
+			update_option('oauth_server_tokens', $tokens);
+		}
+	}
 
 
 	/**
@@ -219,7 +313,7 @@ class OAuthStoreWordPress implements
 			}
 		}
 
-		$key = $server['key'];
+		$key = $server['consumer_key'];
 		$parts = parse_url($server['server_uri']);
 		$server['server_uri_host']  = (isset($parts['host']) ? strtolower($parts['host']) : 'localhost');
 		$server['server_uri_path']  = (isset($parts['path']) ? $parts['path'] : '/');
@@ -336,7 +430,6 @@ class OAuthStoreWordPress implements
 	 * @return array (token, token_secret)
 	 */
 	public function addConsumerRequestToken( $consumer_key ) { 
-		error_log('adding consumer request token');
 		$token = array();
 
 		$token['token']  = $this->generateKey(true);
@@ -402,7 +495,16 @@ class OAuthStoreWordPress implements
 	 * @param string consumer_key
 	 * @return int
 	 */
-	public function countConsumerAccessTokens ( $consumer_key ) { }
+	public function countConsumerAccessTokens ( $consumer_key ) { 
+		$count = 0;
+
+		$tokens = get_option('oauth_consumer_tokens');
+		foreach ($tokens as $token) {
+			if ($token['consumer_key'] == $consumer_key && $token['type'] == 'access') $count++;
+		}
+
+		return $count;
+	}
 
 
 	/**
@@ -446,7 +548,12 @@ class OAuthStoreWordPress implements
 	 * @exception OAuthException when token is not found
 	 * @return array  token and consumer details
 	 */
-	public function getConsumerAccessToken ( $token, $user_id ) { }
+	public function getConsumerAccessToken ( $token, $user_id ) { 
+		$tokens = get_option('oauth_consumer_tokens');
+		if (array_key_exists($token, $tokens)) {
+			return $tokens[$token];
+		}
+	}
 
 
 	/**
