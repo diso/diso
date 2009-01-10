@@ -55,6 +55,7 @@ class OAuthStoreWordPress
 		if (@$token) { // TODO check $token['type']
 			$secrets['token'] = $token['token'];
 			$secrets['token_secret'] = $token['secret'];
+			$secrets['user_id'] = $token['user'];
 		}
 
 		return $secrets;
@@ -97,7 +98,7 @@ class OAuthStoreWordPress
 			if ($token['user'] != $user_id) continue;
 			//if ($server['user'] != $user_id) continue;
 			if ($server['server_uri_host'] != $host) continue;
-			if (strpos($path, $server['path']) !== 0) continue;
+			if (strpos($path, $server['server_uri_path']) !== 0) continue;
 
 			$secrets = array_merge($server, $token);
 			$secrets['token_secret'] = $secrets['secret'];
