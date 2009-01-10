@@ -134,11 +134,7 @@ function register_diso_permission_field($label, $field) {
 	update_option('diso_permission_fields', $fields);
 }//end function register_diso_permission_field
 
-function diso_permissions_page() {
-	global $userdata;
-
-	get_currentuserinfo();
-
+function diso_permissions_taxonomies() {
 	$taxonomies = array(
 		'Yourself' => 'me',
 		'Friends' => 'friend',
@@ -162,6 +158,16 @@ function diso_permissions_page() {
 	$terms = get_terms('link_category');
 	foreach($terms as $term)
 		$taxonomies[$term->name] = $term->name;
+	return $taxonomies;
+}
+
+function diso_permissions_page() {
+	global $userdata;
+
+	get_currentuserinfo();
+
+	$taxonomies = diso_permissions_taxonomies();
+
 	if(count($_POST['permissions_level'])) {//if saving
 		//$permissions = $userdata->profile_permissions;
 		$permissions = array();
