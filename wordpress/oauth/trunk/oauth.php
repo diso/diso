@@ -121,16 +121,30 @@ function oauth_parse_request($wp) {
 			break;
 
 		case 'authorize': 
-			// TODO prompt user for authorization
-			try {
-				$server->authorizeVerify();
-				$server->authorizeFinish(true, 2);
-			}
-			catch (OAuthException $e) {
-				header('HTTP/1.1 400 Bad Request');
-				header('Content-Type: text/plain');
+			session_start();
 
-				echo "Failed OAuth Request: " . $e->getMessage();
+			if (!is_user_logged_in()) {
+				auth_redirect();
+			}
+
+			$user = wp_get_current_user();
+
+			if (@$_REQUEST['submit']) { // submitted auth form
+				check_admin_referer('oauth_authorize_token');
+				$server->authorizeFinish($_REQUEST['authorize'], $user->ID);
+
+				// TODO display instructions to close window or return to application
+			} else {
+				try {
+					$server->authorizeVerify();
+				} catch (OAuthException $e) {
+					header('HTTP/1.1 400 Bad Request');
+					header('Content-Type: text/plain');
+
+					// echo "Failed OAuth Request: " . $e->getMessage();
+				}
+
+				oauth_authorize_token();
 			}
 
 			break;
@@ -270,7 +284,7 @@ function oauth_require_auth() {
 		die;
 	}
 
-	$t = $this->getParam('oauth_token', true);
+	$t = $server->getParam('oauth_token', true);
 	$tokens = get_option('oauth_consumer_tokens');
 	if (array_key_exists($t, $tokens)) {
 		wp_set_current_user($token[$t]['user']);
@@ -279,11 +293,7 @@ function oauth_require_auth() {
 
 
 function oauth_options_page() {
-	set_include_path(dirname(__FILE__) . '/lib' . PATH_SEPARATOR . get_include_path());
-	require_once('OAuthStore.php');
-
-	$store = OAuthStore::instance('WordPress', array());
-
+	$store = oauth_store();
 
 	if (false) { // clear out consumer tokens
 		$tokens = get_option('oauth_consumer_tokens');
@@ -324,6 +334,29 @@ function oauth_options_page() {
 	echo "\n\n</pre>";
 }
 
+function oauth_authorize_token() {
+	$server = oauth_server();
+
+	ob_start();
+?>
+
+	<form method="get">
+
+		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="1" /> Yes</label>
+		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label>
+		
+		<?php wp_nonce_field('oauth_authorize_token'); ?>
+		<input type="hidden" name="_oauth_endpoint" value="<?php echo $_REQUEST['_oauth_endpoint']; ?>" />
+		<input type="hidden" name="oauth_token" value="<?php echo $server->getParam('oauth_token', true); ?>" />
+		<input type="submit" name="submit" value="Submit" />
+	</form>
+
+<?php
+
+	$html = ob_get_contents();
+	ob_end_clean();
+	wp_die($html);
+}
 
 
 ?>
