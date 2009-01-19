@@ -12,6 +12,39 @@ define('OAUTH_STATIC_CONSUMER_KEY', 'DUMMY_KEY');
 
 add_filter('xrds_simple', 'oauth_xrds_service');
 add_filter('parse_request', 'oauth_parse_request');
+add_action('query_vars', 'oauth_query_vars');
+add_action('generate_rewrite_rules', 'oauth_rewrite_rules');
+
+
+function oauth_activate_plugin() {
+	global $wp_rewrite;
+
+	$wp_rewrite->flush_rules();
+
+	add_option('oauth_servers', array());
+	add_option('oauth_server_tokens', array());
+	add_option('oauth_consumers', array());
+	add_option('oauth_consumer_tokens', array());
+}
+
+
+function oauth_query_vars($vars) {
+	$vars[] = 'oauth';
+	return $vars;
+}
+
+
+function oauth_rewrite_rules($wp_rewrite) {
+	$url_parts = parse_url(get_option('siteurl'));
+	$site_root = substr(trailingslashit($url_parts['path']), 1);
+
+	$openid_rules = array( 
+		$site_root . 'oauth/(.*)' => 'index.php?oauth=$matches[1]',
+	);
+
+	$wp_rewrite->rules = $openid_rules + $wp_rewrite->rules;
+}
+
 
 /**
  * Register XRDS Services.
@@ -29,7 +62,7 @@ function oauth_xrds_service($xrds) {
 			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
 			array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
 		),
-		'URI' => array( array('content' => add_query_arg('_oauth_endpoint', 'request', site_url('/')) ) ),
+		'URI' => array( array('content' => site_url('/oauth/request') ) ),
 	) );
 
 	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Authorize Token', array(
@@ -37,7 +70,7 @@ function oauth_xrds_service($xrds) {
 			array('content' => 'http://oauth.net/core/1.0/endpoint/authorize'),
 			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
 		),
-		'URI' => array( array('content' => add_query_arg('_oauth_endpoint', 'authorize', site_url('/')) ) ),
+		'URI' => array( array('content' => site_url('/oauth/authorize') ) ),
 	) );
 	
 	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Access Token', array(
@@ -46,7 +79,7 @@ function oauth_xrds_service($xrds) {
 			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
 			array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
 		),
-		'URI' => array( array('content' => add_query_arg('_oauth_endpoint', 'access', site_url('/')) ) ),
+		'URI' => array( array('content' => site_url('/oauth/access') ) ),
 	) );
 	
 	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Resources', array(
@@ -110,12 +143,12 @@ function oauth_store() {
  * @param WP $wp WP request object
  */
 function oauth_parse_request($wp) {
-	if (!array_key_exists('_oauth_endpoint', $_REQUEST)) return;
+	if (!array_key_exists('oauth', $wp->query_vars)) return;
 
-	do_action('oauth_endpoint', $_REQUEST['_oauth_endpoint']);
+	do_action('oauth_endpoint', $wp->query_vars['oauth']);
 	$server = oauth_server();
 
-	switch($_REQUEST['_oauth_endpoint']) {
+	switch ($wp->query_vars['oauth']) {
 		case 'request': 
 			$server->requestToken();
 			break;
@@ -129,7 +162,7 @@ function oauth_parse_request($wp) {
 
 			$user = wp_get_current_user();
 
-			if (@$_REQUEST['submit']) { // submitted auth form
+			if (@$_REQUEST['authorize']) { // submitted auth form
 				check_admin_referer('oauth_authorize_token');
 				$server->authorizeFinish($_REQUEST['authorize'], $user->ID);
 
@@ -279,6 +312,7 @@ function oauth_require_auth() {
 	if (!$authorized) {
 		header('HTTP/1.1 401 Unauthorized');
 		header('Content-Type: text/plain');
+		header('WWW-Authenticate: OAuth realm="' . get_option('siteurl') . '"');
 
 		echo "OAuth Verification Failed: " . $e->getMessage();
 		die;
@@ -295,7 +329,7 @@ function oauth_require_auth() {
 function oauth_options_page() {
 	$store = oauth_store();
 
-	if (false) { // clear out consumer tokens
+	if (false) { // clear out tokens
 		$tokens = get_option('oauth_consumer_tokens');
 		foreach ($tokens as $key => $token) {
 			$store->deleteConsumerRequestToken($key);
@@ -329,26 +363,43 @@ function oauth_options_page() {
 	echo "\n\n</pre>";
 	
 	$tokens = get_option('oauth_consumer_tokens');
-	echo "<pre> Tokens = ";
+	echo "<pre> Consumer Tokens = ";
+	print_r($tokens);
+	echo "\n\n</pre>";
+
+	$servers = get_option('oauth_servers');
+	echo '<pre> Servers = ';
+	print_r($servers);
+	echo "\n\n</pre>";
+	
+	$tokens = get_option('oauth_server_tokens');
+	echo "<pre> Server Tokens = ";
 	print_r($tokens);
 	echo "\n\n</pre>";
 }
 
 function oauth_authorize_token() {
 	$server = oauth_server();
+	$token = $server->getParam('oauth_token', true);
 
 	ob_start();
 ?>
 
 	<form method="get">
+		<h1><?php _e('An application would like to connect to your account'); ?></h1>
+		<p><?php printf(__('Would you like to connect <strong>%s</strong> to your account? ' 
+			. 'Connecting this application will allow it to read, modify, and delete WordPress content.'), 'foo'); ?></p>
 
-		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="1" /> Yes</label>
-		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label>
+		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="1" /> Yes</label><br />
+		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label><br />
 		
 		<?php wp_nonce_field('oauth_authorize_token'); ?>
 		<input type="hidden" name="_oauth_endpoint" value="<?php echo $_REQUEST['_oauth_endpoint']; ?>" />
-		<input type="hidden" name="oauth_token" value="<?php echo $server->getParam('oauth_token', true); ?>" />
-		<input type="submit" name="submit" value="Submit" />
+		<input type="hidden" name="oauth_token" value="<?php echo $token ?>" />
+
+		<p class="submit">
+			<input type="submit" name="submit" value="Continue" />
+		</p>
 	</form>
 
 <?php
