@@ -15,6 +15,15 @@ class XRDS_URI {
 	public $http_method;
 
 	/**
+	 * When converted to string, simply return the URI.
+	 *
+	 * @return string
+	 */
+	public function __toString() {
+		return $this->uri;
+	}
+
+	/**
 	 * Create an XRDS_URI object from a DOMElement.
 	 *
 	 * @param DOMElement $dom DOM element to load

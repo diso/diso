@@ -12,6 +12,15 @@ class XRDS_LocalID {
 	public $uri;
 
 	/**
+	 * When converted to string, simply return the URI.
+	 *
+	 * @return string
+	 */
+	public function __toString() {
+		return $this->uri;
+	}
+
+	/**
 	 * Create an XRDS_LocalID object from a DOMElement.
 	 *
 	 * @param DOMElement $dom DOM element to load
