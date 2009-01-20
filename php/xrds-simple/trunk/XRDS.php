@@ -28,15 +28,32 @@ class XRDS {
 	public function __construct() {
 	}
 
+
 	/** 
 	 * Get the URI for the Service that includes the specified type(s).  
 	 * If the service contains multiple URIs, only one is returned (based 
 	 * on priority).
 	 *
 	 * @param mixed $type a single type string, or an array of types
-	 * @return string URI for the service
+	 * @return object XRDS_URI for the service
 	 */
 	public function getServiceURI($type) {
+		$service = $this->getService($type);
+		if ($service) {
+			return $service->uri[0];
+		}
+	}
+
+
+	/** 
+	 * Get the Service that includes the specified type(s).  
+	 * If multiple service are found, only one is returned (based 
+	 * on priority).
+	 *
+	 * @param mixed $type a single type string, or an array of types
+	 * @return object XRDS_Service with specified type(s)
+	 */
+	public function getService($type) {
 		if (!is_array($type)) {
 			$type = array($type);
 		}
@@ -48,10 +65,9 @@ class XRDS {
 						continue 2;
 					}
 				}
-				return $service->uri[0];
+				return $service;
 			}
 		}
-
 	}
 
 
