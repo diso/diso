@@ -36,7 +36,7 @@ class XRDS_URI {
 	 * @param int $priority priority for this XRDS_URI
 	 * @param string $http_method HTTP method for this XRDS_URI
 	 */
-	public function __construct($uri, $priority = 10, $http_method = null) {
+	public function __construct($uri = null, $priority = 10, $http_method = null) {
 		$this->uri = $uri;
 		$this->priority = $priority;
 		$this->http_method = $http_method;

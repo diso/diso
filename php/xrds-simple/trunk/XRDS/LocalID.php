@@ -27,7 +27,7 @@ class XRDS_LocalID {
 	 * @param string $uri URI value
 	 * @param int $priority priority for this XRDS_LocalID
 	 */
-	public function __construct($uri, $priority = 10) {
+	public function __construct($uri = null, $priority = 10) {
 		$this->uri = $uri;
 		$this->priority = $priority;
 	}
