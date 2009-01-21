@@ -10,53 +10,53 @@ License: MIT license (http://www.opensource.org/licenses/mit-license.php)
 */
 
 
+set_include_path(dirname(__FILE__) . '/lib' . PATH_SEPARATOR . get_include_path());
+
 // Public Functions
 
 /**
  * Convenience function for adding a new XRD to the XRDS structure.
  *
- * @param array $xrds current XRDS-Simple structure
+ * @param object $xrds current XRDS object
  * @param string $id ID of new XRD to add
- * @param array $type service types for the new XRD
+ * @param mixed $type Type string or array of Type strings for the new XRD
  * @param string $expires expiration date for XRD, formatted as xs:dateTime
- * @return array updated XRDS-Simple structure
- * @since 1.0
+ * @return object newly created XRDS_XRD object
+ * @since 1.1
  */
-function xrds_add_xrd($xrds, $id, $type=array(), $expires=false) {
-	if(!is_array($xrds)) $xrds = array();
-	$xrds[$id] = array('type' => $type, 'expires' => $expires, 'services' => array());
-	return $xrds;
+function &xrds_add_xrd(&$xrds, $id, $type=null, $expires=false) {
+	$xrd;
+
+	foreach ($xrds->xrd as $x) {
+		if ($x->id == $id) {
+			$xrd = $x;
+			break;
+		}
+	}
+
+	if (!$xrd) {
+		$xrd = new XRDS_XRD($id, $type, $expires);
+		$xrds->xrd[] = $xrd;
+	}
+
+	return $xrd;
 }
 
 
 /**
  * Convenience function for adding a new service endpoint to the XRDS structure.
  *
- * @param array $xrds current XRDS-Simple structure
+ * @param object $xrds current XRDS object
  * @param string $id ID of the XRD to add the new service to.  If no XRD exists with the specified ID,
  *        a new one will be created.
- * @param string $name human readable name of the service
- * @param array $content content to be included in the service definition. Format:
- *        <code>
- *        array(
- *            'NodeName (ie, Type)' => array( 
- *                array('attribute' => 'value', 'content' => 'content string'), 
- *                ... 
- *             ),
- *             ...
- *        )
- *        </code>
- * @param int $priority service priorty
- * @return array updated XRDS-Simple structure
- * @since 1.0
+ * @param object $service XRDS_Service object to add
+ * @since 1.1
  */
-function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
-	if (!is_array($xrds[$xrd_id])) {
-		$xrds = xrds_add_xrd($xrds, $xrd_id);
-	}
-	$xrds[$xrd_id]['services'][$name] = array('priority' => $priority, 'content' => $content);
-	return $xrds;
+function xrds_add_service(&$xrds, $xrd_id, &$service) {
+	$xrd = xrds_add_xrd($xrds, $xrd_id);
+	$xrd->service[] = $service;
 }
+
 
 /**
  * Convenience function for adding a new service with minimal options.  
@@ -64,97 +64,64 @@ function xrds_add_service($xrds, $xrd_id, $name, $content, $priority=10) {
  * No additional parameters such as httpMethod on URIs can be passed.  If those 
  * are necessary, use xrds_add_service().
  *
- * @param array $xrds current XRDS-Simple structure
+ * @param object $xrds current XRDS object
  * @param string $name human readable name of the service
  * @param mixed $type one type (string) or array of multiple types
  * @param mixed $uri one URI (string) or array of multiple URIs
  * @return array updated XRDS-Simple structure
- * @since 1.0
+ * @since 1.1
  */
-function xrds_add_simple_service($xrds, $name, $type, $uri) {
-	if (!is_array($type)) $type = array($type);
-	if (!is_array($uri)) $uri = array($uri);
-	$service = array('Type' => array(), 'URI' => array());
-
-	foreach ($type as $t) {
-		$service['Type'][] = array('content' => $t);
-	}
-
-	foreach ($uri as $u) {
-		$service['URI'][] = array('content' => $u);
-	}
-
-	return xrds_add_service($xrds, 'main', $name, $service);
+function xrds_add_simple_service(&$xrds, $name, $type, $uri) {
+	$service = new XRDS_Service($type, null, new XRDS_URI($uri));
+	xrds_add_service($xrds, 'main', $service);
 }
 
 
 
 // Private Functions
 
-add_action('wp_head', 'xrds_meta');
 add_action('parse_request', 'xrds_parse_request');
+add_action('query_vars', 'xrds_query_vars');
+add_action('generate_rewrite_rules', 'xrds_rewrite_rules');
+
+add_action('wp_head', 'xrds_meta');
 add_action('admin_menu', 'xrds_admin_menu');
-add_filter('xrds_simple', 'xrds_atompub_service');
+
+add_action('xrds_simple', 'xrds_atompub_service');
 
 /**
  * Print HTML meta tags, advertising the location of the XRDS document.
  */
 function xrds_meta() {
-	echo '<meta http-equiv="X-XRDS-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
-	echo '<meta http-equiv="X-Yadis-Location" content="'.get_bloginfo('home').'/?xrds" />'."\n";
+	echo '<meta http-equiv="X-XRDS-Location" content="' . xrds_url() . '" />'."\n";
+	echo '<meta http-equiv="X-Yadis-Location" content="' . xrds_url() . '" />'."\n";
 }
 
 
 /**
  * Build the XRDS-Simple document.
  *
- * @return string XRDS-Simple document
+ * @return string XRDS-Simple XML document
  */
 function xrds_write() {
+	require_once 'XRDS.php';
+	$xrds = new XRDS();
+	xrds_add_xrd($xrds, 'main');
 
-	$xrds = array();
-	$xrds = apply_filters('xrds_simple', $xrds);
+	do_action_ref_array('xrds_simple', array(&$xrds));
 	
-	//make sure main is last
-	if($xrds['main']) {
-		$o = $xrds['main'];
-		unset($xrds['main']);
-		$xrds['main'] = $o;
+	// make sure main is last
+	$xrd;
+	for ($i=0; $i<sizeof($xrds->xrd); $i++) {
+		$xrd = $xrds->xrd[$i];
+		if ($xrd->id == 'main') {
+			unset($xrds->xrd[$i]);
+			break;
+		}
 	}
+	if ($xrd) $xrds->xrd[] = $xrd;
 
-	$xml = '<?xml version="1.0" encoding="UTF-8" ?>'."\n";
-	$xml .= '<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)" xmlns:simple="http://xrds-simple.net/core/1.0" xmlns:openid="http://openid.net/xmlns/1.0">'."\n";
-	foreach($xrds as $id => $xrd) {
-		$xml .= '	<XRD xml:id="'.htmlspecialchars($id).'" version="2.0">' . "\n";
-		$xml .= '		<Type>xri://$xrds*simple</Type>'."\n";
-		if(!$xrd['type']) $xrd['type'] = array();
-		if(!is_array($xrd['type'])) $xrd['type'] = array($xrd['type']);
-		foreach($xrd['type'] as $type)
-			$xml .= '		<Type>'.htmlspecialchars($type).'</Type>'."\n";
-		if($xrd['expires'])
-			$xml .= '	<Expires>'.htmlspecialchars($xrd['expires']).'</Expires>'."\n";
-		foreach($xrd['services'] as $name => $service) {
-			$xml .= "\n".'		<!-- ' . $name . ' -->'."\n";
-			$xml .= '		<Service priority="'.floor($service['priority']).'">'."\n";
-			foreach($service['content'] as $node => $nodes) {
-				if(!is_array($nodes)) $nodes = array($nodes);//sanity check
-				foreach($nodes as $attr) {
-					$xml .= '			<'.htmlspecialchars($node);
-					if(!is_array($attr)) $attr = array('content' => $attr);//sanity check
-					foreach($attr as $name => $v) {
-						if($name == 'content') continue;
-						$xml .= ' '.htmlspecialchars($name).'="'.htmlspecialchars($v).'"';
-					}//end foreach attr
-					$xml .= '>'.htmlspecialchars($attr['content']).'</'.htmlspecialchars($node).'>'."\n";
-				}//end foreach content
-			}//end foreach
-			$xml .= '		</Service>'."\n";
-		}//end foreach services
-		$xml .= '	</XRD>'."\n";
-	}//end foreach
-
-	$xml .= '</xrds:XRDS>'."\n";
-
+	$xml = $xrds->to_xml(true);
 	return $xml;
 }
 
@@ -191,24 +158,29 @@ function xrds_options_page() {
 	}
 
 	echo '</div>';
-}//end xrds_options_page
+}
 
-function xrds_plugin_actions($links, $file) {
-	static $this_plugin;
-	if(!$this_plugin) $this_plugin = plugin_basename(__FILE__);
+
+/**
+ * Add settings link to plugin page.
+ */
+function xrds_plugin_action_links($links, $file) {
+	$this_plugin = xrds_plugin_file();
+
 	if($file == $this_plugin) {
-		$settings_link = '<a href="options-general.php?page=xrds-simple" style="font-weight:bold;">Settings</a>';
-		$links[] = $settings_link;
-	}//end if this_plugin
+		$links[] = '<a href="' . add_query_arg('page', 'xrds-simple', 'options-general.php') . '">' . __('Settings') . '</a>';
+	}
+
 	return $links;
-}//end xrds_plugin_actions
+}
+
 
 /**
  * Setup admin menu for XRDS.
  */
 function xrds_admin_menu() {
 	add_options_page('XRDS-Simple', 'XRDS-Simple', 8, 'xrds-simple', 'xrds_options_page');
-	add_filter('plugin_action_links', 'xrds_plugin_actions', 10, 2);
+	add_filter('plugin_action_links', 'xrds_plugin_action_links', 10, 2);
 }
 
 
@@ -219,7 +191,7 @@ function xrds_admin_menu() {
  */
 function xrds_parse_request($wp) {
 	$accept = explode(',', $_SERVER['HTTP_ACCEPT']);
-	if(isset($_GET['xrds']) || in_array('application/xrds+xml', $accept)) {
+	if(array_key_exists('xrds', $wp->query_vars) || in_array('application/xrds+xml', $accept)) {
 		if ($_REQUEST['format'] == 'text') { 
 			header('Content-type: text/plain');
 		} else {
@@ -228,9 +200,56 @@ function xrds_parse_request($wp) {
 		echo xrds_write();
 		exit;
 	} else {
-		@header('X-XRDS-Location: '.get_bloginfo('home').'/?xrds');
-		@header('X-Yadis-Location: '.get_bloginfo('home').'/?xrds');
+		@header('X-XRDS-Location: ' . xrds_url());
+		@header('X-Yadis-Location: ' . xrds_url());
 	}
+}
+
+
+/**
+ * Get the URL for the XRDS document, based on the blog's permalink settings.
+ *
+ * @return string XRDS document URL
+ */
+function xrds_url() {
+	global $wp_rewrite;
+
+	$url = trailingslashit(get_option('home'));
+
+	if ($wp_rewrite->using_permalinks()) {
+		if ($wp_rewrite->using_index_permalinks()) {
+			return $url . 'index.php/xrds';
+		} else {
+			return $url . 'xrds';
+		}
+	} else {
+		return add_query_arg('xrds', '1', $url);
+	}
+}
+
+
+/**
+ * Add rewrite rules for XRDS.
+ *
+ * @param object $wp_rewrite WP_Rewrite object
+ */
+function xrds_rewrite_rules($wp_rewrite) {
+	$xrds_rules = array( 
+		'xrds' => 'index.php?xrds=1',
+	);
+
+	$wp_rewrite->rules = $xrds_rules + $wp_rewrite->rules;
+}
+
+
+/**
+ * Add authorized query_vars for XRDS.
+ *
+ * @param array $vars
+ */
+function xrds_query_vars($vars) {
+	$vars[] = 'xrds';
+	return $vars;
 }
 
 
@@ -241,34 +260,42 @@ function xrds_parse_request($wp) {
  * @return array updated XRDS-Simple array
  */
 function xrds_atompub_service($xrds) {
-	$xrds = xrds_add_service($xrds, 'main', 'AtomPub Service', 
-		array(
-			'Type' => array( array('content' => 'http://www.w3.org/2007/app') ),
-			'MediaType' => array( array('content' => 'application/atomsvc+xml') ),
-			'URI' => array( array('content' => get_bloginfo('wpurl').'/wp-app.php/service' ) ),
-		)
+
+	$service = new XRDS_Service(
+		'http://www.w3.org/2007/app',
+		'application/atomsvc+xml',
+		new XRDS_URI(get_bloginfo('wpurl').'/wp-app.php/service')
 	);
+
+	xrds_add_service($xrds, 'main', $service);
 
 	return $xrds;
 }
 
 
 /**
- * Check if data is well-formed XML.
+ * Get the file for the plugin, including the path.  This method will handle the case where the 
+ * actual plugin files do not reside within the WordPress directory on the filesystem (such as 
+ * a symlink).  The standard value should be 'xrds-simple/xrds-simple.php' unless files or folders have
+ * been renamed.
  *
- * @param string $data XML structure to test
- * @return mixed FALSE if data is well-formed XML, XML error code otherwise
+ * @return string plugin file
  */
-function xrds_checkXML($data) {//returns FALSE if $data is well-formed XML, errorcode otherwise
-	$rtrn = 0;
-	$theParser = xml_parser_create();
-	if(!xml_parse_into_struct($theParser,$data,$vals)) {
-		$errorcode = xml_get_error_code($theParser);
-		if($errorcode != XML_ERROR_NONE && $errorcode != 27)
-			$rtrn = $errorcode;
-	}//end if ! parse
-	xml_parser_free($theParser);
-	return $rtrn;
+function xrds_plugin_file() {
+	static $file;
+
+	if (empty($file)) {
+		$path = 'xrds-simple';
+
+		$base = plugin_basename(__FILE__);
+		if ($base != __FILE__) {
+			$path = basename(dirname($base));
+		}
+
+		$file = $path . '/' . basename(__FILE__);
+	}
+
+	return $file;
 }
 
 ?>
