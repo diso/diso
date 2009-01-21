@@ -9,23 +9,41 @@ require_once('XRDS/XRD.php');
  */
 class XRDS {
 
-	/** XRDS XML Namespace */
+	/** 
+	 * XRDS XML Namespace 
+	 */
 	const XRDS_NS = 'xri://$xrds';
 
-	/** XRD XML Namespace */
+
+	/** 
+	 * XRD XML Namespace 
+	 */
 	const XRD_NS = 'xri://$XRD*($v*2.0)';
 
-	/** OpenID XML Namespace */
+
+	/** 
+	 * OpenID XML Namespace 
+	 */
 	const OPENID_NS = 'http://openid.net/xmlns/1.0';
 
-	/** XRDS-Simple XML Namespace */
+
+	/** 
+	 * XRDS-Simple XML Namespace
+	 */
 	const SIMPLE_NS = 'http://xrds-simple.net/core/1.0';
 
-	/** XRDS Descriptors */
-	public $xrd = array();
+
+	/** 
+	 * XRDS Descriptors 
+	 *
+	 * @var array of XRDS_XRD objects
+	 */
+	public $xrd;
+
 
 	/** Constructor */
 	public function __construct() {
+		$this->xrd = array();
 	}
 
 
@@ -88,6 +106,7 @@ class XRDS {
 		return self::from_dom($xrds_elements->item(0));
 	}
 
+
 	/**
 	 * Create an XRDS object from the specified XML string.
 	 *
@@ -102,6 +121,7 @@ class XRDS {
 		
 		return self::from_dom($xrds_elements->item(0));
 	}
+
 
 	/**
 	 * Create an XRDS object from a DOMElement.
@@ -121,8 +141,9 @@ class XRDS {
 		return $xrds;
 	}
 
+
 	/**
-	 * Create a a DOMDocument from this XRDS object.
+	 * Create a DOMDocument from this XRDS object.
 	 *
 	 * @return DOMDocument
 	 */
@@ -142,15 +163,19 @@ class XRDS {
 		return $dom;
 	}
 
+
 	/**
 	 * Get the marshalled XML for this XRDS object.
 	 *
+	 * @param boolean $format if true, XML output will be formatted
 	 * @return string marshalled xml
 	 */
-	public function to_xml() {
+	public function to_xml($format = false) {
 		$dom = $this->to_dom();
+		$dom->formatOutput = $format;
 		return $dom->saveXML();
 	}
+
 
 	/**
 	 * Compare items based on the priority rules of XRDS-Simple.  

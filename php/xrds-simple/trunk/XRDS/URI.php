@@ -5,23 +5,53 @@
  */
 class XRDS_URI {
 
-	/** Priority. */
+	/** 
+	 * Priority. 
+	 *
+	 * @var int
+	 */
 	public $priority;
 
-	/** URI value. */
+
+	/** 
+	 * URI value. 
+	 *
+	 * @var string
+	 */
 	public $uri;
 
-	/** HTTP method. */
+
+	/** 
+	 * HTTP method. 
+	 *
+	 * @var string
+	 */
 	public $http_method;
 
+
 	/**
-	 * When converted to string, simply return the URI.
+	 * Constructor.
+	 *
+	 * @param string $uri URI value
+	 * @param int $priority priority for this XRDS_URI
+	 * @param string $http_method HTTP method for this XRDS_URI
+	 */
+	public function __construct($uri, $priority = 10, $http_method = null) {
+		$this->uri = $uri;
+		$this->priority = $priority;
+		$this->http_method = $http_method;
+	}
+
+
+	/**
+	 * When converted to string, simply return the URI value.
 	 *
 	 * @return string
 	 */
 	public function __toString() {
 		return $this->uri;
 	}
+
 
 	/**
 	 * Create an XRDS_URI object from a DOMElement.
@@ -39,10 +69,12 @@ class XRDS_URI {
 		return $uri;
 	}
 
+
 	/**
-	 * Create a a DOMDocument from this XRDS_URI object.
+	 * Create a DOMElement from this XRDS_URI object.
 	 *
-	 * @return DOMDocument
+	 * @param DOMDocument $dom document used to create elements.
+	 * @return DOMElement
 	 */
 	public function to_dom($dom) {
 		$uri = $dom->createElement('URI', $this->uri);
