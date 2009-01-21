@@ -5,20 +5,43 @@
  */
 class XRDS_LocalID {
 
-	/** Priority. */
+	/** 
+	 * Priority. 
+	 *
+	 * @var int
+	 */
 	public $priority;
 
-	/** URI value. */
+
+	/** 
+	 * URI value. 
+	 *
+	 * @var string
+	 */
 	public $uri;
 
+
 	/**
-	 * When converted to string, simply return the URI.
+	 * Constructor.
+	 *
+	 * @param string $uri URI value
+	 * @param int $priority priority for this XRDS_LocalID
+	 */
+	public function __construct($uri, $priority = 10) {
+		$this->uri = $uri;
+		$this->priority = $priority;
+	}
+
+
+	/**
+	 * When converted to string, simply return the URI value.
 	 *
 	 * @return string
 	 */
 	public function __toString() {
 		return $this->uri;
 	}
+
 
 	/**
 	 * Create an XRDS_LocalID object from a DOMElement.
@@ -35,10 +58,12 @@ class XRDS_LocalID {
 		return $local_id;
 	}
 
+
 	/**
-	 * Create a a DOMDocument from this XRDS_LocalID object.
+	 * Create a DOMElement from this XRDS_LocalID object.
 	 *
-	 * @return DOMDocument
+	 * @param DOMDocument $dom document used to create elements.
+	 * @return DOMElement
 	 */
 	public function to_dom($dom) {
 		$local_id = $dom->createElement('LocalID', $this->uri);

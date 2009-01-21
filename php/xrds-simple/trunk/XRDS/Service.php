@@ -5,23 +5,83 @@
  */
 class XRDS_Service {
 
-	/** Priority. */
+	/** 
+	 * Priority. 
+	 *
+	 * @var int
+	 */
 	public $priority;
 
-	/** Types */
-	public $type = array();
 
-	/** Media types */
-	public $media_type = array();
+	/** 
+	 * Types.
+	 *
+	 * @var array of strings
+	 */
+	public $type;
 
-	/** URIs */
-	public $uri = array();
 
-	/** Local IDs */
-	public $local_id = array();
+	/** 
+	 * Media types.
+	 *
+	 * @var array of strings
+	 */
+	public $media_type;
 
-	/** Required Ssupport */
-	public $must_support = array();
+
+	/** 
+	 * URIs.
+	 *
+	 * @var array of XRDS_URI objects
+	 */
+	public $uri;
+
+
+	/** 
+	 * Local IDs.
+	 *
+	 * @var array of XRDS_LocalID objects
+	 */
+	public $local_id;
+
+
+	/** 
+	 * Required Support.
+	 *
+	 * @var array of strings
+	 */
+	public $must_support;
+
+
+	/**
+	 * Constructor.
+	 *
+	 * @param mixed $type Type string or array of Type strings
+	 * @param mixed $media_type Media Type string or array of Media Type strings
+	 * @param mixed $uri XRDS_URI object or array of XRDS_URI objects
+	 * @param mixed $type XRDS_LocalID object or array of XRDS_LocalID objects
+	 * @param mixed $type Must Support string or array of Must Support strings
+	 * @param int $priority Priority
+	 */
+	public function __construct($type=null, $media_type=null, $uri=null, $local_id=null, $must_support=null, $priority=10) {
+		if (!is_array($type)) $type = array_filter(array($type));
+		$this->type = $type;
+
+		if (!is_array($media_type)) $media_type = array_filter(array($media_type));
+		$this->media_type = $media_type;
+
+		if (!is_array($uri)) $uri = array_filter(array($uri));
+		$this->uri = $uri;
+
+		if (!is_array($local_id)) $local_id = array_filter(array($local_id));
+		$this->local_id = $local_id;
+
+		if (!is_array($must_support)) $must_support = array_filter(array($must_support));
+		$this->must_support = $must_support;
+
+		$this->priority = $priority;
+	}
+
 
 	/**
 	 * Create an XRDS_Service object from a DOMElement.
@@ -66,10 +126,12 @@ class XRDS_Service {
 		return $service;
 	}
 
+
 	/**
-	 * Create a a DOMDocument from this XRDS_Service object.
+	 * Create a DOMElement from this XRDS_Service object.
 	 *
-	 * @return DOMDocument
+	 * @param DOMDocument $dom document used to create elements.
+	 * @return DOMElement
 	 */
 	public function to_dom($dom) {
 		$service = $dom->createElement('Service');

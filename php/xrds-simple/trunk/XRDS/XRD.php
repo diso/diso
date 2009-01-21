@@ -9,20 +9,61 @@ require_once('XRDS/Service.php');
  */
 class XRDS_XRD {
 
-	/** ID of XRDS Descriptor. */
+	/** 
+	 * ID of XRDS Descriptor. 
+	 *
+	 * @var string
+	 */
 	public $id;
 
-	/** XRDS Version. */
+
+	/** 
+	 * XRDS Version. 
+	 *
+	 * @var string
+	 */
 	public $version;
 
-	/** Types. */
-	public $type = array();
-	
-	/** Expiration date for this descriptor. */
+
+	/** 
+	 * Types. 
+	 *
+	 * @var array of strings
+	 */
+	public $type;
+
+
+	/** 
+	 * Expiration date for this descriptor. 
+	 *
+	 * @var string
+	 */
 	public $expires;
 
-	/** Services. */
-	public $service = array();
+
+	/** 
+	 * Services. 
+	 *
+	 * @var array of XRDS_Service objects
+	 */
+	public $service;
+
+
+	/**
+	 * Constructor.
+	 *
+	 * @param string $id ID
+	 * @param mixed $type Type string or array of Type strings
+	 * @param string $expires expiration date
+	 */
+	public function __construct($id=null, $type=null, $expires=null) {
+		if (!is_array($type)) $type = array_filter(array($type));
+		$this->type = $type;
+
+		$this->id = $id;
+		$this->expires = $expires;
+		$this->service = array();
+	}
 
 
 	/**
@@ -61,9 +102,11 @@ class XRDS_XRD {
 		return $xrd;
 	}
 
+
 	/**
-	 * Create a a DOMDocument from this XRDS_XRD object
+	 * Create a DOMElement from this XRDS_XRD object
 	 *
+	 * @param DOMDocument $dom document used to create elements.
 	 * @return DOMDocument
 	 */
 	public function to_dom($dom) {
