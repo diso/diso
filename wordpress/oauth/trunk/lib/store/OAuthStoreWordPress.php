@@ -263,7 +263,7 @@ class OAuthStoreWordPress
 	 */
 	public function getServerToken ( $consumer_key, $token, $user_id ) { 
 		$tokens = get_option('oauth_server_tokens');
-		if (array_key_exists($token, $tokens)) {
+		if (is_array($tokens) && array_key_exists($token, $tokens)) {
 			return $tokens[$token];
 		}
 	}

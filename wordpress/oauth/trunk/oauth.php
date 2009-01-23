@@ -10,11 +10,16 @@ Author URI: http://diso-project.org/
 
 define('OAUTH_STATIC_CONSUMER_KEY', 'DUMMY_KEY');
 
-add_filter('xrds_simple', 'oauth_xrds_service');
+add_action('xrds_simple', 'oauth_xrds_service');
 add_filter('parse_request', 'oauth_parse_request');
 add_action('query_vars', 'oauth_query_vars');
 add_action('generate_rewrite_rules', 'oauth_rewrite_rules');
 
+//if (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST) {
+	add_filter('authenticate', 'oauth_authenticate', 9);
+//}
+
+require_once dirname(__FILE__) . '/admin_panels.php';
 
 function oauth_activate_plugin() {
 	global $wp_rewrite;
@@ -46,59 +51,33 @@ function oauth_rewrite_rules($wp_rewrite) {
 }
 
 
-/**
- * Register XRDS Services.
- */
-function oauth_xrds_service($xrds) {
+function oauth_authenticate($user) {
+	require_once dirname(__FILE__) . '/lib/OAuthRequestVerifier.php';
 
-	$xrds = xrds_add_service($xrds, 'main', 'OAuth Dummy Service', array(
-		'Type' => array( array('content' => 'http://oauth.net/discovery/1.0') ),
-		'URI' => array( array('content' => '#oauth' ) ),
-	) );
+	if (OAuthRequestVerifier::requestIsSigned()) {
+		$store = oauth_store();
 
-	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Request Token', array(
-		'Type' => array( 
-			array('content' => 'http://oauth.net/core/1.0/endpoint/request'),
-			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
-			array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
-		),
-		'URI' => array( array('content' => site_url('/oauth/request') ) ),
-	) );
+		try {
+			$req = new OAuthRequestVerifier();
+			$user_id = $req->verify();
+			$user = wp_set_current_user($user_id);
+		} catch (OAuthException $e) {
+			error_log($e->getMessage());
+		}
+	}
 
-	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Authorize Token', array(
-		'Type' => array( 
-			array('content' => 'http://oauth.net/core/1.0/endpoint/authorize'),
-			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
-		),
-		'URI' => array( array('content' => site_url('/oauth/authorize') ) ),
-	) );
-	
-	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Access Token', array(
-		'Type' => array( 
-			array('content' => 'http://oauth.net/core/1.0/endpoint/access'),
-			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
-			array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
-		),
-		'URI' => array( array('content' => site_url('/oauth/access') ) ),
-	) );
-	
-	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Resources', array(
-		'Type' => array( 
-			array('content' => 'http://oauth.net/core/1.0/endpoint/resource'),
-			array('content' => 'http://oauth.net/core/1.0/parameters/uri-query'),
-			array('content' => 'http://oauth.net/core/1.0/signature/HMAC-SHA1'),
-		),
-	) );
-	
-	$xrds = xrds_add_service($xrds, 'oauth', 'OAuth Static Token', array(
-		'Type' => array( 
-			array('content' => 'http://oauth.net/discovery/1.0/consumer-identity/static'),
-		),
-		'LocalID' => array( array('content' => OAUTH_STATIC_CONSUMER_KEY ) ),
-	) );
-
-	return $xrds;
+	return $user;
 }
+
+/**
+ * Get the OAuth signature methods supported by the current PHP environment.
+ *
+ * @return array supported methods
+ */
+function oauth_supported_signature_methods() {
+	return array('HMAC-SHA1', 'PLAINTEXT');
+}
+
 
 
 /**
@@ -197,92 +176,6 @@ function oauth_parse_request($wp) {
 }
 
 
-add_action('admin_menu', 'oauth_admin_menu');
-function oauth_admin_menu() {
-	$hookname = add_options_page('OAuth', 'OAuth', 8, 'oauth', 'oauth_options_page');
-
-	$hookname = add_users_page(__('Your Services', 'oauth'), __('Your Services', 'oauth'),
-		'read', 'oauth_services', 'oauth_profile_panel' );
-
-}
-
-
-/**
- * Handle OAuth user profile page.
- */
-function oauth_profile_panel() {
-	$user = wp_get_current_user();
-
-	if (@$_POST['action'] == 'delete') {
-		$tokens = oauth_get_user_access_tokens($user->ID);
-		$count = 0;
-		foreach ($_POST['delete'] as $token_hash) {
-			foreach ($tokens as $token) {
-				if (md5($token['token']) == $token_hash) {
-					oauth_delete_token($token['token'], $user->ID);
-					$count++;
-				}
-			}
-		}
-		if ($count) {
-			echo '<div class="updated"><p>'.__('Deleted '.$count.' service' . ($count>1 ? 's' : '') . '.').'</p></div>';
-		}
-
-	}
-
- 	if (function_exists('screen_icon')) {
-		screen_icon('openid');
-	}
-
-?>
-	<div class="wrap">
-		<form action="<?php printf('%s?page=%s', $_SERVER['PHP_SELF'], $_REQUEST['page']); ?>" method="post">
-
-			<h2><?php _e('Your Services', 'oauth'); ?></h2>
-
-		<div class="tablenav">
-            <div class="alignleft">
-                <input type="submit" value="<?php _e('Delete'); ?>" name="deleteit" class="button-secondary delete" />
-                <input type="hidden" name="action" value="delete" />
-                <?php wp_nonce_field('oauth-delete_services'); ?>
-            </div>
-        </div>
-
-		<br class="clear" />
-
-        <table class="widefat">
-            <thead>
-                <tr>
-                    <th scope="col" class="check-column"><input type="checkbox" /></th>
-                    <th scope="col"><?php _e('Service', 'oauth'); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-
-            <?php
-                $tokens = oauth_get_user_access_tokens($user->ID);
-
-                if (empty($tokens)) {
-                    echo '<tr><td colspan="2">'.__('No Services.', 'oauth').'</td></tr>';
-                } else {
-                    foreach ($tokens as $token) {
-                        echo '
-                        <tr>
-                            <th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="'.md5($token['token']).'" /></th>
-                            <td>'.($token['token']).'</td>
-                        </tr>';
-                    }   
-                }   
-            ?>  
-
-            </tbody>
-            </table>
-        </form>
-	</div>
-<?php
-}
-
-
 function oauth_get_user_access_tokens($user_id) {
 	$store = oauth_store();
 	return $store->listServerTokens($user_id);
@@ -326,87 +219,42 @@ function oauth_require_auth() {
 }
 
 
-function oauth_options_page() {
-	$store = oauth_store();
+/**
+ * Register XRDS Services.
+ */
+function oauth_xrds_service($xrds) {
 
-	if (false) { // clear out tokens
-		$tokens = get_option('oauth_consumer_tokens');
-		foreach ($tokens as $key => $token) {
-			$store->deleteConsumerRequestToken($key);
-		}
+	$parameter_methods = array(
+		'http://oauth.net/core/1.0/parameters/auth-header',
+		'http://oauth.net/core/1.0/parameters/uri-query',
+	);
+
+	$signature_methods = oauth_supported_signature_methods();
+	$signature_types = array();
+	foreach ($signature_methods as $method) {
+		$signature_types[] = 'http://oauth.net/core/1.0/signature/' . $method;
 	}
 
-	if (false) { // register consumer
-		$data = array(
-			'requester_name' => 'Default Consumer',
-			'requester_email' => 'will@willnorris.com',
-		);
-		$store->updateConsumer($data, 2, true);
-	}
+	xrds_add_simple_service($xrds, 'OAuth Dummy Service', 'http://oauth.net/discovery/1.0', '#oauth');
 
-	if (false) { // full token flow
-		$result = $store->addConsumerRequestToken('foo');
+	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/request'), $parameter_methods, $signature_types) );
+	$service->uri[] = new XRDS_URI(site_url('/oauth/request'));
+	xrds_add_service($xrds, 'oauth', $service);
 
-		$tokens = get_option('oauth_consumer_tokens');
-		echo '<pre>';
-		print_r($tokens);
-		echo '</pre>';
+	$service = new XRDS_Service( array('http://oauth.net/core/1.0/endpoint/authorize', 'http://oauth.net/core/1.0/parameters/uri-query') );
+	$service->uri[] = new XRDS_URI(site_url('/oauth/authorize'));
+	xrds_add_service($xrds, 'oauth', $service);
 
-		$store->authorizeConsumerRequestToken($result['token'], 2);
-		$store->exchangeConsumerRequestForAccessToken($result['token']);
-	}
+	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/access'), $parameter_methods, $signature_types) );
+	$service->uri[] = new XRDS_URI(site_url('/oauth/access'));
+	xrds_add_service($xrds, 'oauth', $service);
 
+	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/resource'), $parameter_methods, $signature_types) );
+	xrds_add_service($xrds, 'oauth', $service);
 
-	$consumers = get_option('oauth_consumers');
-	echo '<pre> Consumers = ';
-	print_r($consumers);
-	echo "\n\n</pre>";
-	
-	$tokens = get_option('oauth_consumer_tokens');
-	echo "<pre> Consumer Tokens = ";
-	print_r($tokens);
-	echo "\n\n</pre>";
-
-	$servers = get_option('oauth_servers');
-	echo '<pre> Servers = ';
-	print_r($servers);
-	echo "\n\n</pre>";
-	
-	$tokens = get_option('oauth_server_tokens');
-	echo "<pre> Server Tokens = ";
-	print_r($tokens);
-	echo "\n\n</pre>";
-}
-
-function oauth_authorize_token() {
-	$server = oauth_server();
-	$token = $server->getParam('oauth_token', true);
-
-	ob_start();
-?>
-
-	<form method="get">
-		<h1><?php _e('An application would like to connect to your account'); ?></h1>
-		<p><?php printf(__('Would you like to connect <strong>%s</strong> to your account? ' 
-			. 'Connecting this application will allow it to read, modify, and delete WordPress content.'), 'foo'); ?></p>
-
-		<label for="authorize_yes"><input type="radio" id="authorize_yes" name="authorize" value="1" /> Yes</label><br />
-		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label><br />
-		
-		<?php wp_nonce_field('oauth_authorize_token'); ?>
-		<input type="hidden" name="_oauth_endpoint" value="<?php echo $_REQUEST['_oauth_endpoint']; ?>" />
-		<input type="hidden" name="oauth_token" value="<?php echo $token ?>" />
-
-		<p class="submit">
-			<input type="submit" name="submit" value="Continue" />
-		</p>
-	</form>
-
-<?php
-
-	$html = ob_get_contents();
-	ob_end_clean();
-	wp_die($html);
+	$service = new XRDS_Service('http://oauth.net/discovery/1.0/consumer-identity/static');
+	$service->local_id[] = new XRDS_LocalID(OAUTH_STATIC_CONSUMER_KEY);
+	xrds_add_service($xrds, 'oauth', $service);
 }
 
 
