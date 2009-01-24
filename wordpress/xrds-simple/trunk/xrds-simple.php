@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: XRDS-Simple
-Plugin URI: http://singpolyma.net/plugins/xrds/
+Plugin URI: http://wordpress.org/extend/plugins/xrds-simple/
 Description: Provides framework for other plugins to advertise services via XRDS.
 Version: trunk
 Author: DiSo Development Team
@@ -34,7 +34,7 @@ function &xrds_add_xrd(&$xrds, $id, $type=null, $expires=false) {
 		}
 	}
 
-	if (!$xrd) {
+	if (!isset($xrd) || !$xrd) {
 		$xrd = new XRDS_XRD($id, $type, $expires);
 		$xrds->xrd[] = $xrd;
 	}
@@ -88,6 +88,7 @@ add_action('wp_head', 'xrds_meta');
 add_action('admin_menu', 'xrds_admin_menu');
 
 add_action('xrds_simple', 'xrds_atompub_service');
+register_activation_hook('xrds-simple/xrds-simple.php', 'xrds_activate_plugin');
 
 /**
  * Print HTML meta tags, advertising the location of the XRDS document.
@@ -97,6 +98,17 @@ function xrds_meta() {
 	echo '<meta http-equiv="X-Yadis-Location" content="' . xrds_url() . '" />'."\n";
 }
 
+
+function xrds_activate_plugin() {
+	global $wp_rewrite;
+
+	$wp_rewrite->flush_rules();
+
+	add_option('oauth_servers', array());
+	add_option('oauth_server_tokens', array());
+	add_option('oauth_consumers', array());
+	add_option('oauth_consumer_tokens', array());
+}
 
 /**
  * Build the XRDS-Simple document.
@@ -192,10 +204,10 @@ function xrds_admin_menu() {
 function xrds_parse_request($wp) {
 	$accept = explode(',', $_SERVER['HTTP_ACCEPT']);
 	if(array_key_exists('xrds', $wp->query_vars) || in_array('application/xrds+xml', $accept)) {
-		if ($_REQUEST['format'] == 'text') { 
-			header('Content-type: text/plain');
+		if (array_key_exists('format', $_REQUEST) && $_REQUEST['format'] == 'text') { 
+			@header('Content-type: text/plain');
 		} else {
-			header('Content-type: application/xrds+xml');
+			@header('Content-type: application/xrds+xml');
 		}
 		echo xrds_write();
 		exit;

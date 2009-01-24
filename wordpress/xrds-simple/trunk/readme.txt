@@ -16,6 +16,8 @@ plugin provides a generic framework to allow other plugins to contribute their
 own service endpoints to be included in the XRDS service document for the
 domain.
 
+As of version 1.1, this library requires PHP5.
+
 [XRDS-Simple]: http://xrds-simple.net/
 [OpenID]: http://openid.net/
 [OAuth]: http://oauth.net/
