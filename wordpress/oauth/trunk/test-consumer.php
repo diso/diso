@@ -77,7 +77,6 @@ function oauth_test_options_load() {
 
 		case 'request':
 			$token = OAuthRequester::requestRequestToken($consumer_key, $user->ID);
-			error_log('token = ' . var_export($token, true));
 			update_option('oauth_test_request_token', $token);
 			break;
 
@@ -100,7 +99,6 @@ function oauth_test_options_load() {
 			$request_token = get_option('oauth_test_request_token');
 			try {
 				$access_token = OAuthRequester::requestAccessToken($consumer_key, $request_token['token'], $user->ID);
-				error_log('access_token = ' . var_export($access_token, true));
 			}
 			catch (OAuthException $e) {
 				error_log('OAuthException - ' . var_export($e, true));
@@ -141,7 +139,6 @@ function oauth_test_discovery($server_url) {
 		$oauth_server['authorize_uri'] = (string) $xrds->getServiceURI('http://oauth.net/core/1.0/endpoint/authorize');
 		$oauth_server['access_token_uri'] = (string) $xrds->getServiceURI('http://oauth.net/core/1.0/endpoint/access');
 
-		error_log(var_export($oauth_server, true));
 		return $oauth_server;
 	} else {
 		echo '<div class="error"><p><strong>Unable to discovery OAuth Server at ' . $server_url . '</strong></p></div>';
