@@ -233,7 +233,7 @@ function oauth_test_oauth_getUserInfo() {
 	if (empty($url)) return;
 
 	try {
-		$oauth_req = new OAuthRequester($url, 'POST', $params);
+		$oauth_req = new OAuthRequester($url, 'POST');
 		$oauth_req->sign($user->ID);
 		$auth_header = $oauth_req->getAuthorizationHeader();
 	} catch (OAuthException $e) {
