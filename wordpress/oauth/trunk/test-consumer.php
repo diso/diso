@@ -23,7 +23,6 @@ function oauth_test_help_text() {
 ?>
 
 	<ol>
-		<li>Until the changes are committed to WordPress trunk, apply the patch attached to <a href="http://trac.wordpress.org/ticket/8938">#8938</a>.</li>
 		<li>Until the changes are committed to WordPress trunk, apply the patch attached to <a href="http://trac.wordpress.org/ticket/8941">#8941</a>.</li>
 		<li>Create a new OAuth consumer on the <a href="?page=oauth">OAuth Options</a> page.</li>
 		<li>Fill in the information below using the OAuth Consumer key and secret you just created.  The website URL should be the local <a href="<?php echo site_url('/xmlrpc.php'); ?>">xmlrpc.php</a> page.</li>
