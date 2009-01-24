@@ -14,6 +14,8 @@ add_action('xrds_simple', 'oauth_xrds_service');
 add_filter('parse_request', 'oauth_parse_request');
 add_action('query_vars', 'oauth_query_vars');
 add_action('generate_rewrite_rules', 'oauth_rewrite_rules');
+register_activation_hook('oauth/oauth.php', 'oauth_activate_plugin');
+register_deactivation_hook('oauth/oauth.php', 'oauth_deactivate_plugin');
 
 //if (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST) {
 	add_filter('authenticate', 'oauth_authenticate', 9);
@@ -30,6 +32,9 @@ function oauth_activate_plugin() {
 	add_option('oauth_server_tokens', array());
 	add_option('oauth_consumers', array());
 	add_option('oauth_consumer_tokens', array());
+}
+
+function oauth_deactivate_plugin() {
 }
 
 
