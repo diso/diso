@@ -39,6 +39,8 @@ function oauth_test_help_text() {
 }
 
 function oauth_test_options_load() {
+	wp_reset_vars( array('action') );
+
 	$oauth_path = WP_CONTENT_DIR . '/plugins/oauth/lib';
 	set_include_path($oauth_path . PATH_SEPARATOR . get_include_path());
 
@@ -48,7 +50,8 @@ function oauth_test_options_load() {
 	$consumer_key = get_option('oauth_test_consumer_key');
 	$user = wp_get_current_user();
 
-	switch ($_REQUEST['action']) {
+	global $action;
+	switch ($action) {
 		case 'register':
 			$server_url = get_option('oauth_test_url');
 			$consumer_key = get_option('oauth_test_consumer_key');
@@ -140,6 +143,8 @@ function oauth_test_discovery($server_url) {
 
 		error_log(var_export($oauth_server, true));
 		return $oauth_server;
+	} else {
+		echo '<div class="error"><p><strong>Unable to discovery OAuth Server at ' . $server_url . '</strong></p></div>';
 	}
 }
 
@@ -191,7 +196,8 @@ function oauth_test_options_page() {
 
 		<?php 
 			try {
-				$oauth_server = $oauth_store->getServer(get_option('oauth_test_consumer_key'));
+				$key = (string) get_option('oauth_test_consumer_key');
+				$oauth_server = $oauth_store->getServer($key);
 				if ($oauth_server) {
 					echo '<pre>OAuth Server = ' . print_r($oauth_server, true) . '</pre>';
 					echo '<hr />';
