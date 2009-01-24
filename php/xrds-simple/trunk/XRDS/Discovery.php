@@ -152,6 +152,7 @@ class XRDS_Discovery_Context {
 		$ch = curl_init($this->uri);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_USERAGENT, 'xrds-simple/php');
 		curl_setopt($ch, CURLOPT_HEADERFUNCTION, array($this, 'header'));
 
 		if (!empty($headers)) {
@@ -169,12 +170,14 @@ class XRDS_Discovery_Context {
 	 * Call-back method for curl to record the HTTP response headers.
 	 */
 	public function header($ch, $header) {
-		list($name, $value) = split(':', $header, 2);
-		$name = trim($name);
-		$value = trim($value);
+		if (strpos($header, ':') !== false) {
+			list($name, $value) = split(':', $header, 2);
+			$name = trim($name);
+			$value = trim($value);
 
-		if ($name && $value) {
-			$this->response_headers[strtolower($name)] = $value;
+			if ($name && $value) {
+				$this->response_headers[strtolower($name)] = $value;
+			}
 		}
 
 		return strlen($header);
@@ -220,7 +223,7 @@ class XRDS_Discovery_Content_Negotiation extends XRDS_Discovery_Method {
 class XRDS_Discovery_Location_Header extends XRDS_Discovery_Method {
 
 	public function discover(XRDS_Discovery_Context &$context) {
-		if ($context->response_headers['x-xrds-location']) {
+		if (array_key_exists('x-xrds-location', $context->response_headers)) {
 			return XRDS_Discovery::fetch_xrds_url($context->response_headers['x-xrds-location']);
 		}
 	}

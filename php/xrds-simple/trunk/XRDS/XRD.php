@@ -81,6 +81,8 @@ class XRDS_XRD {
 		$services = array();
 
 		foreach ($dom->childNodes as $node) {
+			if (!isset($node->tagName)) continue;
+
 			switch($node->tagName) {
 				case 'Type':
 					$xrd->type[] = $node->nodeValue;
