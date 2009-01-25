@@ -4,24 +4,32 @@
  * Verify the current request.  Checks if signed and if the signature is correct.
  * When correct then also figures out on behalf of which user this request is being made.
  *  
- * @version $Id: OAuthRequestVerifier.php 17 2008-06-17 13:11:33Z scherpenisse $
- * @author Marc Worrell <marc@mediamatic.nl>
- * @copyright (c) 2007 Mediamatic Lab
+ * @version $Id: OAuthRequestVerifier.php 51 2008-10-15 15:15:47Z marcw@pobox.com $
+ * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 16, 2007 4:35:03 PM
  * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * The MIT License
+ * 
+ * Copyright (c) 2007-2008 Mediamatic Lab
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 require_once dirname(__FILE__) . '/OAuthStore.php';
@@ -38,12 +46,11 @@ class OAuthRequestVerifier extends OAuthRequest
 	 * 
 	 * @param string request
 	 * @param string method
-	 * @param string postdata
 	 */
-	function __construct ()
+	function __construct ( $uri = null, $method = 'GET' )
 	{
 		$this->store = OAuthStore::instance();
-		parent::__construct();
+		parent::__construct($uri, $method);
 		
 		OAuthRequestLogger::start($this);
 	}
@@ -124,13 +131,17 @@ class OAuthRequestVerifier extends OAuthRequest
 											$this->getParam('oauth_timestamp', true),
 											$this->getParam('oauth_nonce', true));
 
-			$signature = $this->calculateSignature($secrets['consumer_secret'], $secrets['token_secret'], $token_type);
 			$oauth_sig = $this->getParam('oauth_signature');
-
-			if (	empty($oauth_sig) 
-				||	!$this->verifySignature(	$this->getParam('oauth_signature_method'), 
-												$oauth_sig,
-												$signature))
+			if (empty($oauth_sig))
+			{
+				throw new OAuthException('Verification of signature failed (no oauth_signature in request).');
+			} 
+			
+			try
+			{
+				$this->verifySignature($secrets['consumer_secret'], $secrets['token_secret'], $token_type);
+			}
+			catch (OAuthException $e)
 			{
 				throw new OAuthException('Verification of signature failed (signature base string was "'.$this->signatureBaseString().'").');
 			}
@@ -143,12 +154,14 @@ class OAuthRequestVerifier extends OAuthRequest
 				{
 					$method = $this->getParam('oauth_signature_method');
 				}
-				$body_signature = $this->calculateDataSignature($this->getBody(), $secrets['consumer_secret'], $secrets['token_secret'], $method);
-				if (!$this->verifySignature(	$method, 
-												$this->getParam('xoauth_body_signature'),
-												$body_signature))
+
+				try
 				{
-					throw new OAuthException('Verification of body signature failed');
+					$this->verifyDataSignature($this->getBody(), $secrets['consumer_secret'], $secrets['token_secret'], $method, $this->getParam('xoauth_body_signature'));
+				}
+				catch (OAuthException $e)
+				{
+					throw new OAuthException('Verification of body signature failed.');
 				}
 			}
 			
@@ -156,6 +169,13 @@ class OAuthRequestVerifier extends OAuthRequest
 			if (isset($secrets['user_id']))
 			{
 				$user_id = $secrets['user_id'];
+			}
+			
+			// Check if the consumer wants us to reset the ttl of this token
+			$ttl = $this->getParam('xoauth_token_ttl', true);
+			if (is_numeric($ttl))
+			{
+				$this->store->setConsumerAccessTokenTtl($this->urldecode($token), $ttl);
 			}
 		}
 		else
@@ -165,42 +185,75 @@ class OAuthRequestVerifier extends OAuthRequest
 		return $user_id;
 	}
 
-	
+
+
 	/**
-	 * Verify if the two signatures are equal.
+	 * Verify the signature of the request, using the method in oauth_signature_method.
+	 * The signature is returned encoded in the form as used in the url.  So the base64 and
+	 * urlencoding has been done.
 	 * 
-	 * @param string method
-	 * @param string sigA
-	 * @param string sigB
-	 * @return boolean		true when equal
+	 * @param string consumer_secret
+	 * @param string token_secret
+	 * @exception OAuthException thrown when the signature method is unknown 
+	 * @exception OAuthException when not all parts available
+	 * @exception OAuthException when signature does not match
 	 */
-	public function verifySignature ( $method, $sigA, $sigB )
+	public function verifySignature ( $consumer_secret, $token_secret, $token_type = 'access' )
 	{
-		$a = $this->urldecode($sigA);
-		$b = $this->urldecode($sigB);
+		$required = array(
+						'oauth_consumer_key',
+						'oauth_signature_method',
+						'oauth_timestamp',
+						'oauth_nonce',
+						'oauth_signature'
+					);
 
-		switch (strtoupper($method))
+		if ($token_type !== false)
 		{
-		case 'PLAINTEXT':
-			$equal = ($this->urldecode($a) == $this->urldecode($b));
-			break;
-
-		case 'MD5':
-		case 'HMAC-SHA1':
-		case 'HMAC_SHA1':
-			// We have to compare the decoded values
-			$valA  = base64_decode($a);
-			$valB  = base64_decode($b);
-			// Crude binary comparison
-			$equal = (rawurlencode($a) == rawurlencode($b));
-			break;
-		
-		default:
-			$equal = ($sigA == $sigB);
-			break;
+			$required[] = 'oauth_token';
 		}
-		return $equal;
+
+		foreach ($required as $req)
+		{
+			if (!isset($this->param[$req]))
+			{
+				throw new OAuthException('Can\'t verify request signature, missing parameter "'.$req.'"');
+			}
+		}
+
+		$this->checks();
+
+		$base = $this->signatureBaseString();
+		$this->verifyDataSignature($base, $consumer_secret, $token_secret, $this->param['oauth_signature_method'], $this->param['oauth_signature']);
 	}
+
+
+
+	/**
+	 * Verify the signature of a string.
+	 * 
+	 * @param string 	data
+	 * @param string	consumer_secret
+	 * @param string	token_secret
+	 * @param string 	signature_method
+	 * @param string 	signature
+	 * @exception OAuthException thrown when the signature method is unknown 
+	 * @exception OAuthException when signature does not match
+	 */
+	public function verifyDataSignature ( $data, $consumer_secret, $token_secret, $signature_method, $signature )
+	{
+		if (is_null($data))
+		{
+			$data = '';
+		}
+
+		$sig = $this->getSignatureMethod($signature_method);
+		if (!$sig->verify($this, $data, $consumer_secret, $token_secret, $signature))
+		{
+			throw new OAuthException('Signature verification failed ('.$signature_method.')');
+		}
+	}
+
 }
 
 

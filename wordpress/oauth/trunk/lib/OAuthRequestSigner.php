@@ -3,24 +3,32 @@
 /**
  * Sign requests before performing the request.
  * 
- * @version $Id: OAuthRequestSigner.php 14 2008-06-13 16:06:10Z marcw@pobox.com $
- * @author Marc Worrell <marc@mediamatic.nl>
- * @copyright (c) 2007 Mediamatic Lab
+ * @version $Id: OAuthRequestSigner.php 51 2008-10-15 15:15:47Z marcw@pobox.com $
+ * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 16, 2007 4:02:49 PM
  * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * The MIT License
+ * 
+ * Copyright (c) 2007-2008 Mediamatic Lab
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 
@@ -90,16 +98,17 @@ class OAuthRequestSigner extends OAuthRequest
 	 * 
 	 * @param int usr_id		(optional) user that wants to sign this request
 	 * @param array secrets		secrets used for signing, when empty then secrets will be fetched from the token registry
+	 * @param string name		name of the token to be used for signing
 	 * @exception OAuthException when there is no oauth relation with the server
 	 * @exception OAuthException when we don't support the signing methods of the server
 	 */	
-	function sign ( $usr_id = 0, $secrets = null )
+	function sign ( $usr_id = 0, $secrets = null, $name = '' )
 	{
 		$url = $this->getRequestUrl();
 		if (empty($secrets))
 		{
 			// get the access tokens for the site (on an user by user basis)
-			$secrets = $this->store->getSecretsForSignature($url, $usr_id);
+			$secrets = $this->store->getSecretsForSignature($url, $usr_id, $name);
 		}
 		if (empty($secrets))
 		{
@@ -176,7 +185,17 @@ class OAuthRequestSigner extends OAuthRequest
 			if (	!$oauth_as_header 
 				||	(strncmp($name, 'oauth_', 6) != 0 && strncmp($name, 'xoauth_', 7) != 0))
 			{
-				$parms[] = $name.'='.$value;
+				if (is_array($value))
+				{
+					foreach ($value as $v)
+					{
+						$parms[] = $name.'='.$v;
+					}
+				}
+				else
+				{
+					$parms[] = $name.'='.$value;
+				}
 			}
 		}
 		return implode('&', $parms);

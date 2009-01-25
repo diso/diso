@@ -1,13 +1,11 @@
 <?php
 
 /**
- * Storage container for the oauth credentials, both server and consumer side.
- * This is the factory to select the store you want to use
+ * Interface for OAuth signature methods
  * 
- * @version $Id: OAuthStore.php 49 2008-10-01 09:43:19Z marcw@pobox.com $
+ * @version $Id$
  * @author Marc Worrell <marcw@pobox.com>
- * @date  Nov 16, 2007 4:03:30 PM
- * 
+ * @date  Sep 8, 2008 12:04:35 PM
  * 
  * The MIT License
  * 
@@ -32,52 +30,37 @@
  * THE SOFTWARE.
  */
 
-require_once dirname(__FILE__) . '/OAuthException.php';
-
-class OAuthStore
+abstract class OAuthSignatureMethod
 {
-	static private $instance = false;
+	/**
+	 * Return the name of this signature
+	 * 
+	 * @return string
+	 */
+	abstract public function name();
+	
+	/**
+	 * Return the signature for the given request
+	 * 
+	 * @param OAuthRequest request
+	 * @param string base_string
+	 * @param string consumer_secret
+	 * @param string token_secret
+	 * @return string  
+	 */
+	abstract public function signature ( $request, $base_string, $consumer_secret, $token_secret );
 
 	/**
-	 * Request an instance of the OAuthStore
+	 * Check if the request signature corresponds to the one calculated for the request.
+	 * 
+	 * @param OAuthRequest request
+	 * @param string base_string	data to be signed, usually the base string, can be a request body
+	 * @param string consumer_secret
+	 * @param string token_secret
+	 * @param string signature		from the request, still urlencoded
+	 * @return string
 	 */
-	public static function instance ( $store = 'MySQL', $options = array() )
-	{
-	    if (!OAuthStore::$instance)
-	    {
-			// Select the store you want to use
-			if (strpos($store, '/') === false)
-			{
-				$class = 'OAuthStore'.$store;
-				$file  = dirname(__FILE__) . '/store/'.$class.'.php';
-			}
-			else
-			{
-				$file  = $store;
-				$store = basename($file, '.php');
-				$class = $store;
-			}
-
-			if (is_file($file))
-			{
-				require_once $file;
-				
-				if (class_exists($class))
-				{
-					OAuthStore::$instance = new $class($options);
-				}
-				else
-				{
-					throw new OAuthException('Could not find class '.$class.' in file '.$file);
-				}
-			}
-			else
-			{
-				throw new OAuthException('No OAuthStore for '.$store.' (file '.$file.')');
-			}
-	    }
-	    return OAuthStore::$instance;	
-	}
+	abstract public function verify ( $request, $base_string, $consumer_secret, $token_secret, $signature );
 }
 
 
