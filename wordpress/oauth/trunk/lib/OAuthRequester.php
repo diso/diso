@@ -3,24 +3,31 @@
 /**
  * Perform a signed OAuth request with a GET, POST, PUT or DELETE operation.
  * 
- * @version $Id: OAuthRequester.php 45 2008-07-16 16:21:59Z marcw@pobox.com $
- * @author Marc Worrell <marc@mediamatic.nl>
- * @copyright (c) 2007 Mediamatic Lab
+ * @version $Id: OAuthRequester.php 52 2008-10-16 08:00:10Z scherpenisse $
+ * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 20, 2007 1:41:38 PM
  * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * The MIT License
+ * 
+ * Copyright (c) 2007-2008 Mediamatic Lab
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 require_once dirname(__FILE__) . '/OAuthRequestSigner.php';
@@ -79,14 +86,21 @@ class OAuthRequester extends OAuthRequestSigner
 	/**
 	 * Perform the request, returns the response code, headers and body.
 	 * 
-	 * @param int usr_id		optional user id for which we make the request
-	 * @param array curl_options
+	 * @param int usr_id			optional user id for which we make the request
+	 * @param array curl_options	optional extra options for curl request
+	 * @param array options			options like name and token_ttl
 	 * @exception OAuthException when authentication not accepted
 	 * @exception OAuthException when signing was not possible
 	 * @return array (code=>int, headers=>array(), body=>string)
 	 */
-	function doRequest ( $usr_id = 0, $curl_options = array() )
+	function doRequest ( $usr_id = 0, $curl_options = array(), $options = array() )
 	{
+		$name = isset($options['name']) ? $options['name'] : '';
+		if (isset($options['token_ttl']))
+		{
+			$this->setParam('xoauth_token_ttl', intval($options['token_ttl']));
+		}
+
 		if (!empty($this->files))
 		{
 			// At the moment OAuth does not support multipart/form-data, so try to encode
@@ -95,9 +109,23 @@ class OAuthRequester extends OAuthRequestSigner
 			$this->setBody($body);
 			$curl_options = $this->prepareCurlOptions($curl_options, $extra_headers);
 		}
-		$this->sign($usr_id);
-		$text = $this->curl_raw($curl_options);
-		return $this->curl_parse($text);	
+		$this->sign($usr_id, null, $name);
+		$text   = $this->curl_raw($curl_options);
+		$result = $this->curl_parse($text);	
+		if ($result['code'] >= 400)
+		{
+			throw new OAuthException('Request failed with code ' . $result['code'] . ': ' . $result['body']);
+		}
+
+		// Record the token time to live for this server access token, immediate delete iff ttl <= 0
+		// Only done on a succesful request.	
+		$token_ttl = $this->getParam('xoauth_token_ttl', false);
+		if (is_numeric($token_ttl))
+		{
+			$this->store->setServerTokenTtl($this->getParam('oauth_consumer_key',true), $this->getParam('oauth_token',true), $token_ttl);
+		}
+
+		return $result;
 	}
 
 	
@@ -108,16 +136,22 @@ class OAuthRequester extends OAuthRequestSigner
 	 * @param int usr_id
 	 * @param array params (optional) extra arguments for when requesting the request token
 	 * @param string method (optional) change the method of the request, defaults to POST (as it should be)
+	 * @param array options (optional) options like name and token_ttl
 	 * @exception OAuthException when no key could be fetched
 	 * @exception OAuthException when no server with consumer_key registered
 	 * @return array (authorize_uri, token)
 	 */
-	static function requestRequestToken ( $consumer_key, $usr_id, $params = null, $method = 'POST' )
+	static function requestRequestToken ( $consumer_key, $usr_id, $params = null, $method = 'POST', $options = array() )
 	{
 		OAuthRequestLogger::start();
 
+		if (isset($options['token_ttl']) && is_numeric($options['token_ttl']))
+		{
+			$params['xoauth_token_ttl'] = intval($options['token_ttl']);
+		}
+
 		$store	= OAuthStore::instance();
-		$r		= $store->getServer($consumer_key);
+		$r		= $store->getServer($consumer_key, $usr_id);
 		$uri 	= $r['request_token_uri'];
 
 		$oauth 	= new OAuthRequester($uri, $method, $params);
@@ -143,7 +177,16 @@ class OAuthRequester extends OAuthRequestSigner
 		
 		if (!empty($token['oauth_token']) && !empty($token['oauth_token_secret']))
 		{
-			$store->addServerToken($consumer_key, 'request', $token['oauth_token'], $token['oauth_token_secret'], $usr_id);
+			$opts = array();
+			if (isset($options['name']))
+			{
+				$opts['name'] = $options['name'];
+			}
+			if (isset($token['xoauth_token_ttl']))
+			{
+				$opts['token_ttl'] = $token['xoauth_token_ttl'];
+			}
+			$store->addServerToken($consumer_key, 'request', $token['oauth_token'], $token['oauth_token_secret'], $usr_id, $opts);
 		}
 		else
 		{
@@ -169,22 +212,29 @@ class OAuthRequester extends OAuthRequestSigner
 	 * @param string token
 	 * @param int usr_id		user requesting the access token
 	 * @param string method (optional) change the method of the request, defaults to POST (as it should be)
+	 * @param array options (optional) extra options for request, eg token_ttl
 	 * @exception OAuthException when no key could be fetched
 	 * @exception OAuthException when no server with consumer_key registered
 	 */
-	static function requestAccessToken ( $consumer_key, $token, $usr_id, $method = 'POST' )
+	static function requestAccessToken ( $consumer_key, $token, $usr_id, $method = 'POST', $options = array() )
 	{
 		OAuthRequestLogger::start();
 
-		$store	= OAuthStore::instance();
-		$r		= $store->getServerTokenSecrets($consumer_key, $token, 'request', $usr_id);
-		$uri 	= $r['access_token_uri'];
+		$store	    = OAuthStore::instance();
+		$r		    = $store->getServerTokenSecrets($consumer_key, $token, 'request', $usr_id);
+		$uri 	    = $r['access_token_uri'];
+		$token_name	= $r['token_name'];
 
 		// Delete the server request token, this one was for one use only
 		$store->deleteServerToken($consumer_key, $r['token'], 0, true);
 
 		// Try to exchange our request token for an access token
 		$oauth 	= new OAuthRequester($uri, $method);
+
+		if (isset($options['token_ttl']) && is_numeric($options['token_ttl']))
+		{
+			$oauth->setParam('xoauth_token_ttl', intval($options['token_ttl']));
+		}
 
 		OAuthRequestLogger::setRequestObject($oauth);
 
@@ -211,7 +261,13 @@ class OAuthRequester extends OAuthRequestSigner
 		
 		if (!empty($token['oauth_token']) && !empty($token['oauth_token_secret']))
 		{
-			$store->addServerToken($consumer_key, 'access', $token['oauth_token'], $token['oauth_token_secret'], $usr_id);
+			$opts         = array();
+			$opts['name'] = $token_name;
+			if (isset($token['xoauth_token_ttl']))
+			{
+				$opts['token_ttl'] = $token['xoauth_token_ttl'];
+			}
+			$store->addServerToken($consumer_key, 'access', $token['oauth_token'], $token['oauth_token_secret'], $usr_id, $opts);
 		}
 		else
 		{
@@ -331,7 +387,7 @@ class OAuthRequester extends OAuthRequestSigner
 		}
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER,	 $header);
-		curl_setopt($ch, CURLOPT_USERAGENT,		 'anyMeta/OAuth 1.0 - ($LastChangedRevision: 45 $)');
+		curl_setopt($ch, CURLOPT_USERAGENT,		 'anyMeta/OAuth 1.0 - ($LastChangedRevision: 52 $)');
 		curl_setopt($ch, CURLOPT_URL, 			 $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 		 true);

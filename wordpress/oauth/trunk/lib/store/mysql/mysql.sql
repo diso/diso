@@ -5,8 +5,28 @@
 #
 # The --SPLIT-- markers are used by the install.php script
 #   
-# @version $Id: mysql.sql 5 2008-02-13 12:29:12Z marcw@pobox.com $
+# @version $Id: mysql.sql 51 2008-10-15 15:15:47Z marcw@pobox.com $
 # @author Marc Worrell
+#
+
+# Changes:
+#
+# 2008-10-15 (on r48) Added ttl to consumer and server tokens, added named server tokens
+#
+#			ALTER TABLE oauth_server_token 
+#			ADD ost_token_ttl datetime not null default '9999-12-31',
+#			ADD KEY (ost_token_ttl);
+#
+#			ALTER TABLE oauth_consumer_token 
+#			ADD oct_name varchar(64) binary not null default '',
+#			ADD oct_token_ttl datetime not null default '9999-12-31',
+#			DROP KEY oct_usa_id_ref,
+#			ADD UNIQUE KEY (oct_usa_id_ref, oct_ocr_id_ref, oct_token_type, oct_name),
+#			ADD KEY (oct_token_ttl);
+#
+# 2008-09-09 (on r5) Added referrer host to server access token
+#
+#			ALTER TABLE oauth_server_token ADD ost_referrer_host VARCHAR(128) NOT NULL;
 #
 
 
@@ -80,18 +100,25 @@ CREATE TABLE IF NOT EXISTS oauth_consumer_registry (
 
 #--SPLIT--
 
+# Table used to sign requests for sending to a server by the consumer
+# The key is defined for a particular user.  Only one single named
+# key is allowed per user/server combination
+
 CREATE TABLE IF NOT EXISTS oauth_consumer_token (
     oct_id                  int(11) not null auto_increment,
     oct_ocr_id_ref          int(11) not null,
     oct_usa_id_ref          int(11) not null,
+    oct_name                varchar(64) binary not null default '',
     oct_token               varchar(64) binary not null,
     oct_token_secret        varchar(64) binary not null,
     oct_token_type          enum('request','authorized','access'),
+    oct_token_ttl           datetime not null default '9999-12-31',
     oct_timestamp           timestamp not null default current_timestamp,
 
     primary key (oct_id),
     unique key (oct_ocr_id_ref, oct_token),
-    unique key (oct_usa_id_ref, oct_ocr_id_ref, oct_token_type),
+    unique key (oct_usa_id_ref, oct_ocr_id_ref, oct_token_type, oct_name),
+	key (oct_token_ttl),
 
     foreign key (oct_ocr_id_ref) references oauth_consumer_registry (ocr_id)
         on update cascade
@@ -110,6 +137,7 @@ CREATE TABLE IF NOT EXISTS oauth_consumer_token (
 #
 
 # Table holding consumer key/secret combos an user issued to consumers. 
+# Used for verification of incoming requests.
 
 CREATE TABLE IF NOT EXISTS oauth_server_registry (
     osr_id                      int(11) not null auto_increment,
@@ -158,10 +186,8 @@ CREATE TABLE IF NOT EXISTS oauth_server_nonce (
 
 #--SPLIT--
 
-# Table used to sign requests sent to a server by the consumer
-# The key is defined for a particular user, when the user id is null then this
-# is the default authentication for communication with the remote server
-# only one type of token per user/server combo
+# Table used to verify signed requests sent to a server by the consumer
+# When the verification is succesful then the associated user id is returned.
 
 CREATE TABLE IF NOT EXISTS oauth_server_token (
     ost_id                  int(11) not null auto_increment,
@@ -171,14 +197,16 @@ CREATE TABLE IF NOT EXISTS oauth_server_token (
     ost_token_secret        varchar(64) binary not null,
     ost_token_type          enum('request','access'),
     ost_authorized          tinyint(1) not null default '0',
+	ost_referrer_host		varchar(128) not null,
+	ost_token_ttl           datetime not null default '9999-12-31',
     ost_timestamp           timestamp not null default current_timestamp,
 
-    primary key (ost_id),
+	primary key (ost_id),
     unique key (ost_token),
     key (ost_osr_id_ref),
-    key (ost_usa_id_ref),
+	key (ost_token_ttl),
 
-    foreign key (ost_osr_id_ref) references oauth_server_registry (osr_id)
+	foreign key (ost_osr_id_ref) references oauth_server_registry (osr_id)
         on update cascade
         on delete cascade
 

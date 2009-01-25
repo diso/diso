@@ -3,24 +3,32 @@
 /**
  * Server layer over the OAuthRequest handler
  * 
- * @version $Id: OAuthServer.php 45 2008-07-16 16:21:59Z marcw@pobox.com $
- * @author Marc Worrell <marc@mediamatic.nl>
- * @copyright (c) 2007 Mediamatic Lab
+ * @version $Id: OAuthServer.php 51 2008-10-15 15:15:47Z marcw@pobox.com $
+ * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 27, 2007 12:36:38 PM
  * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * The MIT License
+ * 
+ * Copyright (c) 2007-2008 Mediamatic Lab
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 require_once 'OAuthRequestVerifier.php';
@@ -42,11 +50,23 @@ class OAuthServer extends OAuthRequestVerifier
 		{
 			$this->verify(false);
 			
+			$options = array();
+			$ttl     = $this->getParam('xoauth_token_ttl', false);
+			if ($ttl)
+			{
+				$options['token_ttl'] = $ttl;
+			}
+
 			// Create a request token
 			$store  = OAuthStore::instance();
-			$token  = $store->addConsumerRequestToken($this->getParam('oauth_consumer_key', true));
+			$token  = $store->addConsumerRequestToken($this->getParam('oauth_consumer_key', true), $options);
 			$result = 'oauth_token='.$this->urlencode($token['token'])
 					.'&oauth_token_secret='.$this->urlencode($token['token_secret']);
+
+			if (!empty($token['token_ttl']))
+			{
+				$result .= '&xoauth_token_ttl='.$this->urlencode($token['token_ttl']);
+			}
 
 			$request_token = $token['token'];
 					
@@ -100,7 +120,6 @@ class OAuthServer extends OAuthRequestVerifier
 			$_SESSION['verify_oauth_consumer_key']	= $rs['consumer_key'];
 			$_SESSION['verify_oauth_callback']		= $this->getParam('oauth_callback', true);
 		}
-
 		OAuthRequestLogger::flush();
 		return $rs;
 	}
@@ -124,11 +143,24 @@ class OAuthServer extends OAuthRequestVerifier
 		{
 			// Flag the token as authorized, or remove the token when not authorized
 			$store = OAuthStore::instance();
+
+			// Fetch the referrer host from the oauth callback parameter
+			$referrer_host  = '';
+			$oauth_callback = false;
+			if (!empty($_SESSION['verify_oauth_callback']))
+			{
+				$oauth_callback = $_SESSION['verify_oauth_callback'];
+				$ps = parse_url($oauth_callback);
+				if (isset($ps['host']))
+				{
+					$referrer_host = $ps['host'];
+				}
+			}
 			
 			if ($authorized)
 			{
-				OAuthRequestLogger::addNote('Authorized token "'.$token.'" for user '.$user_id);
-				$store->authorizeConsumerRequestToken($token, $user_id);
+				OAuthRequestLogger::addNote('Authorized token "'.$token.'" for user '.$user_id.' with referrer "'.$referrer_host.'"');
+				$store->authorizeConsumerRequestToken($token, $user_id, $referrer_host);
 			}
 			else
 			{
@@ -136,9 +168,9 @@ class OAuthServer extends OAuthRequestVerifier
 				$store->deleteConsumerRequestToken($token);
 			}
 			
-			if (!empty($_SESSION['verify_oauth_callback']))
+			if (!empty($oauth_callback))
 			{
-				$this->redirect($_SESSION['verify_oauth_callback'], array('oauth_token'=>rawurlencode($token)));
+				$this->redirect($oauth_callback, array('oauth_token'=>rawurlencode($token)));
 			}
 		}
 		OAuthRequestLogger::flush();
@@ -158,11 +190,23 @@ class OAuthServer extends OAuthRequestVerifier
 		try
 		{
 			$this->verify('request');
+
+			$options = array();
+			$ttl     = $this->getParam('xoauth_token_ttl', false);
+			if ($ttl)
+			{
+				$options['token_ttl'] = $ttl;
+			}
 			
 			$store  = OAuthStore::instance();
-			$token  = $store->exchangeConsumerRequestForAccessToken($this->getParam('oauth_token', true));
+			$token  = $store->exchangeConsumerRequestForAccessToken($this->getParam('oauth_token', true), $options);
 			$result = 'oauth_token='.$this->urlencode($token['token'])
 					.'&oauth_token_secret='.$this->urlencode($token['token_secret']);
+					
+			if (!empty($token['token_ttl']))
+			{
+				$result .= '&xoauth_token_ttl='.$this->urlencode($token['token_ttl']);
+			}
 					
 			header('HTTP/1.1 200 OK');
 			header('Content-Length: '.strlen($result));

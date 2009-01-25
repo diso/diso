@@ -3,24 +3,31 @@
 /**
  * Request wrapper class.  Prepares a request for consumption by the OAuth routines
  * 
- * @version $Id: OAuthRequest.php 12 2008-06-03 18:30:30Z marcw@pobox.com $
- * @author Marc Worrell <marc@mediamatic.nl>
- * @copyright (c) 2007 Mediamatic Lab
+ * @version $Id: OAuthRequest.php 50 2008-10-01 15:11:08Z marcw@pobox.com $
+ * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 16, 2007 12:20:31 PM
  * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * The MIT License
+ * 
+ * Copyright (c) 2007-2008 Mediamatic Lab
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 
@@ -178,7 +185,7 @@ class OAuthRequest
 		$signature = $this->calculateDataSignature($base, $consumer_secret, $token_secret, $this->param['oauth_signature_method']);
 		return $signature;
 	}
-	
+
 	
 	/**
 	 * Calculate the signature of a string.
@@ -197,17 +204,9 @@ class OAuthRequest
 		{
 			$data = '';
 		}
-		$method = str_replace('-', '_', $signature_method);
-		if (method_exists($this, 'signature_'.$method))
-		{
-			$func	   = 'signature_'.$method;
-			$signature = $this->$func($data, $consumer_secret, $token_secret);
-		}
-		else
-		{
-			throw new OAuthException('Unsupported signature method "'.$signature_method.'"');
-		}
-		return $signature;
+
+		$sig = $this->getSignatureMethod($signature_method);
+		return $sig->signature($this, $data, $consumer_secret, $token_secret);
 	}
 
 
@@ -215,6 +214,7 @@ class OAuthRequest
 	 * Select a signature method from the list of available methods.
 	 * We try to check the most secure methods first.
 	 * 
+	 * @todo Let the signature method tell us how secure it is
 	 * @param array methods
 	 * @exception OAuthException when we don't support any method in the list
 	 * @return string
@@ -234,8 +234,9 @@ class OAuthRequest
 			$method = false;
 			foreach ($methods as $m)
 			{
-				$m = str_replace('-', '_', $m);
-				if (method_exists($this, 'signature_'.$m))
+				$m = strtoupper($m);
+				$m = preg_replace('/[^A-Z0-9]/', '_', $m);
+				if (file_exists(dirname(__FILE__).'/signature_method/OAuthSignatureMethod_'.$m.'.php'))
 				{
 					$method = $m;
 					break;
@@ -248,6 +249,31 @@ class OAuthRequest
 			}
 		}
 		return $method;
+	}
+
+	
+	/**
+	 * Fetch the signature object used for calculating and checking the signature base string
+	 * 
+	 * @param string method
+	 * @return OAuthSignatureMethod object
+	 */
+	function getSignatureMethod ( $method )
+	{
+		$m     = strtoupper($method);
+		$m     = preg_replace('/[^A-Z0-9]/', '_', $m);
+		$class = 'OAuthSignatureMethod_'.$m;
+
+		if (file_exists(dirname(__FILE__).'/signature_method/'.$class.'.php'))
+		{
+			require_once dirname(__FILE__).'/signature_method/'.$class.'.php';
+			$sig = new $class();
+		}
+		else
+		{
+			throw new OAuthException('Unsupported signature method "'.$m.'".');
+		}
+		return $sig;
 	}
 
 
@@ -303,7 +329,19 @@ class OAuthRequest
 		    // all names and values are already urlencoded, exclude the oauth signature
 		    if ($key != 'oauth_signature')
 		   	{
-				$normalized[] = $key.'='.$value;
+				if (is_array($value))
+				{
+					$value_sort = $value;
+					sort($value_sort);
+					foreach ($value_sort as $v)
+					{
+						$normalized[] = $key.'='.$v;
+					}
+				}
+				else
+				{
+					$normalized[] = $key.'='.$value;
+				}
 			}
 		}
 		return implode('&', $normalized);
@@ -356,7 +394,14 @@ class OAuthRequest
 		}
 		if (!empty($s) && $urldecode)
 		{
-			$s = $this->urldecode($s);
+			if (is_array($s))
+			{
+				$s = array_map(array($this,'urldecode'), $s);
+			}
+			else
+			{
+				$s = $this->urldecode($s);
+			}
 		}
 		return $s;
 	}
@@ -372,7 +417,18 @@ class OAuthRequest
 	{
 		if (!$encoded)
 		{
-			$this->param[$this->urlencode($name)] = $this->urlencode($value);
+			$name_encoded = $this->urlencode($name);
+			if (is_array($value))
+			{
+				foreach ($value as $v)
+				{
+					$this->param[$name_encoded][] = $this->urlencode($v);
+				}
+			}
+			else
+			{
+				$this->param[$name_encoded] = $this->urlencode($value);
+			}
 		}
 		else
 		{
@@ -392,7 +448,14 @@ class OAuthRequest
 		
 		foreach ($params as $name=>$value)
 		{
-			$this->param[$this->urltranscode($name)] = $this->urltranscode($value);
+			if (is_array($value))
+			{
+				$this->param[$this->urltranscode($name)] = array_map(array($this,'urltranscode'), $value);
+			}
+			else
+			{
+				$this->param[$this->urltranscode($name)] = $this->urltranscode($value);
+			}
 		}
 	}
 
@@ -682,86 +745,7 @@ class OAuthRequest
 		}
 		return $body;
 	}
-	
-	
-	/**
-	 * Calculate the signature using MD5
-	 * Binary md5 digest, as distinct from PHP's built-in hexdigest.
-	 * This function is copyright Andy Smith, 2007.
-	 * 
-	 * @param string consumer_secret
-	 * @param string token_secret
-	 * @return string  
-	 */
-	function signature_MD5 ( $s, $consumer_secret, $token_secret )
-	{
-		$s  .= '&'.$this->urlencode($consumer_secret).'&'.$this->urlencode($token_secret);
-		$md5 = md5($s);
-		$bin = '';
-		
-		for ($i = 0; $i < strlen($md5); $i += 2)
-		{
-		    $bin .= chr(hexdec($md5{$i+1}) + hexdec($md5{$i}) * 16);
-		}
-		return $this->urlencode(base64_encode($bin));
-	}
 
-
-	/**
-	 * Calculate the signature using PLAINTEXT.
-	 * This signature is transported over SSL and does not incorporate anything from the request itself.
-	 * Just an exchange of the shared secrets.
-	 * 
-	 * @param string consumer_secret
-	 * @param string token_secret
-	 * @return   string  
-	 */
-	function signature_PLAINTEXT ( $s, $consumer_secret, $token_secret )
-	{
-		return $this->urlencode($this->urlencode($consumer_secret).'&'.$this->urlencode($token_secret));
-	}
-
-
-	/**
-	 * Calculate the signature using HMAC-SHA1
-	 * This function is copyright Andy Smith, 2007.
-	 * 
-	 * @param string consumer_secret
-	 * @param string token_secret
-	 * @return   string  
-	 */
-	function signature_HMAC_SHA1 ( $s, $consumer_secret, $token_secret )
-	{
-		$key = $this->urlencode($consumer_secret).'&'.$this->urlencode($token_secret);
-		if (function_exists('hash_hmac'))
-		{
-			$signature = base64_encode(hash_hmac("sha1", $s, $key, true));
-		}
-		else
-		{
-		    $blocksize	= 64;
-		    $hashfunc	= 'sha1';
-		    if (strlen($key) > $blocksize)
-		    {
-		        $key = pack('H*', $hashfunc($key));
-		    }
-		    $key	= str_pad($key,$blocksize,chr(0x00));
-		    $ipad	= str_repeat(chr(0x36),$blocksize);
-		    $opad	= str_repeat(chr(0x5c),$blocksize);
-		    $hmac 	= pack(
-		                'H*',$hashfunc(
-		                    ($key^$opad).pack(
-		                        'H*',$hashfunc(
-		                            ($key^$ipad).$s
-		                        )
-		                    )
-		                )
-		            );
-			$signature = base64_encode($hmac);
-		}
-		return $this->urlencode($signature);
-	}
-	
 	
 	/**
 	 * Simple function to perform a redirect (GET).
