@@ -49,7 +49,7 @@ function widget_user_profile_init() {
 
 		<p style="text-align:right;">
 			<label for="profile_title">Title:</label><br /> 
-			<input style="width: 200px;" id="profile_title" name="profile_title" type="text" value="'.$title.'" />
+			<input style="width: 200px;" id="profile_title" name="profile_title" type="text" value="<?php echo $title; ?>" />
 		</p>
 
 		<p style="text-align:right;"><label for="profile_user">User:</label><br /> 
