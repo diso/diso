@@ -8,8 +8,6 @@ Author: DiSo Development Team
 Author URI: http://diso-project.org/
 */
 
-define('OAUTH_STATIC_CONSUMER_KEY', 'DUMMY_KEY');
-
 add_action('xrds_simple', 'oauth_xrds_service');
 add_filter('parse_request', 'oauth_parse_request');
 add_action('query_vars', 'oauth_query_vars');
@@ -257,8 +255,11 @@ function oauth_xrds_service($xrds) {
 	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/resource'), $parameter_methods, $signature_types) );
 	xrds_add_service($xrds, 'oauth', $service);
 
+	$store = oauth_store();
+	$static_consumer = $store->getConsumerStatic();
+
 	$service = new XRDS_Service('http://oauth.net/discovery/1.0/consumer-identity/static');
-	$service->local_id[] = new XRDS_LocalID(OAUTH_STATIC_CONSUMER_KEY);
+	$service->local_id[] = new XRDS_LocalID($static_consumer['key']);
 	xrds_add_service($xrds, 'oauth', $service);
 }
 

@@ -10,6 +10,8 @@ require_once dirname(__FILE__) . '/OAuthStoreAbstract.class.php';
 class OAuthStoreWordPress extends OAuthStoreAbstract
 {
 
+	const STATIC_KEY = 'STATIC_KEY';
+
 	/**
 	 * Constructor.
 	 */
@@ -129,16 +131,21 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		$tokens = get_option('oauth_server_tokens');
 		$servers = get_option('oauth_servers');
 
-		$server_token = $tokens[$token];
-		$server = $servers[$consumer_key];
+		if (array_key_exists($token, $tokens)) {
+			$server_token = $tokens[$token];
+		}
+		if (array_key_exists($consumer_key, $servers)) {
+			$server = $servers[$consumer_key];
+		}
 
-		if (!$server_token || !$server) return $secrets;
+		if (!isset($server_token) || !isset($server)) return $secrets;
 		if ($server_token['consumer_key'] != $consumer_key) return $secrets;
 		if ($server_token['type'] != $token_type) return $secrets;
 		if ($user_id && $server_token['user'] != $user_id) return $secrets;
 
 		$secrets = array_merge($server, $server_token);
 		$secrets['token_secret'] = $secrets['secret'];
+		$secrets['token_name'] = '';
 
 		return $secrets;
 	}
@@ -212,7 +219,22 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		throw new OAuthException('No server with consumer_key "'.$key.'"');
 	}
 
-	public function getServerForUri ( $uri, $user_id ) { }
+	public function getServerForUri ( $uri, $user_id ) { 
+		$ps		= parse_url($uri);
+		$host	= isset($ps['host']) ? strtolower($ps['host']) : 'localhost';
+		$path	= isset($ps['path']) ? $ps['path'] : '';
+		$path = trailingslashit($path);
+
+		$servers = get_option('oauth_servers');
+
+		foreach ($servers as $server) {
+			if ($server['server_uri_host'] == $host && strpos($path, $server['server_uri_path']) === 0) {
+				return $server;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Get a list of all server token this user has access to.
@@ -311,7 +333,7 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 	 * @return string consumer key
 	 */
 	public function updateServer( $server, $user_id, $user_is_admin = false ) {
-		foreach (array('consumer_key', 'consumer_secret', 'server_uri') as $f) {
+		foreach (array('consumer_key', 'server_uri') as $f) {
 			if (empty($server[$f])) {
 				throw new OAuthException('The field "'.$f.'" must be set and non empty');
 			}
@@ -426,7 +448,25 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		throw new OAuthException('No consumer with consumer_key "'.$key.'"');
 	}
 
-	public function getConsumerStatic () { }
+	public function getConsumerStatic () { 
+		try {
+			return $this->getConsumer(self::STATIC_KEY, 0);
+		} catch (OAuthException $e) {
+			
+			$static_consumer = array(
+				'requester_name' => '',
+				'requester_email' => '',
+				'key' => self::STATIC_KEY,
+				'secret' => '',
+			);
+
+			$consumers = get_option('oauth_consumers');
+			$consumers[self::STATIC_KEY] = $static_consumer;
+			update_option('oauth_consumers', $consumers);
+
+			return $static_consumer;
+		}
+	}
 
 	/**
 	 * Add an unautorized request token to our server.
