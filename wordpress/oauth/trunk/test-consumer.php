@@ -7,6 +7,12 @@
  Version: trunk
  */
 
+register_activation_hook('oauth/test-consumer.php', 'oauth_test_activate_plugin');
+
+function oauth_test_activate_plugin() {
+	add_option('oauth_test_url', site_url('/xmlrpc.php'));
+}
+
 add_action('admin_menu', 'oauth_test_admin_menu');
 function oauth_test_admin_menu() {
 	$hookname = add_options_page('OAuth Test', 'OAuth Test', 8, 'oauth_test', 'oauth_test_options_page');
@@ -22,8 +28,6 @@ function oauth_test_help_text() {
 
 	<ol>
 		<li>Until the changes are committed to WordPress trunk, apply the patch attached to <a href="http://trac.wordpress.org/ticket/8941">#8941</a>.</li>
-		<li>Create a new OAuth consumer on the <a href="?page=oauth">OAuth Options</a> page.</li>
-		<li>Fill in the information below using the OAuth Consumer key and secret you just created.  The website URL should be the local <a href="<?php echo site_url('/xmlrpc.php'); ?>">xmlrpc.php</a> page.</li>
 		<li>Click each of the links at the bottom of this page, starting with <em>Register OAuth Server</em>.  After each one, you can look at the <a href="?page=oauth">OAuth Options</a> page to see the result.</li>
 		<li>If all goes well on each of the links below, the final link should make a successful XML-RPC call using OAuth.</li>
 	</ol>
@@ -150,9 +154,6 @@ function oauth_test_options_page() {
 	$oauth_store = oauth_store();
 	$user = wp_get_current_user();
 
-	$server_url = get_option('oauth_test_url');
-	if (empty($server_url)) $server_url = site_url('/xmlrpc.php');
-
 	screen_icon('oauth');
 ?>
 	<style type="text/css"> #icon-oauth { background-image: url("<?php echo plugins_url('oauth/icon.png'); ?>"); } </style>
@@ -170,7 +171,7 @@ function oauth_test_options_page() {
 			<tr valign="top">
 				<th scope="row"><?php _e('Website URL') ?></th>
 				<td>
-					<p><input type="text" name="oauth_test_url" id="oauth_test_url" value="<?php echo $server_url; ?>" size="50" /></p>
+					<p><input type="text" name="oauth_test_url" id="oauth_test_url" value="<?php echo get_option('oauth_test_url'); ?>" size="50" /></p>
 				</td>
 			</tr>
 		</table>
