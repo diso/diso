@@ -10,8 +10,6 @@ require_once dirname(__FILE__) . '/OAuthStoreAbstract.class.php';
 class OAuthStoreWordPress extends OAuthStoreAbstract
 {
 
-	const STATIC_KEY = 'STATIC_KEY';
-
 	/**
 	 * Constructor.
 	 */
@@ -449,19 +447,25 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 	}
 
 	public function getConsumerStatic () { 
+		$static_key = get_option('oauth_consumer_static_key');
+		if (empty($static_key)) {
+			$static_key = $this->generateKey(true);
+			update_option('oauth_consumer_static_key', $static_key);
+		}
+
 		try {
-			return $this->getConsumer(self::STATIC_KEY, 0);
+			return $this->getConsumer($static_key, 0);
 		} catch (OAuthException $e) {
 			
 			$static_consumer = array(
-				'requester_name' => '',
+				'requester_name' => 'Static Consumer Key',
 				'requester_email' => '',
-				'key' => self::STATIC_KEY,
+				'key' => $static_key,
 				'secret' => '',
 			);
 
 			$consumers = get_option('oauth_consumers');
-			$consumers[self::STATIC_KEY] = $static_consumer;
+			$consumers[$static_key] = $static_consumer;
 			update_option('oauth_consumers', $consumers);
 
 			return $static_consumer;
