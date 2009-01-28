@@ -443,6 +443,12 @@ function oauth_authorize_token() {
 		<?php wp_nonce_field('oauth_authorize_token'); ?>
 		<input type="hidden" name="oauth_token" value="<?php echo $token ?>" />
 
+		<?php foreach ($_REQUEST as $key => $value) {
+			if (stripos($key, 'oauth_') !== 0) {
+				echo '<input type="hidden" name="' . htmlentities($key) . '" value="' . htmlentities($value) . '" />' . "\n";
+			}
+		} ?>
+
 		<p class="submit">
 			<input type="submit" name="submit" value="Continue" />
 		</p>
