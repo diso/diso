@@ -43,14 +43,11 @@ function oauth_query_vars($vars) {
 
 
 function oauth_rewrite_rules($wp_rewrite) {
-	$url_parts = parse_url(get_option('siteurl'));
-	$site_root = substr(trailingslashit($url_parts['path']), 1);
-
-	$openid_rules = array( 
-		$site_root . 'oauth/(.*)' => 'index.php?oauth=$matches[1]',
+	$oauth_rules = array( 
+		oauth_service_url('oauth', '(.*)', null, false) => 'index.php?oauth=$matches[1]',
 	);
 
-	$wp_rewrite->rules = $openid_rules + $wp_rewrite->rules;
+	$wp_rewrite->rules = $oauth_rules + $wp_rewrite->rules;
 }
 
 
@@ -241,15 +238,15 @@ function oauth_xrds_service($xrds) {
 	xrds_add_simple_service($xrds, 'OAuth Dummy Service', 'http://oauth.net/discovery/1.0', '#oauth');
 
 	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/request'), $parameter_methods, $signature_types) );
-	$service->uri[] = new XRDS_URI(site_url('/oauth/request'));
+	$service->uri[] = new XRDS_URI(oauth_service_url('oauth', 'request', 'login_post'));
 	xrds_add_service($xrds, 'oauth', $service);
 
 	$service = new XRDS_Service( array('http://oauth.net/core/1.0/endpoint/authorize', 'http://oauth.net/core/1.0/parameters/uri-query') );
-	$service->uri[] = new XRDS_URI(site_url('/oauth/authorize'));
+	$service->uri[] = new XRDS_URI(oauth_service_url('oauth', 'authorize', 'login_post'));
 	xrds_add_service($xrds, 'oauth', $service);
 
 	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/access'), $parameter_methods, $signature_types) );
-	$service->uri[] = new XRDS_URI(site_url('/oauth/access'));
+	$service->uri[] = new XRDS_URI(oauth_service_url('oauth', 'access', 'login_post'));
 	xrds_add_service($xrds, 'oauth', $service);
 
 	$service = new XRDS_Service( array_merge(array('http://oauth.net/core/1.0/endpoint/resource'), $parameter_methods, $signature_types) );
@@ -263,5 +260,34 @@ function oauth_xrds_service($xrds) {
 	xrds_add_service($xrds, 'oauth', $service);
 }
 
+
+function oauth_service_url($name, $value, $scheme = null, $absolute = true) {
+	global $wp_rewrite;
+	if (!$wp_rewrite) $wp_rewrite = new WP_Rewrite();
+
+	if ($absolute) {
+		$url = site_url('/', $scheme);
+	} else {
+		$site_url = get_option('siteurl');
+		$home_url = get_option('home');
+
+		if ($site_url != $home_url) {
+			$url = substr(trailingslashit($site_url), strlen($home_url)+1);
+		} else {
+			$url = '';
+		}
+	}
+
+	if ($wp_rewrite->using_permalinks()) {
+		if ($wp_rewrite->using_index_permalinks()) {
+			$url .= 'index.php/';
+		}
+		$url .= $name . '/' . $value;
+	} else {
+		$url .= '?' . $name . '=' . $value;
+	}
+
+	return $url;
+}
 
 ?>
