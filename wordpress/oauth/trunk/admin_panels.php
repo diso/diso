@@ -441,7 +441,6 @@ function oauth_authorize_token() {
 		<label for="authorize_no"><input type="radio" id="authorize_no" name="authorize" value="" /> No</label><br />
 		
 		<?php wp_nonce_field('oauth_authorize_token'); ?>
-		<input type="hidden" name="_oauth_endpoint" value="<?php echo $_REQUEST['_oauth_endpoint']; ?>" />
 		<input type="hidden" name="oauth_token" value="<?php echo $token ?>" />
 
 		<p class="submit">
