@@ -5,7 +5,9 @@
  * This implementation uses the WordPress options table.
  */
 
-class OAuthStoreWordPress
+require_once dirname(__FILE__) . '/OAuthStoreAbstract.class.php';
+
+class OAuthStoreWordPress extends OAuthStoreAbstract
 {
 
 	/**
@@ -118,7 +120,7 @@ class OAuthStoreWordPress
 	 * @exception OAuthException when no credentials found
 	 * @return array
 	 */
-	public function getServerTokenSecrets ( $consumer_key, $token, $token_type, $user_id = 0 ) { 
+	public function getServerTokenSecrets ( $consumer_key, $token, $token_type, $user_id, $name = '' ) { 
 		if ($token_type != 'request' && $token_type != 'access') {
 			throw new OAuthException('Unkown token type "'.$token_type.'", must be either "request" or "access"');
 		}
@@ -154,7 +156,7 @@ class OAuthStoreWordPress
 	 * @exception OAuthException when server is not known
 	 * @exception OAuthException when we received a duplicate token
 	 */
-	public function addServerToken ( $consumer_key, $token_type, $token, $token_secret, $user_id ) { 
+	public function addServerToken ( $consumer_key, $token_type, $token, $token_secret, $user_id, $options = array() ) { 
 		if ($token_type != 'request' && $token_type != 'access') {
 			throw new OAuthException('Unkwown token type "'.$token_type.'", must be either "request" or "access"');
 		}
@@ -201,7 +203,7 @@ class OAuthStoreWordPress
 	 * @exception OAuthException when server is not found
 	 * @return array
 	 */	
-	public function getServer( $key ) { 
+	public function getServer( $key, $user_id, $user_id_admin = false ) { 
 		$servers = get_option('oauth_servers');
 		if (array_key_exists($key, $servers)) {
 			return $servers[$key];
@@ -210,6 +212,7 @@ class OAuthStoreWordPress
 		throw new OAuthException('No server with consumer_key "'.$key.'"');
 	}
 
+	public function getServerForUri ( $uri, $user_id ) { }
 
 	/**
 	 * Get a list of all server token this user has access to.
@@ -414,7 +417,7 @@ class OAuthStoreWordPress
 	 * @exception OAuthException when consumer not found
 	 * @return array
 	 */
-	public function getConsumer( $key ) {
+	public function getConsumer( $key, $user_id, $user_is_admin = false ) {
 		$consumers = get_option('oauth_consumers');
 		if (array_key_exists($key, $consumers)) {
 			return $consumers[$key];
@@ -423,6 +426,7 @@ class OAuthStoreWordPress
 		throw new OAuthException('No consumer with consumer_key "'.$key.'"');
 	}
 
+	public function getConsumerStatic () { }
 
 	/**
 	 * Add an unautorized request token to our server.
@@ -430,13 +434,15 @@ class OAuthStoreWordPress
 	 * @param string consumer_key
 	 * @return array (token, token_secret)
 	 */
-	public function addConsumerRequestToken( $consumer_key ) { 
+	public function addConsumerRequestToken( $consumer_key, $options = array() ) { 
 		$token = array();
 
 		$token['token']  = $this->generateKey(true);
 		$token['secret'] = $this->generateKey();
 		$token['consumer_key'] = $consumer_key;
 		$token['type'] = 'request';
+		$token['user'] = null;
+		$token['authorized'] = false;
 
 		$tokens = get_option('oauth_consumer_tokens');
 		$tokens[$token['token']] = $token;
@@ -480,7 +486,7 @@ class OAuthStoreWordPress
 	 * @param string token
 	 * @param int	 user_id  user authorizing the token
 	 */
-	public function authorizeConsumerRequestToken( $token, $user_id ) { 
+	public function authorizeConsumerRequestToken( $token, $user_id, $referrer_host = '' ) { 
 		$tokens = get_option('oauth_consumer_tokens');
 		if (array_key_exists($token, $tokens)) {
 			$tokens[$token]['user'] = $user_id;
@@ -516,7 +522,7 @@ class OAuthStoreWordPress
 	 * @exception OAuthException when token could not be exchanged
 	 * @return array (token, token_secret)
 	 */
-	public function exchangeConsumerRequestForAccessToken( $token ) { 
+	public function exchangeConsumerRequestForAccessToken( $token, $options = array() ) { 
 		$tokens = get_option('oauth_consumer_tokens');
 
 		if (array_key_exists($token, $tokens)) {
@@ -563,7 +569,7 @@ class OAuthStoreWordPress
 	 * @param string token
 	 * @param int user_id
 	 */
-	public function deleteConsumerAccessToken( $token, $user_id ) {
+	public function deleteConsumerAccessToken( $token, $user_id, $user_is_admin = false ) {
 		$tokens = get_option('oauth_consumer_tokens');
 		if (array_key_exists($token, $tokens)) {
 			unset($tokens[$token]);
@@ -571,6 +577,7 @@ class OAuthStoreWordPress
 		}
 	}
 
+	public function setConsumerAccessTokenTtl ( $token, $ttl ) { }
 
 	/**
 	 * Fetch a list of all consumers
@@ -645,6 +652,7 @@ class OAuthStoreWordPress
 	public function listLog ( $options, $user_id ) { }
 
 
+	public function install () { }
 }
 
 
