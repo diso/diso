@@ -256,7 +256,7 @@ function oauth_xrds_service($xrds) {
 	$static_consumer = $store->getConsumerStatic();
 
 	$service = new XRDS_Service('http://oauth.net/discovery/1.0/consumer-identity/static');
-	$service->local_id[] = new XRDS_LocalID($static_consumer['key']);
+	$service->local_id[] = new XRDS_LocalID($static_consumer['consumer_key']);
 	xrds_add_service($xrds, 'oauth', $service);
 }
 
