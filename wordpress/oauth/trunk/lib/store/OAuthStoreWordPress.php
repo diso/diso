@@ -50,13 +50,13 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		);
 
 		if (@$consumer) { // TODO check $consumer['enabled']
-			$secrets['consumer_key'] = $consumer['key'];
-			$secrets['consumer_secret'] = $consumer['secret'];
+			$secrets['consumer_key'] = $consumer['consumer_key'];
+			$secrets['consumer_secret'] = $consumer['consumer_secret'];
 		}
 
 		if (@$token) { // TODO check $token['type']
 			$secrets['token'] = $token['token'];
-			$secrets['token_secret'] = $token['secret'];
+			$secrets['token_secret'] = $token['token_secret'];
 			$secrets['user_id'] = $token['user'];
 		}
 
@@ -103,7 +103,6 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 			if (strpos($path, $server['server_uri_path']) !== 0) continue;
 
 			$secrets = array_merge($server, $token);
-			$secrets['token_secret'] = $secrets['secret'];
 		}
 
 		return $secrets;
@@ -142,7 +141,6 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		if ($user_id && $server_token['user'] != $user_id) return $secrets;
 
 		$secrets = array_merge($server, $server_token);
-		$secrets['token_secret'] = $secrets['secret'];
 		$secrets['token_name'] = '';
 
 		return $secrets;
@@ -174,7 +172,7 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		$server_token = array(
 			'consumer_key' => $consumer_key,
 			'token' => $token,
-			'secret' => $token_secret,
+			'token_secret' => $token_secret,
 			'type' => $token_type,
 			'user' => $user_id,
 		);
@@ -383,28 +381,28 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 
 		$consumers = get_option('oauth_consumers');
 
-		if (!empty($consumer['key'])) {
-			$key = $consumer['key'];
+		if (!empty($consumer['consumer_key'])) {
+			$key = $consumer['consumer_key'];
 
 			// TODO Check if the current user can update this server definition
 			// throw new OAuthException('The user "'.$user_id.'" is not allowed to update this consumer');
 			
-			if (empty($consumer['secret'])) {
+			if (empty($consumer['consumer_secret'])) {
 				throw new OAuthException('The field "secret" must be set and non empty');
 			}
 
 			if (array_key_exists($key, $consumers)) {
 				$old_consumer = $consumers[$key];
-				if ($consumer['secret'] != $old_consumer['secret']) {
+				if ($consumer['consumer_secret'] != $old_consumer['consumer_secret']) {
 					throw new OAuthException('The consumer key and secret do not match');
 				}
 				$consumer = array_merge($old_consumer, $consumer);
 			}
 		} else {
-			$consumer['key'] = $this->generateKey(true);
-			$consumer['secret'] = $this->generateKey();
+			$consumer['consumer_key'] = $this->generateKey(true);
+			$consumer['consumer_secret'] = $this->generateKey();
 
-			$key = $consumer['key'];
+			$key = $consumer['consumer_key'];
 		}
 
 		$consumers[$key] = $consumer;
@@ -460,8 +458,8 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 			$static_consumer = array(
 				'requester_name' => 'Static Consumer Key',
 				'requester_email' => '',
-				'key' => $static_key,
-				'secret' => '',
+				'consumer_key' => $static_key,
+				'consumer_secret' => '',
 			);
 
 			$consumers = get_option('oauth_consumers');
@@ -482,7 +480,7 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		$token = array();
 
 		$token['token']  = $this->generateKey(true);
-		$token['secret'] = $this->generateKey();
+		$token['token_secret'] = $this->generateKey();
 		$token['consumer_key'] = $consumer_key;
 		$token['type'] = 'request';
 		$token['user'] = null;
@@ -492,7 +490,7 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 		$tokens[$token['token']] = $token;
 		update_option('oauth_consumer_tokens', $tokens);
 	
-		return array('token'=>$token['token'], 'token_secret'=>$token['secret']);
+		return array('token'=>$token['token'], 'token_secret'=>$token['token_secret']);
 	}
 
 
@@ -577,14 +575,14 @@ class OAuthStoreWordPress extends OAuthStoreAbstract
 			}
 
 			$new_token['token']  = $this->generateKey(true);
-			$new_token['secret'] = $this->generateKey();
+			$new_token['token_secret'] = $this->generateKey();
 			$new_token['type'] = 'access';
 
 			$tokens[$new_token['token']] = $new_token;
 			unset($tokens[$token]);
 
 			update_option('oauth_consumer_tokens', $tokens);
-			return array('token' => $new_token['token'], 'token_secret' => $new_token['secret']);
+			return array('token' => $new_token['token'], 'token_secret' => $new_token['token_secret']);
 		} else {
 			throw new OAuthException('Can\'t exchange request token "'.$token.'" for access token. No such token.');
 		}

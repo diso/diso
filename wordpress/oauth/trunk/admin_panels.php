@@ -163,10 +163,10 @@ function oauth_options_page() {
 						foreach ($consumers as $consumer) {
 							echo '
 							<tr>
-								<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="'.md5($consumer['key']).'" /></th>
+								<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="'.md5($consumer['consumer_key']).'" /></th>
 								<td>' . sprintf('%1$s <br /> <a href="mailto:%2$s">%2$s</a>', $consumer['requester_name'], $consumer['requester_email']) . '</td>
-								<td>' . $consumer['key'] . '</td>
-								<td>' . $consumer['secret'] . '</td>
+								<td>' . $consumer['consumer_key'] . '</td>
+								<td>' . $consumer['consumer_secret'] . '</td>
 							</tr>';
 						}   
 					}
@@ -221,7 +221,7 @@ function oauth_options_page() {
 								<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="'.md5($token['token']).'" /></th>
 								<td>' . $token['consumer_key'] . '</td>
 								<td>' . $token['token'] . '</td>
-								<td>' . $token['secret'] . '</td>
+								<td>' . $token['token_secret'] . '</td>
 								<td>' . $token['type'] . (($token['type'] == 'request' && $token['authorized']) ? '<br />(authorized)' : '') . '</td>
 								<td>' . ($u ? $u->user_login : ' - ') . '</td>
 							</tr>';
@@ -330,7 +330,7 @@ function oauth_options_page() {
 								<th scope="row" class="check-column"><input type="checkbox" name="delete[]" value="'.md5($token['token']).'" /></th>
 								<td>' . $token['consumer_key'] . '</td>
 								<td>' . $token['token'] . '</td>
-								<td>' . $token['secret'] . '</td>
+								<td>' . $token['token_secret'] . '</td>
 								<td>' . $token['type'] . '</td>
 								<td>' . ($u ? $u->user_login : ' - ') . '</td>
 							</tr>';
