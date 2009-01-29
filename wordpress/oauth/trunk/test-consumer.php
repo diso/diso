@@ -27,7 +27,6 @@ function oauth_test_help_text() {
 ?>
 
 	<ol>
-		<li>Until the changes are committed to WordPress trunk, apply the patch attached to <a href="http://trac.wordpress.org/ticket/8941">#8941</a>.</li>
 		<li>Click each of the links at the bottom of this page, starting with <em>Register OAuth Server</em>.  After each one, you can look at the <a href="?page=oauth">OAuth Options</a> page to see the result.</li>
 		<li>If all goes well on each of the links below, the final link should make a successful XML-RPC call using OAuth.</li>
 	</ol>
