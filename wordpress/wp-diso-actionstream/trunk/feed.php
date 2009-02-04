@@ -14,6 +14,8 @@ $stream = new ActionStream($userdata->actionstream, $userdata->ID);
 $stream = $stream->items(10);
 
 header('Content-Type: application/rss+xml');
+header('ETag: '.md5(time())); // Hack to override default wordpress headers that break feed readers
+header('Last-Modified: '.date('r'));
 echo '<?xml version="1.0" ?>';
 
 ?>
