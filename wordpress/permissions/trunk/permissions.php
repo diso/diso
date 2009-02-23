@@ -120,7 +120,7 @@ function diso_get_sgapi_urls($urls) {
 			if(!$url) continue;
 			$data = $sga->get($url);
 			if(!$data || !count($data)) continue;
-			$new = array_merge($new, array_keys($data['nodes']));
+			if($data['nodes']) $new = array_merge($new, array_keys($data['nodes']));
 		}
 	}
 
