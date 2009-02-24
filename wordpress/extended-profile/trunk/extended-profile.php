@@ -152,7 +152,7 @@ function ext_profile_hcard_from_url($url) {
 	else
 		$page = wp_remote_fopen('http://cgi.w3.org/cgi-bin/tidy?forceXML=on&docAddr='.urlencode($url));
 	if(function_exists('tidy_clean_repair'))
-		$page = tidy_clear_repair($page);
+		$page = tidy_clean_repair($page);
 	$page = str_replace('&nbsp;','&#160;',$page);
 	if(!$hkit) $hkit = new hKit;
 	@$hcard = $hkit->getByString('hcard', $page);
