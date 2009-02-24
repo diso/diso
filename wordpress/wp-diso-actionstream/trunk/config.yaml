@@ -254,9 +254,6 @@ profile_services:
     pandora:
         name: Pandora
         url: http://pandora.com/people/%s
-    pownce:
-        name: Pownce
-        url: http://pownce.com/%s/
     reddit:
         name: Reddit
         url: http://reddit.com/user/%s/
@@ -722,19 +719,6 @@ action_streams:
                     url:
                       - a
                       - @href
-    pownce:
-        notes:
-            name: Notes
-            description: Your public notes
-            fields:
-                - note
-            html_form: '[_1] <a rel="bookmark" href="[_2]">posted</a>, "<span class="entry-title entry-content">[_3]</span>"'
-            html_params:
-                - url
-                - note
-            url: 'http://pownce.com/feeds/public/{{ident}}/'
-            atom:
-                note: summary/child::text()
     flickr:
         photos:
             name: Photos
