@@ -167,13 +167,13 @@ if( !function_exists( 'normalize_uri' ) ) {
   function normalize_uri ($url) {
         $url = trim( $url );
         
-        $parts = parse_url( $url );
+        @$parts = parse_url( $url );
         $scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : null;
 
         if( !$scheme )
         {
             $url = 'http://' . $url;
-            $parts = parse_url( $url );
+            @$parts = parse_url( $url );
         }
 
         $path = isset( $parts['path'] ) ? $parts['path'] : null;
