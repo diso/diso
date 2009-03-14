@@ -26,6 +26,10 @@ echo '<?xml version="1.0" ?>';
 		<link><?php echo htmlspecialchars($userdata->user_url); ?></link>
 <?php
 
+if($userdata->photo) {
+	echo '		<image><title>'.htmlspecialchars($userdata->display_name).'</title><url>'.htmlspecialchars($userdata->photo).'</url><link>'.htmlspecialchars($userdata->user_url).'</link></image>';
+}
+
 $after_service = array();
 $c = 0;
 
