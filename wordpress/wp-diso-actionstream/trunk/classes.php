@@ -134,6 +134,7 @@ class ActionStream {
 				}//end if atom
 
 				if($stream['xpath']) {
+					unset($items);
 					@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw), 'SimpleXMLElement', LIBXML_NOCDATA);
 					if($doc && method_exists($doc, 'registerXPathNamespace')) {
 						$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
