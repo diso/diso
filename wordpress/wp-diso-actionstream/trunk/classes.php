@@ -14,7 +14,7 @@ class ActionStreamItem {
 			if(is_array($data)) {
 				$this->data = $data;
 			} else {
-				global $actionstream_config, $actionstream_config;
+				global $actionstream_config;
 				$data = $actionstream_config['db']->get_result("SELECT data,service,setup_idx FROM {$actionstream_config['item_table']} WHERE identifier_hash='$data'", ARRAY_A);
 				$this->data = unserialize($data[0]['data']);
 				$this->service = unserialize($data[0]['service']);
