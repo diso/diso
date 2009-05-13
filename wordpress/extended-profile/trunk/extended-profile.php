@@ -548,7 +548,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$contact = '';
 
 	// URLs
-	$user_urls = array_merge(array($userdata->user_url), @$userdata->additional_urls);
+	$user_urls = array_merge(array($userdata->user_url), (array) @$userdata->additional_urls);
 	$user_urls = array_unique(array_filter($user_urls));
 	if (count($user_urls) && diso_user_is(@$userdata->profile_permissions['urls'])) {
 		if ($actionstream_aware && function_exists('actionstream_services')) {
