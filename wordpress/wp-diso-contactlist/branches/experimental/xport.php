@@ -6,6 +6,7 @@ header('Content-Type: text/plain;charset=utf-8');
 switch($_GET['type']) {
 	case 'vcard':
 	case 'hcard':
+	case 'pcjson':
 		/* OK */
 		break;
 	default:
