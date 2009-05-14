@@ -1,6 +1,6 @@
 <?php
 
-header('Content-Type: text/plain;charset=utf-8');
+header('Content-Type: text/x-vcard;charset=utf-8');
 
 while($contact = next_contact()) :
 	$n = explode(' ',$contact['fn']);
