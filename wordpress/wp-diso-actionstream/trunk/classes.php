@@ -25,6 +25,13 @@ class ActionStreamItem {
 		}//end if-else data
 	}//end constructor
 
+	function add_dupe($service, $item) {
+		$dupes = $this->get('dupes');
+		if(!$dupes || !is_array($dupes)) $dupes = array();
+		$dupes[$service] = $item->to_array();
+		$this->set('dupes', $dupes);
+	}
+
 	function set($k, $v) {
 		$this->data[$k] = $v;
 	}//end function set
@@ -33,12 +40,35 @@ class ActionStreamItem {
 		return $this->data[$k];
 	}//end function get
 
+	function to_array() {
+		return $data;
+	}
+
 	function identifier() {
       $identifier_field = $this->config['action_streams'][$this->service][$this->setup_idx]['identifier'];
       if(!$identifier_field) $identifier_field = 'identifier';
 		if(!$this->data[$identifier_field]) return $this->data['created_on'].$this->data['service'];
       return $this->data[$identifier_field];
 	}//end function identifier
+
+	function similar_enough($a, $b) {
+		$a = substr(strip_tags($a), 0, 255);
+		$b = substr(strip_tags($b), 0, 255);
+		$avg_length = strlen($a) + strlen($b);
+		return levenshtein($a, $b) <= $avg_length / 4;
+	}
+
+	function is_dupe_of($b) {
+		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
+		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
+		if(abs($this->get('created_on') - $b->get('created_on')) > 21000) return false; // If they're too far apart, they aren't duplicates
+		if($this->identifier() == $b->identifier()) return true; // duh
+		if($this->get('url') == $b->get('url')) return true; // This seems reasonable, but may not always work out
+		if($this->similar_enough($this->get('title'), $b->get('title'))) {
+			return $this->similar_enough($this->get('description'), $b->get('description'));
+		}
+		return false;
+	}
 
 	function save() {
 		global $actionstream_config;
@@ -79,6 +109,7 @@ class ActionStream {
 	}//end constructor
 
 	function update() {
+		$saved = array();
 		foreach($this->ident as $service => $id) {
 			$setup = $this->config['action_streams'][$service];
 			if(!is_array($setup)) continue;
@@ -175,7 +206,22 @@ class ActionStream {
 							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
 							$update->set($k, $value);
 						}//end get
-						$update->save();
+						$dupe_of = false;
+						foreach($saved as $i) {
+							if($service != $i->get('service')) {
+								if($update->is_dupe_of($i)) {
+									$dupe_of = $i;
+									break;
+								}
+							}
+						}
+						if($dupe_of) {
+							$dupe_of->add_dupe($service, $update);
+							$dupe_of->save();
+						} else {
+							$update->save();
+							$saved[] = $update;
+						}
 					}//end foreach items
 				}//end if xpath
 
