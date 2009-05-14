@@ -197,6 +197,9 @@ profile_services:
     iconbuffet:
         name: IconBuffet
         url: http://www.iconbuffet.com/people/%s
+    identica:
+        name: Identi.ca
+        url: http://identi.ca/%s
     icq:
         name: ICQ
         url: http://www.icq.com/people/about_me.php?uin=%s
@@ -486,7 +489,29 @@ action_streams:
                 - title
             url: 'http://github.com/{{ident}}.atom'
             identifier: url
-            atom:
+    identica:
+        post:
+            name: Updates
+            description: Your public updates
+            fields:
+                - description
+            html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]">posted</a>, "<span class="entry-title">[_3]</span>"'
+            html_params:
+                - url
+                - description
+            url: 'https://identi.ca/api/statuses/user_timeline/{{ident}}.rss'
+            rss2:
+                description: description/child::text()
+        favourited:
+            name: Favourited Updates
+            description: Your favourited updates
+            html_form: '[_1] <a class="verb" rel="bookmark" href="[_2]">favourited</a>, "<span class="entry-title">[_3]</span>"'
+            html_params:
+                - url
+                - title
+            url: 'http://identi.ca/{{ident}}/favorites/rss'
+            rss2:
+                created_on: dc:date/child::text()
     iusethis:
         osxapps:
             name: Apps you use
@@ -525,18 +550,18 @@ action_streams:
             atom:
                 tags: "category[@scheme='http://ma.gnolia.com/tags']/@term"
     twitter:
-        tweets:
+        post:
             name: Tweets
             description: Your public tweets
             fields:
-                - tweet
+                - description
             html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]">tweeted</a>, "<span class="entry-title">[_3]</span>"'
             html_params:
                 - url
-                - tweet
+                - description
             url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
             atom:
-                tweet: title/child::text()
+                description: title/child::text()
         favourited:
             name: Favourited Tweets
             description: Your favourited tweets
