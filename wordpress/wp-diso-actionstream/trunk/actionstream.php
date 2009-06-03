@@ -374,7 +374,7 @@ add_shortcode('activity-stream', 'activity_stream_shortcode');
 function activity_services_shortcode($attr, $content = null) {
 	extract(shortcode_atts(array(
 		'user' => '0',
-		'urls_only' = false,
+		'urls_only' => false,
 	), $attr));
 
 	// allow user_id to be passed as content
