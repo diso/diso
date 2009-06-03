@@ -36,7 +36,6 @@ function actionstream_plugin_activation() {
 }//end actionstream_plugin_activation
 
 function actionstream_poll() {
-	global $wpdb;
 	$users = get_users_of_blog();
 
 	foreach($users as $user) {
