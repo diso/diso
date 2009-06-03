@@ -315,7 +315,7 @@ class ActionStream {
 		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
 		$rtrn .= '<div style="text-align:right;">
         <a id="actionstream_feed" href="'.clean_url($feedlink).'" rel="alternate" type="application/rss+xml">
-                <img src="'.clean_url(actionstream_plugin_url().'/images/feed.png').'" alt="ActionStream Feed" />
+                <img src="'.clean_url(plugins_url('wp-diso-actionstream/images/feed.png')).'" alt="ActionStream Feed" />
         </a>
 		</div>';
 

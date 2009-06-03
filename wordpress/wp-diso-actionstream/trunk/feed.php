@@ -3,13 +3,9 @@
 require_once dirname(__FILE__).'/config.php';
 require_once dirname(__FILE__).'/classes.php';
 
-if(!$_REQUEST['user']) {//get administrator
-	$_REQUEST['user'] = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
-}//end if ! _REQUEST['user']
-if(is_numeric($_REQUEST['user']))
-	$userdata = get_userdata($_REQUEST['user']);
-else
-	$userdata = get_userdatabylogin($_REQUEST['user']);
+
+$user_id = activity_stream_get_user_id( $_REQUEST['user'] );
+$userdata = get_userdata($user_id);
 $stream = new ActionStream($userdata->actionstream, $userdata->ID);
 $stream = $stream->items(10);
 

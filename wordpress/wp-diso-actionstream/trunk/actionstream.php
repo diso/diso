@@ -70,23 +70,11 @@ function get_raw_actionstream($url) {
  * Load activity stream stylesheet.
  */
 function actionstream_styles() {
-	$url = actionstream_plugin_url() . '/css/action-streams.css';
+	$url = plugins_url('wp-diso-actionstream/css/action-streams.css');
 	echo '<link rel="stylesheet" type="text/css" href="' . clean_url($url) . '" />';
 }
 add_action('wp_head', 'actionstream_styles');
 add_action('admin_head', 'actionstream_styles');
-
-
-/**
- * Get absolute URL for activity stream plugin.
- */
-function actionstream_plugin_url() {
-	if (function_exists('plugins_url')) {
-		return plugins_url('wp-diso-actionstream');
-	} else {
-		return get_bloginfo('wpurl') . '/' . PLUGINDIR . '/wp-diso-actionstream';
-	}
-}
 
 
 /**
@@ -164,7 +152,7 @@ function actionstream_page() {
 	foreach($actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
 		$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
-		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(actionstream_plugin_url().'/images/delete.gif').'" /></a> ';
+		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(plugins_url('wp-diso-actionstream/images/delete.gif')).'" /></a> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
 			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
 			echo htmlspecialchars($id);
@@ -279,21 +267,15 @@ add_action('publish_post', 'actionstream_wordpress_post');
 /**
  * Render the activity stream for the specified user.
  *
- * @param int|string $userid ID or user_login of user to display activity stream for
+ * @param int $user_id ID of user to display activity stream for
  * @param int $num maximum number of activities to display
  * @param boolean $hide_user
  * @param boolean $echo whether to echo the rendered activity stream
  * @return string the rendered activity stream
  */
-function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=true) {
-   if(!$userid) {//get administrator
-      global $wpdb;
-      $userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
-   }//end if ! userid
-   if(is_numeric($userid))
-      $userdata = get_userdata($userid);
-   else
-      $userdata = get_userdatabylogin($userid);
+function actionstream_render($user_id, $num=10, $hide_user=false, $echo=true) {
+	$userdata = get_userdata($user_id);
+
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
 	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
 	if($echo) echo $rtrn;
@@ -304,19 +286,11 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
 /**
  * Render a list of the activity stream services for the specified user.
  *
- * @param int|string $userid ID or user_login of user to display activity stream for
+ * @param int $user_id ID of user to display activity stream for
  * @param boolean $urls_only
  */
-function actionstream_services($userid=false, $urls_only=false) {
-   if(!$userid) {//get administrator
-      global $wpdb;
-      $userid = $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
-   }//end if ! userid
-   if(is_numeric($userid)) {
-      $userdata = get_userdata($userid);
-   } else {
-      $userdata = get_userdatabylogin($userid);
-   }
+function actionstream_services($user_id, $urls_only=false) {
+   $userdata = get_userdata($userid);
    $actionstream = $userdata->actionstream;
    ksort($actionstream);
 
@@ -343,6 +317,29 @@ function actionstream_services($userid=false, $urls_only=false) {
 
 
 /**
+ * Get the ID of the user for the specified ID or username.  If no ID or 
+ * username is provided, the ID of the admin user will be returned.
+ *
+ * @param int|string $user_id ID or user_login of user to get ID for
+ * @return int ID of user
+ */
+function activity_stream_get_user_id($user_id = false) {
+	if( !$user_id ) {
+		//get administrator
+		global $wpdb;
+		return $wpdb->get_var("SELECT user_id FROM $wpdb->usermeta WHERE meta_key='wp_user_level' AND meta_value='10'");
+	}
+
+	if( is_numeric($user_id) ) {
+		return $user_id;
+	} else {
+		$userdata = get_userdatabylogin($user_id);
+		return $userdata->ID;
+	}
+}
+
+
+/**
  * Process [activity-stream] shortcode.  This shortcode supports three
  * parameters: user, num, and hide_user.  The user parameter may alternately
  * be passed in the shortcode content.
@@ -358,6 +355,7 @@ function activity_stream_shortcode($attr, $content = null) {
 
 	// allow user_id to be passed as content
 	if ( $content && !$user ) $user = $content;
+	$user = activity_stream_get_user_id($user);
 
 	return actionstream_render($user, $num, $hide_user, false);
 }
@@ -379,6 +377,7 @@ function activity_services_shortcode($attr, $content = null) {
 
 	// allow user_id to be passed as content
 	if ( $content && !$user ) $user = $content;
+	$user = activity_stream_get_user_id($user);
 
 	return actionstream_services($user, $urls_only);
 }
