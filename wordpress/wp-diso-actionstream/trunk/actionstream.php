@@ -343,26 +343,46 @@ function actionstream_services($userid=false, $urls_only=false) {
 
 
 /**
- * Parse the activity stream tokens from the page content and replace it with the rendered content.  
- * The following two tokens will be parsed:
+ * Process [activity-stream] shortcode.  This shortcode supports three
+ * parameters: user, num, and hide_user.  The user parameter may alternately
+ * be passed in the shortcode content.
  *
- *     <!--actionstream(username)-->
- *     <!--actionstream_services(username)-->
+ * @see actionstream_render
  */
-function diso_actionstream_parse_page_token($content) {
-	if(preg_match('/<!--actionstream(\((.*)\))?-->/',$content,$matches)) {
-		$user = $matches[2];
-		$content = preg_replace('/<!--actionstream(\((.*)\))?-->/',actionstream_render($user,10,false,false), $content);
-	}//end if match
+function activity_stream_shortcode($attr, $content = null) {
+	extract(shortcode_atts(array(
+		'user' => '0',
+		'num' => 10,
+		'hide_user' => false,
+	), $attr));
 
-	if(preg_match('/<!--actionstream_services(\((.*)\))?-->/',$content,$matches)) {
-		$user = $matches[2];
-		$content = preg_replace('/<!--actionstream_services(\((.*)\))?-->/', actionstream_services($user), $content);
-	}//end if match
+	// allow user_id to be passed as content
+	if ( $content && !$user ) $user = $content;
 
-	return $content;
+	return actionstream_render($user, $num, $hide_user, false);
 }
-add_filter('the_content', 'diso_actionstream_parse_page_token');
+add_shortcode('activity-stream', 'activity_stream_shortcode');
+
+
+/**
+ * Process [activity-services] shortcode.  This shortcode supports two
+ * parameters: user and urls_only.  The user parameter may alternately be 
+ * passed in the shortcode content.
+ *
+ * @see actionstream_services
+ */
+function activity_services_shortcode($attr, $content = null) {
+	extract(shortcode_atts(array(
+		'user' => '0',
+		'urls_only' = false,
+	), $attr));
+
+	// allow user_id to be passed as content
+	if ( $content && !$user ) $user = $content;
+
+	return actionstream_services($user, $urls_only);
+}
+add_shortcode('activity-services', 'activity_services_shortcode');
 
 
 /**
