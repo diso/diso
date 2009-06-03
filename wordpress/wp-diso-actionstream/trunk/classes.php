@@ -45,8 +45,8 @@ class ActionStreamItem {
 		$this->setup_idx = $setup_idx;
 		$this->user_id = $user_id;
 
-		if($data) {
-			if(is_array($data)) {
+		if ($data) {
+			if ( is_array($data) ) {
 				$this->data = $data;
 			} else {
 				global $actionstream_config;
@@ -54,11 +54,11 @@ class ActionStreamItem {
 				$this->data = unserialize($data[0]['data']);
 				$this->service = unserialize($data[0]['service']);
 				$this->setup_idx = unserialize($data[0]['setup_idx']);
-			}//end if-else is_array data
+			}
 		} else {
 			$this->data = array();
-		}//end if-else data
-	}//end constructor
+		}
+	}
 
 
 	/**
@@ -68,8 +68,7 @@ class ActionStreamItem {
 	 * @param ActionStreamItem $item item to record as a duplicate
 	 */
 	function add_dupe($service, $item) {
-		$dupes = $this->get('dupes');
-		if(!$dupes || !is_array($dupes)) $dupes = array();
+		$dupes = (array) $this->get('dupes');
 		$dupes[$service] = $item->to_array();
 		$this->set('dupes', $dupes);
 	}
@@ -83,7 +82,7 @@ class ActionStreamItem {
 	 */
 	function set($k, $v) {
 		$this->data[$k] = $v;
-	}//end function set
+	}
 
 
 	/**
@@ -94,7 +93,7 @@ class ActionStreamItem {
 	 */
 	function get($k) {
 		return $this->data[$k];
-	}//end function get
+	}
 
 
 	/**
@@ -113,11 +112,18 @@ class ActionStreamItem {
 	 * @return string
 	 */
 	function identifier() {
-      $identifier_field = $this->config['action_streams'][$this->service][$this->setup_idx]['identifier'];
-      if(!$identifier_field) $identifier_field = 'identifier';
-		if(!$this->data[$identifier_field]) return $this->data['created_on'].$this->data['service'];
-      return $this->data[$identifier_field];
-	}//end function identifier
+		$identifier_field = $this->config['action_streams'][$this->service][$this->setup_idx]['identifier'];
+
+		if ( !$identifier_field ) {
+			$identifier_field = 'identifier';
+		}
+
+		if ( !$this->data[$identifier_field] ) {
+			return $this->data['created_on'] . $this->data['service'];
+		}
+
+		return $this->data[$identifier_field];
+	}
 
 
 	/**
@@ -167,7 +173,7 @@ class ActionStreamItem {
 			(identifier_hash, user_id, created_on, service, setup_idx, data) 
 			VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') 
 			ON DUPLICATE KEY UPDATE data='$data'");
-	}//end function save
+	}
 
 
 	/**
@@ -177,15 +183,20 @@ class ActionStreamItem {
 	 * @return string
 	 */
 	function __toString($hide_user=false) {
-		return ActionStreamItem::interpolate(
+		$string = ActionStreamItem::interpolate(
 				$this->data, 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], 
 				$this->config['profile_services'][$this->service], $hide_user
-			) 
-			. ' <abbr class="published" title="' . date('c',$this->data['created_on']) . '">@ '
-			. date('Y-m-d H:i',$this->data['created_on']) . '</abbr>';
-	}//end function toString
+			);
+
+		$string .= sprintf(' <abbr class="published" title="%s">@ %s</abbr>',
+			date('c',$this->data['created_on']),
+			date('Y-m-d H:i',$this->data['created_on'])
+		);
+
+		return $string;
+	}
 
 
 	/**
@@ -198,22 +209,28 @@ class ActionStreamItem {
 	 * @param $hide_user
 	 */
 	protected static function interpolate($data, $fields, $template, $service, $hide_user) {
-		if (!is_array($fields)) return;
+		if ( !is_array($fields) ) return;
 		array_unshift($fields, 'ident');
-		if($data['ident'] && $service) {
+
+		if ( $data['ident'] && $service ) {
 			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '')
 				. '><a class="url fn nickname" href="' 
 				. htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'
 				. htmlspecialchars($data['ident']).'</a></span>';
-		}//end if ident
-		foreach($fields as $i => $k) {
-			if($data[$k] == html_entity_decode(strip_tags($data[$k]))) $data[$k] = htmlspecialchars($data[$k]);
+		}
+
+		foreach ($fields as $i => $k) {
+			if ( $data[$k] == html_entity_decode(strip_tags($data[$k])) ) {
+				$data[$k] = htmlspecialchars($data[$k]);
+			}
 			$template = str_replace('[_'.($i+1).']', $data[$k], $template);
-		}//end foreach fields
+		}
+
 		return $template;
-	}//end function interpolate
+	}
 
 }//end class ActionStreamItem
+
 
 
 /**
@@ -246,7 +263,7 @@ class ActionStream {
 		$this->config = get_actionstream_config();
 		$this->ident = $ident;
 		$this->user_id = $user_id;
-	}//end constructor
+	}
 
 
 	/**
@@ -385,7 +402,7 @@ class ActionStream {
 			FROM {$actionstream_config['item_table']} ".($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
 			. "ORDER BY created_on DESC", ARRAY_A);
 		return $items;
-	}//end function items
+	}
 
 
 	/**
