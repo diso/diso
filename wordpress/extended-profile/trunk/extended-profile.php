@@ -82,7 +82,6 @@ add_action('init', 'ext_profile_default_filters');
  * @access private
  */
 function ext_profile_activate() {
-	ext_profile_migrate_widget_data();
 	ext_profile_migrate_profile_data();
 }
 register_activation_hook('extended-profile/extended-profile.php', 'ext_profile_activate');
