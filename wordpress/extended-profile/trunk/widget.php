@@ -1,69 +1,65 @@
 <?php
 
-add_action('plugins_loaded', 'widget_user_profile_init');
-
 /**
- * Initialize User Profile widget.  This includes all of the logic for managing and displaying the widget.
+ * Widget class for displaying the profile of a user.
  */
-function widget_user_profile_init() {
+class Extended_Profile_Widget extends WP_Widget {
 
-	if (!function_exists('register_sidebar_widget')) {
-		return;
+	function Extended_Profile_Widget() {
+		$widget_ops = array('classname' => 'widget_extended_profile', 'description' => __( 'User hCard Profile') );
+		$this->WP_Widget('extended-profile', __('User Profile'), $widget_ops);
 	}
-	
-	/**
-	 * Display user profile widget.
-	 *
-	 * @param array $args widget configuration.
-	 */
-	function widget_user_profile($args) {
-		extract($args);
-				
-		$options = get_option('widget_user_profile');
-		$title = $options['title'];
+
+	function widget( $args, $instance ) {
+		extract( $args );
+		$title = apply_filters('widget_title', $instance['title']);
 
 		echo $before_widget;
-		echo $before_title . $title . $after_title;
-		extended_profile($options['user']);
+		if ( $title )
+			echo $before_title . $title . $after_title;
+
+		extended_profile($instance['user_id']);
+
 		echo $after_widget;
 	}
-	
 
-	/**
-	 * Manage user profile widget.
-	 */
-	function widget_user_profile_control() {
-		$options = get_option('widget_user_profile');
-
-		if ( !is_array($options) )
-			$options = array('title'=>'User Profile', 'user'=>false);
-		
-		if ( $_POST['profile_submit'] ) {
-			$options['title'] = strip_tags(stripslashes($_POST['profile_title']));
-			$options['user'] = strip_tags(stripslashes($_POST['profile_user']));
-			update_option('widget_user_profile', $options);
-		}
-
-		$title = htmlspecialchars($options['title'], ENT_QUOTES);
-		?>
-
-		<p style="text-align:right;">
-			<label for="profile_title">Title:</label><br /> 
-			<input style="width: 200px;" id="profile_title" name="profile_title" type="text" value="<?php echo $title; ?>" />
+	function form( $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'user_id' => 0 ) );
+?>
+        <p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php 
+				echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($instance['title']); ?>" />
 		</p>
-
-		<p style="text-align:right;"><label for="profile_user">User:</label><br /> 
-			<?php wp_dropdown_users(array('selected' => $options['user'], 'name' => 'profile_user')); ?>
+		<p>
+			<label for="<?php echo $this->get_field_id('user_id'); ?>"><?php _e('User:'); ?></label>
+			<select name="<?php echo $this->get_field_name('user_id'); ?>" id="<?php echo $this->get_field_id('user_id'); ?>" class="widefat">
+				<option value="-1"<?php selected( $instance['user_id'], -1 ) ?>><?php _e('Select a User'); ?></option>
+<?php
+			$users = get_users_of_blog();
+			foreach ( $users as $user ) {
+				echo '
+				<option value="' . $user->ID . '"' . selected( $instance['user_id'], $user->ID ) . '>' . esc_html($user->display_name) . '</option>';
+			}
+?>
+			</select>
 		</p>
-		<style type="text/css"> #profile_user { width: 200px; } </style>
+<?php
+    }    
 
-		<input type="hidden" id="profile_submit" name="profile_submit" value="1" />
+    function update( $new_instance, $old_instance ) {
+        $instance = $old_instance;
+        $new_instance = wp_parse_args((array) $new_instance, array( 'title' => '', 'user_id' => 0 ));
 
-		<?php
-	}
-	
-	register_sidebar_widget('User Profile', 'widget_user_profile');
-	register_widget_control('User Profile', 'widget_user_profile_control');
+        $instance['title'] = strip_tags($new_instance['title']);
+        $instance['user_id'] = $new_instance['user_id'];
+
+        return $instance;
+    }    
+
 }
 
-?>
+function extended_profile_widgets() {
+	register_widget('Extended_Profile_Widget');
+}
+add_action('widgets_init', 'extended_profile_widgets');
