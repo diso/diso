@@ -290,8 +290,9 @@ function actionstream_render($user_id, $num=10, $hide_user=false, $echo=true) {
  * @param boolean $urls_only
  */
 function actionstream_services($user_id, $urls_only=false) {
-   $userdata = get_userdata($userid);
+   $userdata = get_userdata($user_id);
    $actionstream = $userdata->actionstream;
+   if ( empty($actionstream) ) return;
    ksort($actionstream);
 
    $actionstream_yaml = get_actionstream_config(); 
