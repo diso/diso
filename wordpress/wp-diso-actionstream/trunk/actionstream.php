@@ -118,7 +118,7 @@ function actionstream_page() {
 		}//end if ident
 
 		if($_POST['sgapi_import']) {
-			require_once dirname(__FILE__).'/sgapi.php';
+			require_once dirname(__FILE__).'/lib/sgapi.php';
 			$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
 			$xfn = $sga->get($_POST['sgapi_import']);
 			$actionstream = array_merge($actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
