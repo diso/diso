@@ -1,113 +1,135 @@
 <?php
 
-//### Begin Widget ###
+/**
+ * Widget class for displaying the activity stream of a user.
+ */
+class Activity_Stream_Widget extends WP_Widget {
+	function Activity_Stream_Widget() {
+		$widget_ops = array('classname' => 'widget_activity_stream', 'description' => __( 'Your Activity Stream') );
+		$this->WP_Widget('activity-stream', __('Activity Stream'), $widget_ops);
+	}
 
-function widget_actionstreamwidget_init() {
-
-	if (!function_exists('register_sidebar_widget'))
-		return;
-	
-	function widget_actionstreamwidget($args) {
-		extract($args);
-				
-		$options = get_option('widget_actionstreamwidget');
-		$title = $options['title'];
+	function widget( $args, $instance ) {
+		extract( $args );
+		$title = apply_filters('widget_title', $instance['title']);
 
 		echo $before_widget;
-		echo $before_title . $title . $after_title;
-		actionstream_render($options['userid'], $options['num'], $options['hide_user']);
+		if ( $title )
+			echo $before_title . $title . $after_title;
+
+		echo actionstream_render($instance['user_id'], $instance['num'], $instance['hide_user']);
+
 		echo $after_widget;
 	}
-	
-	function widget_actionstreamwidget_control() {
-		$options = get_option('widget_actionstreamwidget');
-		if ( !is_array($options) )
-			$options = array('title'=>'ActionStream', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
-		if ( $_POST['actionstreamwidget-submit'] ) {
-			$options['title'] = strip_tags(stripslashes($_POST['actionstreamwidget-title']));
-			$options['userid'] = strip_tags(stripslashes($_POST['actionstreamwidget-userid']));
-			$options['num'] = strip_tags(stripslashes($_POST['actionstreamwidget-num']));
-			$options['hide_user'] = strip_tags(stripslashes($_POST['actionstreamwidget-hide_user']));
-			update_option('widget_actionstreamwidget', $options);
-		}
 
-		$title = htmlspecialchars($options['title'], ENT_QUOTES);
+	function form( $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0 ) );
+?>
+        <p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php 
+				echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($instance['title']); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('user_id'); ?>"><?php _e('User:'); ?></label>
+			<select name="<?php echo $this->get_field_name('user_id'); ?>" id="<?php echo $this->get_field_id('user_id'); ?>" class="widefat">
+				<option value="-1"<?php selected( $instance['user_id'], -1 ) ?>><?php _e('Select a User'); ?></option>
+<?php
+			$users = get_users_of_blog();
+			foreach ( $users as $user ) {
+				echo '
+				<option value="' . $user->ID . '"' . selected( $instance['user_id'], $user->ID ) . '>' . esc_html($user->display_name) . '</option>';
+			}
+?>
+			</select>
+		</p>
+        <p>
+			<label for="<?php echo $this->get_field_id('num'); ?>"><?php _e('Max Items:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('num'); ?>" name="<?php 
+				echo $this->get_field_name('num'); ?>" type="text" value="<?php esc_attr_e($instance['num']); ?>" />
+		</p>
+		<p>
+			<input class="checkbox" type="checkbox" <?php checked($instance['hide_user'], true) ?> id="<?php 
+				echo $this->get_field_id('hide_user'); ?>" name="<?php echo $this->get_field_name('hide_user'); ?>" />   
+        	<label for="<?php echo $this->get_field_id('hide_user'); ?>"><?php _e('Hide Usernames'); ?></label>
+		</p>
+<?php
+    }    
 
-		echo '<p style="text-align:right;"><label for="actionstreamwidget-title">Title:</label><br /> <input style="width: 200px;" id="actionstreamwidget-title" name="actionstreamwidget-title" type="text" value="'.$title.'" /></p>';
+    function update( $new_instance, $old_instance ) {
+        $instance = $old_instance;
+        $new_instance = wp_parse_args((array) $new_instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0));
 
-		echo '<p style="text-align:right;"><label for="actionstreamwidget-userid">User:</label><br /> ';
-		echo '	<select style="width: 200px;" id="actionstreamwidget-userid" name="actionstreamwidget-userid">';
-		$users = get_users_of_blog();
-		foreach($users as $user)
-			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
-		echo '	</select>';
-		echo '</p>';
-		
-		echo '<p style="text-align:right;"><label for="actionstreamwidget-num">Max Items:</label><br /> <input style="width: 200px;" id="actionstreamwidget-num" name="actionstreamwidget-num" type="text" value="'.$options['num'].'" /></p>';
-		echo '<p style="text-align:right;"><label for="actionstreamwidget-hide_user">Hide Usernames?</label> <input id="actionstreamwidget-hide_user" name="actionstreamwidget-hide_user" type="checkbox" '.($options['hide_user'] ? 'checked="checked"' : '').' /></p>';
+        $instance['title'] = strip_tags($new_instance['title']);
+        $instance['user_id'] = $new_instance['user_id'];
+        $instance['num'] = $new_instance['num'];
+        $instance['hide_user'] = $new_instance['hide_user'] ? 1 : 0;
 
-		echo '<input type="hidden" id="actionstreamwidget-submit" name="actionstreamwidget-submit" value="1" />';
-	}
-	
-			
-	register_sidebar_widget('Actionstream', 'widget_actionstreamwidget');
-	register_widget_control('Actionstream', 'widget_actionstreamwidget_control', 270, 270);
+        return $instance;
+    }    
 }
-add_action('plugins_loaded', 'widget_actionstreamwidget_init');
 
 
-//### Begin ActionStream Services Widget ###
+/**
+ * Widget class for displaying a list of activity stream services of a user.
+ */
+class Activity_Services_Widget extends WP_Widget {
+	function Activity_Services_Widget() {
+		$widget_ops = array('classname' => 'widget_activity_services', 'description' => __( 'Your Activity Services') );
+		$this->WP_Widget('activity-services', __('Activity Services'), $widget_ops);
+	}
 
-function widget_actionstream_services_widget_init() {
-
-	if (!function_exists('register_sidebar_widget'))
-		return;
-	
-	function widget_actionstream_services_widget($args) {
-		extract($args);
-				
-		$options = get_option('widget_actionstream_services_widget');
-		$title = $options['title'];
+	function widget( $args, $instance ) {
+		extract( $args );
+		$title = apply_filters('widget_title', $instance['title']);
 
 		echo $before_widget;
-		echo $before_title . $title . $after_title;
-		echo actionstream_services($options['userid']);
+		if ( $title )
+			echo $before_title . $title . $after_title;
+
+		echo actionstream_services($instance['user_id']);
+
 		echo $after_widget;
 	}
-	
-	function widget_actionstream_services_widget_control() {
-		$options = get_option('widget_actionstream_services_widget');
-		if ( !is_array($options) )
-			$options = array('title'=>'ActionStream Services', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
-		if ( $_POST['actionstream_services_widget-submit'] ) {
-			$options['title'] = strip_tags(stripslashes($_POST['actionstream_services_widget-title']));
-			$options['userid'] = strip_tags(stripslashes($_POST['actionstream_services_widget-userid']));
-			$options['num'] = strip_tags(stripslashes($_POST['actionstream_services_widget-num']));
-			$options['hide_user'] = strip_tags(stripslashes($_POST['actionstream_services_widget-hide_user']));
-			update_option('widget_actionstream_services_widget', $options);
-		}
 
-		$title = htmlspecialchars($options['title'], ENT_QUOTES);
+	function form( $instance ) {
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0 ) );
+?>
+        <p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php 
+				echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($instance['title']); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('user_id'); ?>"><?php _e('User:'); ?></label>
+			<select name="<?php echo $this->get_field_name('user_id'); ?>" id="<?php echo $this->get_field_id('user_id'); ?>" class="widefat">
+				<option value="-1"<?php selected( $instance['user_id'], -1 ) ?>><?php _e('Select a User'); ?></option>
+<?php
+			$users = get_users_of_blog();
+			foreach ( $users as $user ) {
+				echo '
+				<option value="' . $user->ID . '"' . selected( $instance['user_id'], $user->ID ) . '>' . esc_html($user->display_name) . '</option>';
+			}
+?>
+			</select>
+		</p>
+<?php
+    }    
 
-		echo '<p style="text-align:right;"><label for="actionstream_services_widget-title">Title:</label><br /> <input style="width: 200px;" id="actionstream_services_widget-title" name="actionstream_services_widget-title" type="text" value="'.$title.'" /></p>';
+    function update( $new_instance, $old_instance ) {
+        $instance = $old_instance;
+        $new_instance = wp_parse_args((array) $new_instance, array( 'title' => '', 'user_id' => 0 ));
 
-		echo '<p style="text-align:right;"><label for="actionstream_services_widget-userid">User:</label><br /> ';
-		echo '	<select style="width: 200px;" id="actionstream_services_widget-userid" name="actionstream_services_widget-userid">';
-		$users = get_users_of_blog();
-		foreach($users as $user)
-			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
-		echo '	</select>';
-		echo '</p>';
-		
-		echo '<p style="text-align:right;"><label for="actionstream_services_widget-num">Max Items:</label><br /> <input style="width: 200px;" id="actionstream_services_widget-num" name="actionstream_services_widget-num" type="text" value="'.$options['num'].'" /></p>';
-		echo '<p style="text-align:right;"><label for="actionstream_services_widget-hide_user">Hide Usernames?</label> <input id="actionstream_services_widget-hide_user" name="actionstream_services_widget-hide_user" type="checkbox" '.($options['hide_user'] ? 'checked="checked"' : '').' /></p>';
+        $instance['title'] = strip_tags($new_instance['title']);
+        $instance['user_id'] = $new_instance['user_id'];
 
-		echo '<input type="hidden" id="actionstream_services_widget-submit" name="actionstream_services_widget-submit" value="1" />';
-	}
-	
-			
-	register_sidebar_widget('Actionstream Services', 'widget_actionstream_services_widget');
-	register_widget_control('Actionstream Services', 'widget_actionstream_services_widget_control', 270, 270);
+        return $instance;
+    }    
 }
-add_action('plugins_loaded', 'widget_actionstream_services_widget_init');
 
+
+function activity_stream_widgets() {
+	register_widget('Activity_Stream_Widget');
+	register_widget('Activity_Services_Widget');
+}
+add_action('widgets_init', 'activity_stream_widgets');
