@@ -49,8 +49,8 @@ class ActionStreamItem {
 			if ( is_array($data) ) {
 				$this->data = $data;
 			} else {
-				global $actionstream_config;
-				$data = $actionstream_config['db']->get_result("SELECT data,service,setup_idx FROM {$actionstream_config['item_table']} WHERE identifier_hash='$data'", ARRAY_A);
+				global $wpdb;
+				$data = $wpdb->get_result('SELECT data,service,setup_idx FROM ' . activity_stream_items_table() . " WHERE identifier_hash='$data'", ARRAY_A);
 				$this->data = unserialize($data[0]['data']);
 				$this->service = unserialize($data[0]['service']);
 				$this->setup_idx = unserialize($data[0]['setup_idx']);
@@ -164,12 +164,12 @@ class ActionStreamItem {
 	 * Save this ActionStreamItem to the database.
 	 */
 	function save() {
-		global $actionstream_config;
+		global $wpdb;
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
 		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
-		$data = $actionstream_config['db']->escape(serialize($this->data));
+		$data = $wpdb->escape(serialize($this->data));
 		$identifier_hash = sha1($this->identifier());
-		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} 
+		$wpdb->query("INSERT INTO " . activity_stream_items_table() . " 
 			(identifier_hash, user_id, created_on, service, setup_idx, data) 
 			VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') 
 			ON DUPLICATE KEY UPDATE data='$data'");
@@ -397,9 +397,9 @@ class ActionStream {
 	 * @param int $num number of items to get
 	 */
 	function items($num=10) {
-		global $actionstream_config;
-		$items = $actionstream_config['db']->get_results("SELECT created_on,service,setup_idx,data,user_id 
-			FROM {$actionstream_config['item_table']} ".($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
+		global $wpdb;
+		$items = $wpdb->get_results("SELECT created_on,service,setup_idx,data,user_id 
+			FROM " . activity_stream_items_table() . " " . ($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
 			. "ORDER BY created_on DESC", ARRAY_A);
 		return $items;
 	}
