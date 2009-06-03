@@ -12,51 +12,6 @@ require_once dirname(__FILE__).'/widget.php';
 require_once dirname(__FILE__).'/permissions.php';
 require_once dirname(__FILE__).'/avatar.php';
 
-$hkit;
-
-// register actions
-add_action('user_register', 'ext_profile_hcard_import');
-add_action('init', 'ext_profile_style');
-add_action('wp_head', 'wp_print_styles', 9); // for pre-2.7
-add_action('admin_init', 'ext_profile_admin');
-add_shortcode('profile', 'ext_profile_shortcode');
-
-// register profile actions
-add_action('extended_profile', 'extended_profile_photo', 0);
-add_action('extended_profile', 'extended_profile_name', 2);
-add_action('extended_profile', 'extended_profile_nickname', 4);
-add_action('extended_profile', 'extended_profile_org', 6);
-add_action('extended_profile', 'extended_profile_note', 8);
-add_action('extended_profile', 'extended_profile_contact', 10, 2);
-
-// default filters
-$filters = array('additional_name', 'org', 'street_address', 'locality', 'region', 'country_name', 'postal_code', 'tel');
-foreach ( $filters as $filter ) {
-	$filter = 'pre_ext_profile_' . $filter;
-	add_filter($filter, 'strip_tags');
-	add_filter($filter, 'trim');
-	add_filter($filter, 'wp_filter_kses');
-	add_filter($filter, 'wp_specialchars', 30);
-}
-
-$filters = array('photo', 'url');
-foreach ( $filters as $filter ) {
-	$filter = 'pre_ext_profile_' . $filter;
-	add_filter($filter, 'strip_tags');
-	add_filter($filter, 'trim');
-	add_filter($filter, 'sanitize_url');
-	add_filter($filter, 'wp_filter_kses');
-}
-
-// provide SREG attributes for OpenID plugin
-add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
-add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
-
-register_activation_hook('extended-profile/extended-profile.php', 'ext_profile_activate');
-if ( function_exists('register_uninstall_hook') ) {
-	register_uninstall_hook('extended-profile/extended-profile.php', 'ext_profile_uninstall');
-}
-
 
 /**
  * Get the microformatted profile for the specified user.
@@ -75,33 +30,91 @@ function extended_profile($userid=null, $echo=true, $actionstream_aware=false) {
 	return $profile;
 }
 
+
+/**
+ * Get singleton hKit instance.
+ *
+ * @return hKit
+ * @access public
+ */
+function extended_profile_hkit() {
+	static $hkit;
+
+	if ( !$kit ) {
+		require_once dirname(__FILE__).'/hkit.class.php';
+		$hkit = new hKit;
+	}
+
+	return $hkit;
+}
+
+
+/**
+ * Register default filters for extended profile attributes.
+ *
+ * @access private
+ */
+function ext_profile_default_filters() {
+	$filters = array('additional_name', 'org', 'street_address', 'locality', 'region', 'country_name', 'postal_code', 'tel');
+	foreach ( $filters as $filter ) {
+		$filter = 'pre_ext_profile_' . $filter;
+		add_filter($filter, 'strip_tags');
+		add_filter($filter, 'trim');
+		add_filter($filter, 'wp_filter_kses');
+		add_filter($filter, 'wp_specialchars', 30);
+	}
+
+	$filters = array('photo', 'url');
+	foreach ( $filters as $filter ) {
+		$filter = 'pre_ext_profile_' . $filter;
+		add_filter($filter, 'strip_tags');
+		add_filter($filter, 'trim');
+		add_filter($filter, 'sanitize_url');
+		add_filter($filter, 'wp_filter_kses');
+	}
+}
+add_action('init', 'ext_profile_default_filters');
+
+
 /**
  * Activate plugin.
+ *
+ * @access private
  */
 function ext_profile_activate() {
 	ext_profile_migrate_widget_data();
 	ext_profile_migrate_profile_data();
 }
+register_activation_hook('extended-profile/extended-profile.php', 'ext_profile_activate');
 
 
 /**
  * Uninstall plugin.
+ *
+ * @access private
  */
 function ext_profile_uninstall() {
 	delete_option('widget_user_profile');
 }
+register_uninstall_hook('extended-profile/extended-profile.php', 'ext_profile_uninstall');
+
 
 
 /**
  * Include stylesheet for displaying profiles.
+ *
+ * @access private
  */
 function ext_profile_style() {
 	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
 }
+add_action('init', 'ext_profile_style');
 
 
 /**
  * Register WordPress admin hooks.
+ *
+ * @access private
  */
 function ext_profile_admin() {
 	add_action('profile_update', 'ext_profile_update');
@@ -114,15 +127,19 @@ function ext_profile_admin() {
 	add_action('admin_head-profile.php', 'ext_profile_style');
 	add_action('admin_head-user-edit.php', 'ext_profile_style');
 }
+add_action('admin_init', 'ext_profile_admin');
 
 
 /**
  * Load the javascript necessary for the WordPress profile page.
+ *
+ * @access private
  */
 function ext_profile_admin_js() {
 	add_thickbox();
-	wp_enqueue_script('ext-profile', plugins_url('extended-profile/preview.js'), array('thickbox'));
+	wp_enqueue_script('ext-profile', plugins_url('extended-profile/preview.js'), array('thickbox'), false, true);
 }
+
 
 /**
  * Handle the 'profile' shortcode.
@@ -132,10 +149,12 @@ function ext_profile_admin_js() {
  *                        include the name or ID of the user to print the 
  *                        profile for.
  * @return string microformatted profile
+ * @access private
  */
 function ext_profile_shortcode($attr, $content) {
 	return get_extended_profile($content);
 }
+add_shortcode('profile', 'ext_profile_shortcode');
 
 
 /**
@@ -143,32 +162,48 @@ function ext_profile_shortcode($attr, $content) {
  *
  * @param string $url URL to get hCard from
  * @return array array containing the hCard object (key: 'hcard') as well as the raw XML (key: 'xml')
+ * @access private
  */
 function ext_profile_hcard_from_url($url) {
-	global $hkit;
-	require_once dirname(__FILE__).'/hkit.class.php';
-	if(function_exists('tidy_clean_repair'))
+
+	if ( function_exists('tidy_clean_repair') ) {
 		$page = wp_remote_fopen($url);
-	else
-		$page = wp_remote_fopen('http://cgi.w3.org/cgi-bin/tidy?forceXML=on&docAddr='.urlencode($url));
-	if(function_exists('tidy_clean_repair'))
 		$page = tidy_clean_repair($page);
-	$page = str_replace('&nbsp;','&#160;',$page);
-	if(!$hkit) $hkit = new hKit;
-	@$hcard = $hkit->getByString('hcard', $page);
-	if(count($hcard['preferred'])) {
-		$phcard = $hcard['preferred'][0];
 	} else {
-		if($hcard['all']) {
-			foreach($hcard['all'] as $card) {
-				if($card['uid'] == $url) { $phcard = $card; break; }
-				if(!is_array($card['url']) && $card['url'] == $url) { $phcard = $card; break; }
-				if(is_array($card['url']) && in_array($url,$card['url'])) { $phcard = $card; break; }
-			}//end foreach all
-			if(!$phcard) $phcard = $hcard['all'][0];
-		}//end if hcard all
-	}//end if-else preferred
-	return array('hcard' => $phcard, 'xml' => $hcard['xml']);
+		$page = wp_remote_fopen('http://cgi.w3.org/cgi-bin/tidy?forceXML=on&docAddr='.urlencode($url));
+	}
+
+	$page = str_replace('&nbsp;','&#160;',$page);
+
+	// parse hCard
+	$hkit = extended_profile_hkit();
+	@$hcard = $hkit->getByString('hcard', $page);
+
+	if ( $hcard['preferred'] ) {
+		// use preferred card if available, as specified by hKit
+		$preferred_hcard = $hcard['preferred'][0];
+	} elseif ( $hcard['all'] ) {
+		foreach ( $hcard['all'] as $card ) {
+			if ( $card['uid'] == $url ) { 
+				$preferred_hcard = $card; 
+				break; 
+			}
+			if ( !is_array($card['url']) && $card['url'] == $url ) { 
+				$preferred_hcard = $card; 
+				break; 
+			}
+			if ( is_array($card['url']) && in_array($url,$card['url']) ) { 
+				$preferred_hcard = $card; 
+				break; 
+			}
+		}
+
+		if( !$preferred_hcard ) {
+			$preferred_hcard = $hcard['all'][0];
+		}
+	}
+
+	return array('hcard' => $preferred_hcard, 'xml' => $hcard['xml']);
 }
 
 
@@ -180,6 +215,7 @@ function ext_profile_hcard_from_url($url) {
  * @param bool $override should local attributes be overwritten with data from 
  *                       hCard.  If false, only empty fields in the local 
  *                       profile will be updated from the hCard.
+ * @access private
  */
 function ext_profile_hcard_import($userid, $override=false) {
 	$userdata = get_userdata($userid);
@@ -230,10 +266,13 @@ function ext_profile_hcard_import($userid, $override=false) {
 	foreach($phcard as $key => $val)
 		if($key && $val && ($override || !$userdata->$key)) update_usermeta($userid, $key, $val);
 }
+add_action('user_register', 'ext_profile_hcard_import');
 
 
 /**
  * Extend the WordPress profile page to include the additional fields.
+ *
+ * @access private
  */
 function ext_profile_fields() {
 	global $profileuser;
@@ -311,6 +350,8 @@ function ext_profile_fields() {
 
 /**
  * Include a link at the top of the WordPress profile page to import hCard data.
+ *
+ * @access private
  */
 function ext_profile_personal_options() {
 	echo '<p><input type="hidden" id="do_manual_hcard" name="do_manual_hcard" /><a href="#" id="hcard_link">Import hCard</a></p>';
@@ -322,6 +363,7 @@ function ext_profile_personal_options() {
  *
  * @param int $userid ID of user
  * @uses apply_filters() Calls 'pre_ext_profile_$name' before saving each profile attribute.
+ * @access private
  */
 function ext_profile_update($userid) {
 	if($_POST['do_manual_hcard']) {
@@ -407,6 +449,7 @@ function extended_profile_photo($userid) {
 		if ($photo) echo $photo . "\n";
 	}
 }
+add_action('extended_profile', 'extended_profile_photo', 0);
 
 
 /**
@@ -473,6 +516,7 @@ function extended_profile_name($userid) {
 
 	if ($name) echo $name . "\n";
 }
+add_action('extended_profile', 'extended_profile_name', 2);
 
 
 /**
@@ -491,6 +535,7 @@ function extended_profile_nickname($userid) {
 		if ($nickname) echo $nickname . "\n";
 	}
 }
+add_action('extended_profile', 'extended_profile_nickname', 4);
 
 
 /**
@@ -509,6 +554,7 @@ function extended_profile_org($userid) {
 		if ($org) echo $org . "\n";
 	}
 }
+add_action('extended_profile', 'extended_profile_org', 6);
 
 
 /**
@@ -527,6 +573,7 @@ function extended_profile_note($userid) {
 		if ($note) echo $note . "\n";
 	}
 }
+add_action('extended_profile', 'extended_profile_note', 8);
 
 
 /**
@@ -643,6 +690,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
 	$contact = apply_filters('extended_profile_contact', $contact, $userdata->ID);
 	if ($contact) echo $contact;
 }
+add_action('extended_profile', 'extended_profile_contact', 10, 2);
 
 
 /**
@@ -652,6 +700,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
  *
  * @param string $url URL to be cleaned up for display
  * @return string the cleaned up URL
+ * @access private
  */
 function ext_profile_display_url($url) {
 	$parts = parse_url($url);
@@ -669,11 +718,13 @@ function ext_profile_display_url($url) {
  * @param string $value current value for attribute
  * @param id $user_id ID of user to get attribute for
  * @return string new value for attribute
+ * @access private
  */
 function ext_profile_openid_sreg_country($value, $user_id) {
 	$country = get_usermeta($user_id, 'country_name');
 	return $country ? $country : $value;
 }
+add_filter('openid_server_sreg_country', 'ext_profile_openid_sreg_country', 10, 2);
 
 
 /**
@@ -682,15 +733,19 @@ function ext_profile_openid_sreg_country($value, $user_id) {
  * @param string $value current value for attribute
  * @param id $user_id ID of user to get attribute for
  * @return string new value for attribute
+ * @access private
  */
 function ext_profile_openid_sreg_postcode($value, $user_id) {
 	$postcode = get_usermeta($user_id, 'postal_code');
 	return $postcode ? $postcode : $value;
 }
+add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10, 2);
 
 
 /**
  * Migrate old widget data to new format.
+ *
+ * @access private
  */
 function ext_profile_migrate_widget_data() {
 	$migrate = false;
@@ -722,6 +777,8 @@ function ext_profile_migrate_widget_data() {
 
 /**
  * Migrate old user data for all users.
+ *
+ * @access private
  */
 function ext_profile_migrate_profile_data() {
 	$users = get_users_of_blog();
@@ -748,4 +805,3 @@ function ext_profile_migrate_profile_data() {
 		delete_usermeta($user->user_id, 'display_name');
 	}
 }
-?>
