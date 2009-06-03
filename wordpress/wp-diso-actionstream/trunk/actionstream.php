@@ -36,13 +36,15 @@ function actionstream_plugin_activation() {
 
 function actionstream_poll() {
 	global $wpdb;
-	$users = $wpdb->get_results("SELECT user_id, meta_value from $wpdb->usermeta WHERE meta_key='actionstream'");
+	$users = get_users_of_blog();
+
 	foreach($users as $user) {
-		$actionstream = unserialize($user->meta_value);
+		$actionstream = get_usermeta($user->ID, 'actionstream');
 		if (!is_array($actionstream) || empty($actionstream)) { continue; }
 		$actionstream = new ActionStream($actionstream, $user->user_id);
 		$actionstream->update();
-	}//end foreach streams
+	}
+
 }//end actionstream_poll
 
 function get_raw_actionstream($url) {
@@ -119,7 +121,12 @@ function actionstream_page() {
 	// Action Stream Preview
 	echo '<div class="highlight" style="float: right; width: 47.5%; color: #333; padding: 0 1em 1em; margin: 1em; border: 1px solid #dadada; ">';
 	echo '<h3>Stream Preview</h3>';
-	echo '<p><b>Next Update:</b> '.round((wp_next_scheduled('actionstream_poll') - time())/60,2).' minutes';
+
+	$next_poll = wp_next_scheduled('actionstream_poll') - time();
+	if ($next_poll > 0) {
+		echo '<p><b>Next Update:</b> ' . sprintf('%d minutes %02d seconds', floor($next_poll / 60), ($next_poll % 60));
+	}
+
 	echo ' <small>(<a href="'.wp_nonce_url('?page=wp-diso-actionstream&update=1', 'actionstream-update-now').'">Update Now</a>)</small></p>';
 	actionstream_render($user->ID, 10);
 	echo' </div>';
