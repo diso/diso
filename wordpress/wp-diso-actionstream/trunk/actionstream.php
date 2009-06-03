@@ -21,6 +21,9 @@ require_once dirname(__FILE__).'/widget.php';
 /* wordpress */
 global $actionstream_config;
 
+/**
+ * Activate the plugin.  This sets up the scheduled event and creates the database table.
+ */
 function actionstream_plugin_activation() {
 	global $actionstream_config;
 	wp_schedule_event(time(), 'hourly', 'actionstream_poll');
@@ -33,8 +36,12 @@ function actionstream_plugin_activation() {
 			);";
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 	dbDelta($sql);
-}//end actionstream_plugin_activation
+}
 
+
+/**
+ * Update activity stream for each user of the blog.
+ */
 function actionstream_poll() {
 	$users = get_users_of_blog();
 
@@ -45,19 +52,34 @@ function actionstream_poll() {
 		$actionstream->update();
 	}
 
-}//end actionstream_poll
+}
 
+
+/**
+ * Get raw content of specified URL.
+ *
+ * @param string $url URL to get content for
+ * @return string raw content for specified URL
+ */
 function get_raw_actionstream($url) {
 	return wp_remote_fopen($url);
-}//end function get_raw_actionstream
+}
 
+
+/**
+ * Load activity stream stylesheet.
+ */
 function actionstream_styles() {
 	$url = actionstream_plugin_url() . '/css/action-streams.css';
 	echo '<link rel="stylesheet" type="text/css" href="' . clean_url($url) . '" />';
-}//end function actionstream_styles
+}
 add_action('wp_head', 'actionstream_styles');
 add_action('admin_head', 'actionstream_styles');
 
+
+/**
+ * Get absolute URL for activity stream plugin.
+ */
 function actionstream_plugin_url() {
 	if (function_exists('plugins_url')) {
 		return plugins_url('wp-diso-actionstream');
@@ -66,6 +88,10 @@ function actionstream_plugin_url() {
 	}
 }
 
+
+/**
+ * Activity stream admin page.
+ */
 function actionstream_page() {
 	$actionstream_yaml = get_actionstream_config();
 	$user = wp_get_current_user();
@@ -203,6 +229,10 @@ function actionstream_page() {
 
 }//end function actionstream_page
 
+
+/**
+ * Add "manage" link to activity stream on WordPress plugins page.
+ */
 function actionstream_plugin_actions($links, $file) {
 	static $this_plugin;
 	if(!$this_plugin) $this_plugin = plugin_basename(__FILE__);
@@ -211,15 +241,23 @@ function actionstream_plugin_actions($links, $file) {
 		$links[] = $settings_link;
 	}//end if this_plugin
 	return $links;
-}//end actionstream_plugin_actions
+}
 
+
+/**
+ * Add activity stream admin pages.
+ */
 function actionstream_tab($s) {
 	add_submenu_page('profile.php', 'Action Stream', 'Action Stream', 'read', 'wp-diso-actionstream', 'actionstream_page');
 	add_filter('plugin_action_links', 'actionstream_plugin_actions', 10, 2);
 	return $s;
-}//end function actionstream_tab
+}
 add_action('admin_menu', 'actionstream_tab');
 
+
+/**
+ * After publishing a new WordPress post, add a new activity stream entry.
+ */
 function actionstream_wordpress_post($post_id) {
 	$post = get_post($post_id);
 	$item = array();
@@ -234,9 +272,19 @@ function actionstream_wordpress_post($post_id) {
 	$item['ident'] = $item['ident']->display_name;
 	$obj = new ActionStreamItem($item, 'website', 'posted', $post->post_author);
 	$obj->save();
-}//end function actionstream_wordpress_post
+}
 add_action('publish_post', 'actionstream_wordpress_post');
 
+
+/**
+ * Render the activity stream for the specified user.
+ *
+ * @param int|string $userid ID or user_login of user to display activity stream for
+ * @param int $num maximum number of activities to display
+ * @param boolean $hide_user
+ * @param boolean $echo whether to echo the rendered activity stream
+ * @return string the rendered activity stream
+ */
 function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=true) {
    if(!$userid) {//get administrator
       global $wpdb;
@@ -250,8 +298,15 @@ function actionstream_render($userid=false, $num=10, $hide_user=false, $echo=tru
 	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
 	if($echo) echo $rtrn;
 	return $rtrn;
-}//end function actionstream_render
+}
 
+
+/**
+ * Render a list of the activity stream services for the specified user.
+ *
+ * @param int|string $userid ID or user_login of user to display activity stream for
+ * @param boolean $urls_only
+ */
 function actionstream_services($userid=false, $urls_only=false) {
    if(!$userid) {//get administrator
       global $wpdb;
@@ -286,6 +341,14 @@ function actionstream_services($userid=false, $urls_only=false) {
    return $rtrn;
 }
 
+
+/**
+ * Parse the activity stream tokens from the page content and replace it with the rendered content.  
+ * The following two tokens will be parsed:
+ *
+ *     <!--actionstream(username)-->
+ *     <!--actionstream_services(username)-->
+ */
 function diso_actionstream_parse_page_token($content) {
 	if(preg_match('/<!--actionstream(\((.*)\))?-->/',$content,$matches)) {
 		$user = $matches[2];
@@ -298,19 +361,22 @@ function diso_actionstream_parse_page_token($content) {
 	}//end if match
 
 	return $content;
-}//end function diso_profile_parse_page_token
+}
 add_filter('the_content', 'diso_actionstream_parse_page_token');
 
 
-
+/**
+ * Render the activity stream feed.
+ */
 function do_feed_action_stream() {
 	global $wpdb;
 	require_once(dirname(__FILE__) . '/feed.php');
 }
 add_action('init', create_function('', 'global $wp_rewrite; add_feed("action_stream", "do_feed_action_stream"); $wp_rewrite->flush_rules();'));
 
+
 /**
- * Add ActionStream fields to DiSo Permissions plugin.
+ * Add activity stream fields to DiSo Permissions plugin.
  */
 function diso_actionstream_permissions($permissions) {
 
