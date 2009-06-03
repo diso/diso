@@ -20,7 +20,6 @@ function widget_actionstreamwidget_init() {
 	}
 	
 	function widget_actionstreamwidget_control() {
-		global $wpdb;
 		$options = get_option('widget_actionstreamwidget');
 		if ( !is_array($options) )
 			$options = array('title'=>'ActionStream', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
@@ -38,7 +37,7 @@ function widget_actionstreamwidget_init() {
 
 		echo '<p style="text-align:right;"><label for="actionstreamwidget-userid">User:</label><br /> ';
 		echo '	<select style="width: 200px;" id="actionstreamwidget-userid" name="actionstreamwidget-userid">';
-		$users = $wpdb->get_results("SELECT display_name,ID FROM $wpdb->users ORDER BY user_registered,ID");
+		$users = get_users_of_blog();
 		foreach($users as $user)
 			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
 		echo '	</select>';
@@ -77,7 +76,6 @@ function widget_actionstream_services_widget_init() {
 	}
 	
 	function widget_actionstream_services_widget_control() {
-		global $wpdb;
 		$options = get_option('widget_actionstream_services_widget');
 		if ( !is_array($options) )
 			$options = array('title'=>'ActionStream Services', 'userid'=>false, 'num'=>10, 'hide_user'=>false);
@@ -95,7 +93,7 @@ function widget_actionstream_services_widget_init() {
 
 		echo '<p style="text-align:right;"><label for="actionstream_services_widget-userid">User:</label><br /> ';
 		echo '	<select style="width: 200px;" id="actionstream_services_widget-userid" name="actionstream_services_widget-userid">';
-		$users = $wpdb->get_results("SELECT display_name,ID FROM $wpdb->users ORDER BY user_registered,ID");
+		$users = get_users_of_blog();
 		foreach($users as $user)
 			echo '		<option value="'.$user->ID.'"'.($options['userid'] == $user->ID ? ' selected="selected"' : '').'>'.htmlspecialchars($user->display_name).'</option>';
 		echo '	</select>';
