@@ -1,9 +1,44 @@
 <?php
 
+/**
+ * Activity Stream item.
+ */
 class ActionStreamItem {
 
-	protected $data, $service, $setup_idx, $config, $user_id;
+	/**
+	 * @var array
+	 */
+	protected $data; 
+	
+	/**
+	 * @var string
+	 */
+	protected $service;
 
+	/**
+	 * @var string
+	 */
+	protected $setup_idx;
+
+	/**
+	 * @var array
+	 */
+	protected $config;
+
+	/**
+	 * @var int
+	 */
+	protected $user_id;
+
+
+	/**
+	 * Constructor.
+	 *
+	 * @param array $data
+	 * @param string $service
+	 * @param string $setup_idx
+	 * @param int $user_id
+	 */
 	function __construct($data, $service, $setup_idx, $user_id=0) {
 		$this->config = get_actionstream_config();
 		$this->service = $service;
@@ -25,6 +60,13 @@ class ActionStreamItem {
 		}//end if-else data
 	}//end constructor
 
+
+	/**
+	 * Record the specified item as a duplicate.
+	 *
+	 * @param string $service
+	 * @param ActionStreamItem $item item to record as a duplicate
+	 */
 	function add_dupe($service, $item) {
 		$dupes = $this->get('dupes');
 		if(!$dupes || !is_array($dupes)) $dupes = array();
@@ -32,18 +74,44 @@ class ActionStreamItem {
 		$this->set('dupes', $dupes);
 	}
 
+
+	/**
+	 * Set a data value.
+	 *
+	 * @param string $k key of data
+	 * @param mixed $v value of data
+	 */
 	function set($k, $v) {
 		$this->data[$k] = $v;
 	}//end function set
 
+
+	/**
+	 * Get a data value.
+	 *
+	 * @param string $k key of data to get 
+	 * @return mixed data value
+	 */
 	function get($k) {
 		return $this->data[$k];
 	}//end function get
 
+
+	/**
+	 * Get an array representation of this item.
+	 *
+	 * @return array
+	 */
 	function to_array() {
 		return $data;
 	}
 
+
+	/**
+	 * Get identifier for this item
+	 *
+	 * @return string
+	 */
 	function identifier() {
       $identifier_field = $this->config['action_streams'][$this->service][$this->setup_idx]['identifier'];
       if(!$identifier_field) $identifier_field = 'identifier';
@@ -51,6 +119,14 @@ class ActionStreamItem {
       return $this->data[$identifier_field];
 	}//end function identifier
 
+
+	/**
+	 * Determine if strings are similar enough to be considered duplicates
+	 *
+	 * @param string $a first string to compare
+	 * @param string $b second string to compare
+	 * @return boolean true if strings are similar
+	 */
 	function similar_enough($a, $b) {
 		$a = substr(strip_tags($a), 0, 255);
 		$b = substr(strip_tags($b), 0, 255);
@@ -58,6 +134,13 @@ class ActionStreamItem {
 		return levenshtein($a, $b) <= $avg_length / 4;
 	}
 
+
+	/**
+	 * Determine if specified item is duplicate
+	 *
+	 * @param ActionStreamItem $b item to compare
+	 * @return boolean true if specified item is a duplicate
+	 */
 	function is_dupe_of($b) {
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
 		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
@@ -70,24 +153,58 @@ class ActionStreamItem {
 		return false;
 	}
 
+
+	/**
+	 * Save this ActionStreamItem to the database.
+	 */
 	function save() {
 		global $actionstream_config;
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
 		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
 		$data = $actionstream_config['db']->escape(serialize($this->data));
 		$identifier_hash = sha1($this->identifier());
-		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} (identifier_hash, user_id, created_on, service, setup_idx, data) VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') ON DUPLICATE KEY UPDATE data='$data'");
+		$actionstream_config['db']->query("INSERT INTO {$actionstream_config['item_table']} 
+			(identifier_hash, user_id, created_on, service, setup_idx, data) 
+			VALUES ('$identifier_hash', $this->user_id, $created_on, '$this->service', '$this->setup_idx', '$data') 
+			ON DUPLICATE KEY UPDATE data='$data'");
 	}//end function save
 
+
+	/**
+	 * Get string representation of this item.
+	 *
+	 * @param boolean $hide_user
+	 * @return string
+	 */
 	function __toString($hide_user=false) {
-		return ActionStreamItem::interpolate($this->data, $this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], $this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], $this->config['profile_services'][$this->service], $hide_user).' <abbr class="published" title="'.date('c',$this->data['created_on']).'">@ '.date('Y-m-d H:i',$this->data['created_on']).'</abbr>';
+		return ActionStreamItem::interpolate(
+				$this->data, 
+				$this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], 
+				$this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], 
+				$this->config['profile_services'][$this->service], $hide_user
+			) 
+			. ' <abbr class="published" title="' . date('c',$this->data['created_on']) . '">@ '
+			. date('Y-m-d H:i',$this->data['created_on']) . '</abbr>';
 	}//end function toString
 
+
+	/**
+	 * Interpolate
+	 *
+	 * @param $data
+	 * @param $fields
+	 * @param $template
+	 * @param $service
+	 * @param $hide_user
+	 */
 	protected static function interpolate($data, $fields, $template, $service, $hide_user) {
 		if (!is_array($fields)) return;
 		array_unshift($fields, 'ident');
 		if($data['ident'] && $service) {
-			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '').'><a class="url fn nickname" href="'.htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'.htmlspecialchars($data['ident']).'</a></span>';
+			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '')
+				. '><a class="url fn nickname" href="' 
+				. htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'
+				. htmlspecialchars($data['ident']).'</a></span>';
 		}//end if ident
 		foreach($fields as $i => $k) {
 			if($data[$k] == html_entity_decode(strip_tags($data[$k]))) $data[$k] = htmlspecialchars($data[$k]);
@@ -98,16 +215,43 @@ class ActionStreamItem {
 
 }//end class ActionStreamItem
 
+
+/**
+ * ActionStream class
+ */
 class ActionStream {
 
-	protected $config, $ident, $user_id;
+	/**
+	 * @var array
+	 */
+	protected $config;
 
+	/**
+	 * @var string
+	 */
+	protected $ident;
+
+	/**
+	 * @var int
+	 */
+	protected $user_id;
+
+	/**
+	 * Constructor
+	 *
+	 * @param string $ident
+	 * @param int $user_id
+	 */
 	function __construct($ident, $user_id=0) {
 		$this->config = get_actionstream_config();
 		$this->ident = $ident;
 		$this->user_id = $user_id;
 	}//end constructor
 
+
+	/**
+	 * Update this ActionStream
+	 */
 	function update() {
 		$saved = array();
 		foreach($this->ident as $service => $id) {
@@ -229,12 +373,29 @@ class ActionStream {
 		}//end foreach ident
 	}//end function update
 
+
+	/**
+	 * Get items.
+	 *
+	 * @param int $num number of items to get
+	 */
 	function items($num=10) {
 		global $actionstream_config;
-		$items = $actionstream_config['db']->get_results("SELECT created_on,service,setup_idx,data,user_id FROM {$actionstream_config['item_table']} ".($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')."ORDER BY created_on DESC", ARRAY_A);
+		$items = $actionstream_config['db']->get_results("SELECT created_on,service,setup_idx,data,user_id 
+			FROM {$actionstream_config['item_table']} ".($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
+			. "ORDER BY created_on DESC", ARRAY_A);
 		return $items;
 	}//end function items
 
+
+	/**
+	 * Get string representation of this activity stream.
+	 *
+	 * @param int $num
+	 * @param boolean $hide_user
+	 * @param array $permissions
+	 * @param boolean $collapse
+	 */
 	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
 		$items = $this->items($num);
 		if(!$items || !count($items)) {
@@ -322,6 +483,13 @@ class ActionStream {
 		return $rtrn;
 	}//end function toString
 
+
+	/**
+	 * TODO
+	 *
+	 * @param string $url
+	 * @param array $urls
+	 */
 	static function from_urls($url, $urls) {
 		$actionstream_yaml = get_actionstream_config();
 		$urls[] = $url;
