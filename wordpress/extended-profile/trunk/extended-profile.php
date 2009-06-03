@@ -743,39 +743,6 @@ add_filter('openid_server_sreg_postcode', 'ext_profile_openid_sreg_postcode', 10
 
 
 /**
- * Migrate old widget data to new format.
- *
- * @access private
- */
-function ext_profile_migrate_widget_data() {
-	$migrate = false;
-	$sidebars = get_option('sidebars_widgets');
-
-	foreach ($sidebars as $name => $widgets) {
-		for($i=0; $i<sizeof($widgets); $i++) {
-			if ($widgets[$i] == 'diso-profile') {
-				$sidebars[$name][$i] = 'user-profile';
-				$migrate = true;
-			}
-		}
-	}
-
-	if ($migrate) {
-		update_option('sidebars_widgets', $sidebars);
-
-		$options = get_option('widget_diso_profile');
-		delete_option('widget_diso_profile');
-
-		if ($options) {
-			$options['user'] = $options['userid'];
-			unset($options['userid']);
-			update_option('widget_user_profile', $options);
-		}
-	}
-}
-
-
-/**
  * Migrate old user data for all users.
  *
  * @access private
