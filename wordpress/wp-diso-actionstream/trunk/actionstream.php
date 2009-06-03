@@ -91,63 +91,63 @@ function actionstream_page() {
 		update_usermeta($user->ID, 'actionstream', $actionstream);
 		update_usermeta($user->ID, 'actionstream_local_updates', true);
 		update_usermeta($user->ID, 'actionstream_collapse_similar', true);
-	}//end if ! actionstream
+	}
 
-	if ($_POST['submit']) {
+	if ( $_POST['submit'] ) {
 		check_admin_referer('actionstream-update-services');
 		update_usermeta($user->ID, 'actionstream_local_updates', isset($_POST['enable_local_updates']) ? true : false);
 		update_usermeta($user->ID, 'actionstream_collapse_similar', isset($_POST['enable_collapse_similar']) ? true : false);
 
 
-		if($_POST['ident']) {
+		if ( $_POST['ident'] ) {
 			$actionstream[$_POST['service']] = $_POST['ident'];
 			update_usermeta($user->ID, 'actionstream', $actionstream);
 			actionstream_poll();
-		}//end if ident
+		}
 
-		if($_POST['sgapi_import']) {
+		if ( $_POST['sgapi_import'] ) {
 			require_once dirname(__FILE__).'/lib/sgapi.php';
 			$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
 			$xfn = $sga->get($_POST['sgapi_import']);
 			$actionstream = array_merge($actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
 			unset($actionstream['website']);
 			update_usermeta($user->ID, 'actionstream', $actionstream);
-		}//end if sgapi_import
+		}
 
 	}
 	get_currentuserinfo();
 
-	if(isset($_REQUEST['update'])) {
+	if ( isset($_REQUEST['update']) ) {
 		check_admin_referer('actionstream-update-now');
 		actionstream_poll();
 	}
 
-	if(isset($_REQUEST['remove'])) {
+	if ( isset($_REQUEST['remove']) ) {
 		check_admin_referer('actionstream-remove-' . $_REQUEST['remove']);
 		unset($actionstream[$_REQUEST['remove']]);
 		update_usermeta($user->ID, 'actionstream', $actionstream);
 	}
 
-	echo '<div class="wrap" style="max-width: 99%;">';
+	$next_poll = absint( wp_next_scheduled('actionstream_poll') - time() );
+?>
+	<div class="wrap" style="max-width: 99%;">
 
-	echo '	<h2>Action Stream</h2>';
+	<h2>Action Stream</h2>
 
-	// Action Stream Preview
-	echo '<div class="highlight" style="float: right; width: 47.5%; color: #333; padding: 0 1em 1em; margin: 1em; border: 1px solid #dadada; ">';
-	echo '<h3>Stream Preview</h3>';
+	<div class="highlight" style="float: right; width: 47.5%; color: #333; padding: 0 1em 1em; margin: 1em; border: 1px solid #dadada; ">
+		<h3>Stream Preview</h3>
+		<p>
+			<b>Next Update:</b> <?php printf('%d minutes %02d seconds', floor($next_poll / 60), ($next_poll % 60)); ?>
+			<small>(<a href="<?php echo wp_nonce_url('?page=wp-diso-actionstream&update=1', 'actionstream-update-now') ?>">Update Now</a>)</small></p>
+		</p>
 
-	$next_poll = wp_next_scheduled('actionstream_poll') - time();
-	if ($next_poll > 0) {
-		echo '<p><b>Next Update:</b> ' . sprintf('%d minutes %02d seconds', floor($next_poll / 60), ($next_poll % 60));
-	}
-
-	echo ' <small>(<a href="'.wp_nonce_url('?page=wp-diso-actionstream&update=1', 'actionstream-update-now').'">Update Now</a>)</small></p>';
-	actionstream_render($user->ID, 10);
-	echo' </div>';
+		<?php actionstream_render($user->ID, 10); ?>
+	</div>
 
 
-	echo '<div style="width: 47.5%">';
-	echo '	<ul style="padding:0px;">';
+	<div style="width: 47.5%">
+		<ul style="padding:0px;">
+<?php
 	ksort($actionstream);
 	foreach($actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
@@ -161,60 +161,73 @@ function actionstream_page() {
 				echo ' <small><em>(configuration missing)</em></small>';
 			}
 			echo '</li>';
-	}//end foreach actionstream
-	echo '	</ul>';
-
-	
-	echo '<br />';
-	echo '<h3>Update Services</h3>';
-	echo '<form method="post" action="?page='.$_REQUEST['page'].'">';
-	wp_nonce_field('actionstream-update-services');
-	echo '<p><input type="checkbox" id="enable_local_updates" name="enable_local_updates" '.(get_usermeta($user->ID, 'actionstream_local_updates') ? 'checked="checked"' : '').'" /> <label for="enable_local_updates">Show Local Updates</a></label> </p>';
-	echo '<p><input type="checkbox" id="enable_collapse_similar" name="enable_collapse_similar" '.(get_usermeta($user->ID, 'actionstream_collapse_similar') ? 'checked="checked"' : '').'" /> <label for="enable_collapse_similar">Collapse Similar Items</a></label> </p>';
-	echo '<h4>Add/Update Service</h4>';
-	echo '<div style="margin-left: 2em;">';
-	echo '<select id="add-service" name="service" onchange="update_ident_form();">';
-	ksort($actionstream_yaml['action_streams']);
-	foreach($actionstream_yaml['action_streams'] as $service => $setup) {
-		if($setup['scraper']) continue;//FIXME: we don't support scraper yet
-		$setup = $actionstream_yaml['profile_services'][$service];
-		echo '<option class="service-icon service-'.htmlspecialchars($service).'" value="'.htmlspecialchars($service).'" title="'.htmlspecialchars($setup['url']).'|'.htmlspecialchars($setup['ident_example']).'|'.htmlspecialchars($setup['ident_label']).'">';
-		echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service));
-		echo '</option>';
-	}//end foreach
-	echo '</select> <br />';
-	echo ' <span id="add-ident-pre"></span> ';
-	echo '<input type="text" id="add-ident" name="ident" /> ';
-	echo ' <span id="add-ident-post"></span> <br />';
-	echo '</div>';
-
-?>
-<script type="text/javascript">
-	function update_ident_form() {
-		var option = document.getElementById('add-service').options[document.getElementById('add-service').selectedIndex];
-		var data = option.title.split(/\|/);
-		document.getElementById('add-ident-pre').innerHTML = data[0].split(/%s/)[0] ? data[0].split(/%s/)[0] : '';
-		document.getElementById('add-ident-post').innerHTML = data[0].split(/%s/)[1] ? data[0].split(/%s/)[1] : '';
-		if(data[1]) document.getElementById('add-ident-pre').title = 'Example: ' + data[0].replace(/%s/, data[1]);
-			else document.getElementById('add-ident-pre').title = '';
-		document.getElementById('add-ident').title = document.getElementById('add-ident-pre').title;
-		document.getElementById('add-ident').value = data[2];
 	}
-	update_ident_form();
-</script>
+?>
+		</ul>
+		<br />
+
+		<h3>Update Services</h3>
+		<form method="post" action="?page=<?php echo $_REQUEST['page'] ?>">
+			<?php wp_nonce_field('actionstream-update-services'); ?>
+
+			<p>
+				<input type="checkbox" id="enable_local_updates" name="enable_local_updates"<?php checked( get_usermeta($user->ID, 'actionstream_local_updates'), true ) ?>/>
+				<label for="enable_local_updates">Show Local Updates</label> 
+			</p>
+
+			<p>
+				<input type="checkbox" id="enable_collapse_similar" name="enable_collapse_similar"<?php checked( get_usermeta($user->ID, 'actionstream_collapse_similar'), true ) ?>/>
+				<label for="enable_collapse_similar">Collapse Similar Items</a></label>
+			</p>
+
+			<h4>Add/Update Service</h4>
+			<div style="margin-left: 2em;">
+				<select id="add-service" name="service" onchange="update_ident_form();">
+					<?php
+						ksort($actionstream_yaml['action_streams']);
+						foreach($actionstream_yaml['action_streams'] as $service => $setup) {
+							if($setup['scraper']) continue;//FIXME: we don't support scraper yet
+							$setup = $actionstream_yaml['profile_services'][$service];
+							echo '<option class="service-icon service-'.htmlspecialchars($service).'" value="'.htmlspecialchars($service).'" title="'.htmlspecialchars($setup['url']).'|'.htmlspecialchars($setup['ident_example']).'|'.htmlspecialchars($setup['ident_label']).'">';
+							echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service));
+							echo '</option>';
+						}
+					?>
+				</select> <br />
+				<label for="add-ident">
+					<span id="add-ident-pre"></span>
+					<input type="text" id="add-ident" name="ident" />
+					<span id="add-ident-post"></span>
+				</label>
+			</div>
+
+			<script type="text/javascript">
+				function update_ident_form() {
+					var option = document.getElementById('add-service').options[document.getElementById('add-service').selectedIndex];
+					var data = option.title.split(/\|/);
+					document.getElementById('add-ident-pre').innerHTML = data[0].split(/%s/)[0] ? data[0].split(/%s/)[0] : '';
+					document.getElementById('add-ident-post').innerHTML = data[0].split(/%s/)[1] ? data[0].split(/%s/)[1] : '';
+					if(data[1]) document.getElementById('add-ident-pre').title = 'Example: ' + data[0].replace(/%s/, data[1]);
+						else document.getElementById('add-ident-pre').title = '';
+					document.getElementById('add-ident').title = document.getElementById('add-ident-pre').title;
+					document.getElementById('add-ident').value = data[2];
+				}
+				update_ident_form();
+			</script>
+
+			<h4>Import List from Another Service</h4>
+			<div style="margin-left: 2em;">
+				<p>Any supported urls with <code>rel="me"</code> will be imported</p>
+				<input type="text" name="sgapi_import" />
+			</div>
+			<p class="submit">
+				<input class="button-primary" type="submit" name="submit" value="Save Changes" />
+			</p>
+		</form>
+
+	</div>
+	</div>
 <?php
-
-	echo '<h4>Import List from Another Service</h4>';
-	echo '<div style="margin-left: 2em;">';
-	echo '<p>Any supported urls with <code>rel="me"</code> will be imported</p>';
-	echo '<input type="text" name="sgapi_import" />';
-	echo '</div>';
-	echo '<p class="submit"><input type="submit" name="submit" value="Save Changes" /></p>';
-	echo '</form>';
-
-	echo '</div>';
-	echo '</div>';
-
 }//end function actionstream_page
 
 
