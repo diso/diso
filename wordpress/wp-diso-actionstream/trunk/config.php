@@ -4,7 +4,7 @@ global $wpdb;
 
 function get_actionstream_config() {
 	if(!class_exists('Spcy'))
-		require_once dirname(__FILE__).'/spyc.php5';
+		require_once dirname(__FILE__).'/lib/spyc.php';
 	static $yaml;
 	if(!$yaml) {
 		$yaml = Spyc::YAMLLoad(dirname(__FILE__).'/config.yaml');//file straight from MT plugin - yay sharing!
