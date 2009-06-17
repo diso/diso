@@ -269,7 +269,7 @@ function actionstream_wordpress_post($post_id) {
 	if(!$item['description']) $item['description'] = substr(html_entity_decode(strip_tags($post->post_content)),0,200);
 	$item['created_on'] = strtotime($post->post_date_gmt.'Z');
 	$item['ident'] = get_userdata($post->post_author);
-	if($item['ident']->actionstream_local_updates) return;
+	if(!$item['ident']->actionstream_local_updates) return;
 	$item['ident'] = $item['ident']->display_name;
 	$obj = new ActionStreamItem($item, 'website', 'posted', $post->post_author);
 	$obj->save();
