@@ -317,9 +317,9 @@ function actionstream_services($user_id, $urls_only=false) {
 	   $url = sprintf($setup['url'], $username);
 		if(!$urls_only) {
 			if($userdata->urls && count($userdata->urls) && in_array($url, $userdata->urls))
-			   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n");
+			   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n");
 			else
-			   $rtrn[] = '<li class="service-icon service-'.$service.'"><a href="'.$url.'" rel="me">'.$setup['name'].'</a></li>' . "\n";
+			   $rtrn[] = '<li class="service-icon service-'.$service.'"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n";
 		} else {
 			$rtrn[] = $url;
 		}
