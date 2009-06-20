@@ -390,14 +390,13 @@ function ext_profile_update($userid) {
  *
  * @param mixed $userid username or ID of user to get profile for.  If not 
  *                      specified, the queried author will be used.
- * @param bool $echo should profile be echo()'ed
  * @param bool $actionstream_aware should profile exclude actionstream URLs
  * @return string microformatted profile
  * @uses do_action() Calls 'extended_profile' to build the user profile
  * @uses apply_filters() Calls 'post_extended_profile' after building the entire profile, but before returning it.
  * @access private
  */
-function get_extended_profile($userid, $actionstream_aware=false) {
+function get_extended_profile($userid, $before='<div class="vcard hcard-profile">', $after='</div>', $actionstream_aware=false) {
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
 	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
@@ -424,7 +423,7 @@ function get_extended_profile($userid, $actionstream_aware=false) {
 	$profile = ob_get_contents();
 	ob_end_clean();
 
-	$profile = '<div class="vcard hcard-profile">' . $profile . '</div>';
+	$profile = $before . $profile . $after;
 	$profile = apply_filters('post_extended_profile', $profile, $userdata->ID);
 
 	if (defined('WP_DEBUG') && WP_DEBUG) error_log('extended-profile build time = ' . (microtime(true) - $time) . ' seconds');
