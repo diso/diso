@@ -19,13 +19,13 @@ require_once dirname(__FILE__).'/avatar.php';
  * @param mixed $userid username or ID of user to get profile for.  If not 
  *                      specified, queried author will be used.
  * @param bool $echo if true, the profile will be echo()'ed out
- * @param bool $actionstream_aware should the profile exclude actionstream service URLs
+ * @param bool $activity_stream should the profile exclude actionstream service URLs
  * @return string microformatted profile
  * @access public
  * @since 0.6
  */
-function extended_profile($userid=null, $echo=true, $actionstream_aware=false) {
-	$profile = get_extended_profile($userid, $actionstream_aware);
+function extended_profile($userid=null, $echo=true, $activity_stream=false) {
+	$profile = get_extended_profile( $userid, array('activity_stream' => $activity_stream) );
 	if ($echo) echo $profile;
 	return $profile;
 }
@@ -388,15 +388,27 @@ function ext_profile_update($userid) {
 /**
  * Get the microformatted profile for the specified user.
  *
- * @param mixed $userid username or ID of user to get profile for.  If not 
- *                      specified, the queried author will be used.
- * @param bool $actionstream_aware should profile exclude actionstream URLs
+ * @param mixed $userid username or ID of user to get profile for.  If not specified, the queried author will be used.
+ * @param string|array $args arguments to overwrite the defaults.  List of arguments:
+ * 		before - (string) markup printed before the generated profile (default: '<div class="vcard hcard-profile">')
+ * 		after - (string) markup printed after the generated profile (default: '</div>')
+ * 		activity_stream - (boolean) Whether activity stream services should be included in the generated profile (default: false)
+ *
  * @return string microformatted profile
+ *
  * @uses do_action() Calls 'extended_profile' to build the user profile
  * @uses apply_filters() Calls 'post_extended_profile' after building the entire profile, but before returning it.
  * @access private
  */
-function get_extended_profile($userid, $before='<div class="vcard hcard-profile">', $after='</div>', $actionstream_aware=false) {
+function get_extended_profile( $userid, $args ) {
+
+	$defaults = array(
+		'before' => '<div class="vcard hcard-profile">',
+		'after' => '</div>',
+		'activity_stream' => false
+	);
+
+	extract( wp_parse_args( $args, $defaults ), EXTR_SKIP );
 
 	// ensure plugin doesn't break in the absence of the permissions plugin
 	if (!function_exists('diso_user_is')) { function diso_user_is() { return true; } }
@@ -419,7 +431,7 @@ function get_extended_profile($userid, $before='<div class="vcard hcard-profile"
 
 	// Build profile
 	ob_start();
-	do_action('extended_profile', $userdata->ID, $actionstream_aware);
+	do_action('extended_profile', $userdata->ID, $activity_stream);
 	$profile = ob_get_contents();
 	ob_end_clean();
 
