@@ -227,6 +227,8 @@ function xrds_url() {
 	global $wp_rewrite;
 
 	$url = trailingslashit(get_option('home'));
+	if($_SERVER['HTTPS'])
+		$url = preg_replace('/^http:/', 'https:', $url);
 
 	if ($wp_rewrite->using_permalinks()) {
 		if ($wp_rewrite->using_index_permalinks()) {
