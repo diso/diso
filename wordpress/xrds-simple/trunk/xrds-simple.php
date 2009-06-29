@@ -72,7 +72,15 @@ function xrds_add_service(&$xrds, $xrd_id, &$service) {
  * @since 1.1
  */
 function xrds_add_simple_service(&$xrds, $name, $type, $uri) {
-	$service = new XRDS_Service($type, null, new XRDS_URI($uri));
+	if(is_array($uri)) {
+		$uris = array();
+		foreach($uri as $u) {
+			$uris[] = new XRDS_URI($u);
+		}
+		$service = new XRDS_Service($type, null, $uris);
+	} else {
+		$service = new XRDS_Service($type, null, new XRDS_URI($uri));
+	}
 	xrds_add_service($xrds, 'main', $service);
 }
 
