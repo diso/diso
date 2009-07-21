@@ -27,7 +27,7 @@ global $actionstream_config;
 function actionstream_plugin_activation() {
 	global $actionstream_config;
 	wp_schedule_event(time(), 'hourly', 'actionstream_poll');
-	$sql = "CREATE TABLE {$actionstream_config['item_table']} (
+	$sql = "CREATE TABLE ".activity_stream_items_table()." (
 				identifier_hash CHAR(40)  PRIMARY KEY,
 				user_id INT, created_on INT,
 				service CHAR(15),
