@@ -17,7 +17,7 @@ class Activity_Stream_Widget extends WP_Widget {
 		if ( $title )
 			echo $before_title . $title . $after_title;
 
-		echo actionstream_render($instance['user_id'], $instance['num'], $instance['hide_user']);
+		actionstream_render($instance['user_id'], $instance['num'], $instance['hide_user']);
 
 		echo $after_widget;
 	}
