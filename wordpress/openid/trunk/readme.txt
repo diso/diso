@@ -93,11 +93,9 @@ report at <http://code.google.com/p/diso/issues/list>.
 
 1. Commentors can use their OpenID when leaving a comment
 2. Users can login with their OpenID in place of a traditional username and password
-3. OpenID Consumer Options
-4. OpenID Provider Options
-5. Users authorized to use the OpenID Provider can delegate to a different provider
-6. Users can add additional OpenIDs which they can use to login to WordPress
-7. Users authorized to use the OpenID Provider can monitor which sites they've logged in to
+3. Users authorized to use the OpenID Provider can delegate to a different provider
+4. Users can add additional OpenIDs which they can use to login to WordPress
+5. Users authorized to use the OpenID Provider can monitor which sites they've logged in to
 
 
 == Changelog ==
