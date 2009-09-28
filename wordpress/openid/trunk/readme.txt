@@ -100,7 +100,7 @@ report at <http://code.google.com/p/diso/issues/list>.
 
 == Changelog ==
 
-= version 3.3 (TBD) =
+= version 3.3 (Sep 28, 2009) =
  - minimum required version has been bumped to WordPress 2.8
  - fix support for WordPress MU
  - new, less obtrusive UI for comment form.  Should also work with all themes in some form (with or without js).
@@ -110,6 +110,7 @@ report at <http://code.google.com/p/diso/issues/list>.
  - always include 'index.php' on OpenID endpoint URLs.  Without that, some deployments were having problems.
  - fix bug relating to trackbacks and pingbacks
  - fix bug (#121) relating to unregistered options (props: tom.tdw for the patch)
+ - lots of minor bug fixes
 
 = version 3.2.3 (Jul 20, 2009) =
  - fix XSS vulnerability. (props: Stuart Metcalfe)
