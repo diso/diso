@@ -182,7 +182,7 @@ class ActionStreamItem {
 	 * @param boolean $hide_user
 	 * @return string
 	 */
-	function __toString($hide_user=false) {
+	function toString($hide_user=false) {
 		$string = ActionStreamItem::interpolate(
 				$this->data, 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], 
@@ -413,7 +413,7 @@ class ActionStream {
 	 * @param array $permissions
 	 * @param boolean $collapse
 	 */
-	function __toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
+	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
 		$items = $this->items($num);
 		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
@@ -463,7 +463,7 @@ class ActionStream {
 					$as_item = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
 
 					$rtrn .= '<li id="as-'.htmlspecialchars(sha1($as_item->identifier())).'" class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
-					$rtrn .= "\n\t".$as_item->__toString($hide_user);
+					$rtrn .= "\n\t".$as_item->toString($hide_user);
 
 					// javascript magic to toggle collapsable items
 					if (sizeof($items) > 1 && $collapse) {
