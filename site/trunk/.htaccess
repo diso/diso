@@ -1,4 +1,21 @@
 
+<IfModule mod_expires.c>
+	ExpiresActive On
+
+	ExpiresByType text/css "access plus 32 days"
+
+	ExpiresByType text/javascript "access plus 32 days"
+	ExpiresByType application/javascript "access plus 32 days"
+	ExpiresByType application/x-javascript "access plus 32 days"
+
+	ExpiresByType image/png "access plus 32 days"
+	ExpiresByType image/gif "access plus 32 days"
+	ExpiresByType image/jpg "access plus 32 days"
+	ExpiresByType image/jpeg "access plus 32 days"
+
+	FileETag none
+</IfModule>
+
 
 # BEGIN WordPress
 <IfModule mod_rewrite.c>
