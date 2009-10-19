@@ -290,7 +290,7 @@ function actionstream_render($user_id, $num=10, $hide_user=false, $echo=true) {
 	$userdata = get_userdata($user_id);
 
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->__toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
+	$rtrn = $rtrn->toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }
