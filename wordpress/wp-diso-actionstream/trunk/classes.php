@@ -150,7 +150,7 @@ class ActionStreamItem {
 	function is_dupe_of($b) {
 		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
 		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
-		if(abs($this->get('created_on') - $b->get('created_on')) > 21000) return false; // If they're too far apart, they aren't duplicates
+		if(abs($this->get('created_on') - $b->get('created_on')) > 36000) return false; // If they're too far apart, they aren't duplicates
 		if($this->identifier() == $b->identifier()) return true; // duh
 		if($this->get('url') == $b->get('url')) return true; // This seems reasonable, but may not always work out
 		if($this->similar_enough($this->get('title'), $b->get('title'))) {
