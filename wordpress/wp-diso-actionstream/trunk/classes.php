@@ -201,6 +201,14 @@ class ActionStreamItem {
 		return $string;
 	}
 
+	/**
+	 * Alias for PHP default magic
+	 *
+	 * @return string
+	 */
+	function __toString() {
+		return $this->toString();
+	}
 
 	/**
 	 * Interpolate
