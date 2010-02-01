@@ -102,7 +102,7 @@ class ActionStreamItem {
 	 * @return array
 	 */
 	function to_array() {
-		return $data;
+		return $this->data;
 	}
 
 
