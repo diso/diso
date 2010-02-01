@@ -52,8 +52,8 @@ class ActionStreamItem {
 				global $wpdb;
 				$data = $wpdb->get_results('SELECT data,service,setup_idx FROM ' . activity_stream_items_table() . " WHERE identifier_hash='$data'", ARRAY_A);
 				$this->data = unserialize($data[0]['data']);
-				$this->service = unserialize($data[0]['service']);
-				$this->setup_idx = unserialize($data[0]['setup_idx']);
+				$this->service = $data[0]['service'];
+				$this->setup_idx = $data[0]['setup_idx'];
 			}
 		} else {
 			$this->data = array();
