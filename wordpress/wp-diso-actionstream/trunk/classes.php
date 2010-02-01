@@ -102,7 +102,10 @@ class ActionStreamItem {
 	 * @return array
 	 */
 	function to_array() {
-		return $this->data;
+		$data = $this->data;
+		$data['service'] = $this->service;
+		$data['setup_idx'] = $this->setup_idx;
+		return $data;
 	}
 
 
