@@ -503,10 +503,12 @@ class ActionStream {
 						if($dupe_of) {
 							$dupe_of->add_dupe($service, $update);
 							$dupe_of->save();
+							$update->parent($dupe_of->post_id());
 						} else {
 							$update->save();
 							$saved[] = $update;
 						}
+						$update->save_as_post();
 					}//end foreach items
 				}//end if xpath
 
