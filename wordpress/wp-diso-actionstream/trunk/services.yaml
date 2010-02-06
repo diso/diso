@@ -72,13 +72,17 @@ gametap:
     url: http://www.gametap.com/profile/show/profile.do?sn={{ident}}
 gblogs:
     name: Google Blogs
-    url: http://blogsearch.google.com/blogsearch?q=%s
+    url: http://blogsearch.google.com/blogsearch?q={{ident}}
 #    icon: http://www.google.com/mobile/images/news-24x24.gif
     ident_label: Search term
     can_many: 1
+github:
+    name: GitHub
+    url: http://github.com/{{ident}}
+    ident_label: Username
 gnews:
     name: Google News
-    url: http://news.google.com/news?q=%s
+    url: http://news.google.com/news?q={{ident}}
 #    icon: http://www.google.com/mobile/images/news-24x24.gif
     ident_label: Search for
     can_many: 1
@@ -300,6 +304,11 @@ upcoming:
     url: http://upcoming.yahoo.com/user/{{ident}}
     ident_label: User ID
     ident_example: 12345
+userscripts:
+    name: Userscripts.org
+    url: http://userscripts.org/users/{{ident}}
+    ident_label: User ID
+    ident_example: 3275
 viddler:
     name: Viddler
     url: http://www.viddler.com/explore/{{ident}}
