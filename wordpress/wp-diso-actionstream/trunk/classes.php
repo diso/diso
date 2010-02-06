@@ -482,23 +482,29 @@ class ActionStream {
 					$rtrn .= '<li id="as-'.htmlspecialchars(sha1($as_item->identifier())).'" class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
 					$rtrn .= "\n\t".$as_item->toString($hide_user);
 
-					// javascript magic to toggle collapsable items
-					if (sizeof($items) > 1 && $collapse) {
-						if ($first_item) {
-							$rtrn .= ' (and <a class="expand" href="#">'.(count($items) - 1).' more &hellip;</a>)';
-							$rtrn .= '<script type="text/javascript">jQuery(function() {
-								jQuery(".'.$group_id.':not(:first)").hide();
-								jQuery(".'.$group_id.':first a.expand").click(function() {
-									jQuery(".'.$group_id.':not(:first)").toggle();
-									return false;
-								})
-							});</script>';
-							$first_item = false;
-						}
-					}
+					if ($first_item) $first_item = false;
 
 					$rtrn .= "\n</li>\n";
 
+				}
+				// javascript magic to toggle collapsable items
+				if (sizeof($items) > 1 && $collapse) {
+					$rtrn .= '<script type="text/javascript">
+						jQuery(".'.$group_id.':not(:first)").hide();
+						jQuery(".'.$group_id.':first").show(); // Sometimes they all hide
+						jQuery(".'.$group_id.':first")
+							.append("(and ")
+							.append(jQuery(document.createElement("a"))
+								.addClass("expand")
+								.attr("href","#")
+								.text("'.sizeof($items).' more")
+								.click(function() {
+									jQuery(".'.$group_id.':not(:first)").toggle();
+									jQuery(".'.$group_id.':first").show(); // Sometimes they all hide
+									return false;
+								}))
+							.append(")");
+					</script>';
 				}
 			}
 
