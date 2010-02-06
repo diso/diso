@@ -86,16 +86,18 @@ class ActionStreamItem {
 			);
 		if($post->post_title) $data['title'] = $post->post_title;
 		if($post->post_content) $data['description'] = $post->post_content;
-		if($post->post_excerpt) $data['url'] = $post->post_excerpt;
+		if($post->post_type != 'actionstream' && $post->post_excerpt) $data['description'] = $post->post_excerpt;
+		if($post->post_type != 'actionstream') $data['url'] = get_permalink($post);
+		if($post->post_type == 'actionstream' && $post->post_excerpt) $data['url'] = $post->post_excerpt;
 		$this->data = array_merge($data, get_post_custom($post->ID));
 		$tags = get_the_tags($post->ID);
 		// Find service
-		foreach($tags as $tag) {
+		foreach((array)$tags as $tag) {
 			if(preg_match('/^service_(.*)$/', $tag->name, $match))
 				$this->service = $match[1];
 		}
 		// Find setup_idx
-		foreach($tags as $tag) {
+		foreach((array)$tags as $tag) {
 			if(preg_match('/^'.preg_quote($this->service, '/').'_(.*)$/', $tag->name, $match))
 				$this->setup_idx = $match[1];
 		}
@@ -133,7 +135,7 @@ class ActionStreamItem {
 	 */
 	function get($k) {
 		$v = $this->data[$k];
-		if(!$v && $k == 'service') return $this->service;
+		if(!$v && $k == 'service') return $this->service ? $this->service : 'website';
 		if(is_array($v) && count($v) < 2) return $v[0];
 		return $v;
 	}
@@ -297,6 +299,8 @@ class ActionStreamItem {
 	 * @return string
 	 */
 	function toString($hide_user=false) {
+		if(!$this->service) $this->service = 'website';
+		if(!$this->setup_idx) $this->setup_idx = 'posted';
 		$string = ActionStreamItem::interpolate(
 				$this->to_array(), 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], 
@@ -525,7 +529,9 @@ class ActionStream {
 	function items($num=10, $from_posts=false) {
 		global $wpdb;
 		if($from_posts) {
-			return get_posts("numberposts=$num&post_type=actionstream&author=$this->user_id&post_parent=0");
+			$userdata = get_userdata($this->user_id);
+			if($userdata->actionstream_local_updates) $extra_type = '&post_type[]=post';
+			return get_posts("numberposts=$num&post_type[]=actionstream$extra_type&author=$this->user_id&post_parent=0");
 		} else {
 			return $wpdb->get_results("SELECT created_on,service,setup_idx,data,user_id 
 				FROM " . activity_stream_items_table() . " " . ($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
@@ -565,8 +571,8 @@ class ActionStream {
 			} else {
 				$to_push = $item;
 			}
-			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
-			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
+			if (!array_key_exists($to_push->get('service'), $yaml['profile_services'])) continue;
+			if(function_exists('diso_user_is') && !diso_user_is($permissions[$to_push->get('service')])) continue;
 			if (!$collapse && ($count++ >= $num)) break;
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);

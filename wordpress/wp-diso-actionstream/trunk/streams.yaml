@@ -1026,7 +1026,7 @@ website:
     posted:
         name: Posts
         description: The posts available from the website's feed
-        html_form: '[_1] <span class="verb">posted</span> <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a> on <a rel="source" href="[_4]">[_5]</a>'
+        html_form: '[_1] <span class="verb">posted</span> <a rel="bookmark" class="entry-title" href="[_2]">[_3]</a>'
         html_params:
             - url
             - title
