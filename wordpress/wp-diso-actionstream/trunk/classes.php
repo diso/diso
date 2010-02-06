@@ -306,8 +306,8 @@ class ActionStream {
 						if(!$stream['atom']) $stream['atom'] = array();
 					} else {
 						$url = $rurl;
-						if(!$stream['rss2']) $stream['rss2'] = array();
-					}//end if-else atom/rss2
+						if(!$stream['rss']) $stream['rss'] = array();
+					}//end if-else atom/rss
 					if(!$url) continue;
 				}//end if ! url
 				$raw = get_raw_actionstream($url);
@@ -327,8 +327,8 @@ class ActionStream {
 					);
 				}//end if atom
 
-				if(isset($stream['rss2'])) {
-					if(!is_array($stream['rss2'])) $stream['rss2'] = array();
+				if(isset($stream['rss'])) {
+					if(!is_array($stream['rss'])) $stream['rss'] = array();
 					$stream['xpath'] = array(
 							'foreach' => '//item',
 							'get' => array_merge(array(
@@ -336,7 +336,7 @@ class ActionStream {
 								'title' => 'title/child::text()',
 								'url' => 'link/child::text()',
 								'identifier' => 'guid/child::text()'
-							), $stream['rss2'])
+							), $stream['rss'])
 					);
 				}//end if atom
 
