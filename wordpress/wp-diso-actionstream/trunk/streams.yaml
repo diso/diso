@@ -447,7 +447,7 @@ jaiku:
     jaikus:
         name: Jaikus
         description: Jaikus you posted
-        html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]"><span class="value-title" title="posted"> </span>jaiku''d</a>, &ldquo;<span class="entry-title entry-content">[_3]</span>&rdquo;'
+        html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]"><span class="value-title" title="posted"> </span>jaiku''d</a>, “<span class="entry-title entry-content">[_3]</span>”'
         html_params:
             - url
             - title
@@ -506,7 +506,7 @@ lastfm:
     scrobbles:
         name: Scrobbles
         description: Your recent scrobbles
-        html_form: '[_1] <span class="verb">listened</span> to <span class="haudio object"><a rel="bookmark" class="entry-title title" href="[_2]">[_3]</a> <a class="url" href="http://musicbrainz.org/track/[_4].html"></a> by <span class="contributor vcard"><a class="fn url" rel="artist" href="http://last.fm/music/[_5]">[_5]</a> <a class="url uid" href="http://musicbrainz.org/artist/[_6].html"></a> </span> <a class="album" href="http://musicbrainz.org/release/[_8].html">[_7]</a> </span>'
+        html_form: '[_1] <span class="verb">listened</span> to <span class="haudio object"><a rel="bookmark" class="entry-title title" href="[_2]">[_3]</a> <a class="url" href="http://musicbrainz.org/track/[%_4].html"></a> by <span class="contributor vcard"><a class="fn url" rel="artist" href="http://last.fm/music/[%_5]">[_5]</a> <a class="url uid" href="http://musicbrainz.org/artist/[%_6].html"></a> </span> <a class="album" href="http://musicbrainz.org/release/[%_8].html">[_7]</a> </span>'
         html_params:
             - url
             - title
@@ -864,7 +864,7 @@ twitter:
         name: Tweets
         description: Your public tweets
         class: TwitterTweet
-        html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]"><span class="value-title" title="posted"> </span>tweeted</a>, &ldquo;<span class="entry-title entry-content">[_3]</span>&rdquo;'
+        html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]"><span class="value-title" title="posted"> </span>tweeted</a>, “<span class="entry-title entry-content">[_3]</span>”'
         html_params:
             - url
             - title
@@ -876,7 +876,7 @@ twitter:
         class: TwitterFavorite
         fields:
             - tweet_author
-        html_form: '[_1] <span class="verb">favorited</span> <a rel="bookmark" href="[_2]">[_3]''s tweet</a>, &ldquo;<span class="entry-title entry-content">[_4]</span>&rdquo;'
+        html_form: '[_1] <span class="verb">favorited</span> <a rel="bookmark" href="[_2]">[_3]''s tweet</a>, “<span class="entry-title entry-content">[_4]</span>”'
         html_params:
             - url
             - tweet_author
