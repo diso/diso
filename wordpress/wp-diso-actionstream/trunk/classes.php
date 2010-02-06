@@ -81,7 +81,7 @@ class ActionStreamItem {
 	 * @param mixed $v value of data
 	 */
 	function set($k, $v) {
-		$this->data[$k] = $v;
+		return $this->data[$k] = $v;
 	}
 
 
