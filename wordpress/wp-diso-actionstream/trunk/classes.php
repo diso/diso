@@ -30,6 +30,15 @@ class ActionStreamItem {
 	 */
 	protected $user_id;
 
+	/**
+	 * @var parent
+	 */
+	protected $parent;
+
+	/**
+	 * @var post_id
+	 */
+	protected $post_id;
 
 	/**
 	 * Constructor.
@@ -39,11 +48,12 @@ class ActionStreamItem {
 	 * @param string $setup_idx
 	 * @param int $user_id
 	 */
-	function __construct($data, $service, $setup_idx, $user_id=0) {
+	function __construct($data, $service=NULL, $setup_idx=NULL, $user_id=0, $parent=NULL) {
 		$this->config = get_actionstream_config();
 		$this->service = $service;
 		$this->setup_idx = $setup_idx;
 		$this->user_id = $user_id;
+		$this->parent = $parent;
 
 		if ($data) {
 			if ( is_array($data) ) {
@@ -92,9 +102,31 @@ class ActionStreamItem {
 	 * @return mixed data value
 	 */
 	function get($k) {
-		return $this->data[$k];
+		$v = $this->data[$k];
+		if(!$v && $k == 'service') return $this->service;
+		if(is_array($v) && count($v) < 2) return $v[0];
+		return $v;
 	}
 
+	/**
+	 * Get the Wordpress post_id
+	 *
+	 * @return numeric
+	 */
+	function post_id() {
+		return $this->post_id;
+	}
+
+	/**
+	 * Get/set parent post_id
+	 *
+	 * @params (optional) ID to set parent to
+	 * @return numeric
+	 */
+	function parent($id=NULL) {
+		if($id) $this->parent = $id;
+		return $this->parent;
+	}
 
 	/**
 	 * Get an array representation of this item.
