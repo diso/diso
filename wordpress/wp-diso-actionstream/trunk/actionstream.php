@@ -154,7 +154,7 @@ function actionstream_page() {
 		$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
 		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(plugins_url('wp-diso-actionstream/images/delete.gif')).'" /></a> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
-			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('%s', $id, $setup['url'])).'">';
+			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('{{ident}}', $id, $setup['url'])).'">';
 			echo htmlspecialchars($id);
 			if($setup['url']) echo '</a>';
 			if (empty($setup)) {
@@ -205,9 +205,9 @@ function actionstream_page() {
 				function update_ident_form() {
 					var option = document.getElementById('add-service').options[document.getElementById('add-service').selectedIndex];
 					var data = option.title.split(/\|/);
-					document.getElementById('add-ident-pre').innerHTML = data[0].split(/%s/)[0] ? data[0].split(/%s/)[0] : '';
-					document.getElementById('add-ident-post').innerHTML = data[0].split(/%s/)[1] ? data[0].split(/%s/)[1] : '';
-					if(data[1]) document.getElementById('add-ident-pre').title = 'Example: ' + data[0].replace(/%s/, data[1]);
+					document.getElementById('add-ident-pre').innerHTML = data[0].split(/\{\{ident\}\}/)[0] ? data[0].split(/\{\{ident\}\}/)[0] : '';
+					document.getElementById('add-ident-post').innerHTML = data[0].split(/\{\{ident\}\}/)[1] ? data[0].split(/\{\{ident\}\}/)[1] : '';
+					if(data[1]) document.getElementById('add-ident-pre').title = 'Example: ' + data[0].replace(/\{\{ident\}\}/, data[1]);
 						else document.getElementById('add-ident-pre').title = '';
 					document.getElementById('add-ident').title = document.getElementById('add-ident-pre').title;
 					document.getElementById('add-ident').value = data[2];
@@ -314,7 +314,7 @@ function actionstream_services($user_id, $urls_only=false) {
 		if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$service])) continue;
 	   $setup = $actionstream_yaml['profile_services'][$service];
 	   if (empty($setup)) { continue; }
-	   $url = sprintf($setup['url'], $username);
+	   $url = str_replace('{{ident}}', $username, $setup['url']);
 		if(!$urls_only) {
 			if($userdata->urls && count($userdata->urls) && in_array($url, $userdata->urls))
 			   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n");
