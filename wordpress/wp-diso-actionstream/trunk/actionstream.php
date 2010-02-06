@@ -12,6 +12,7 @@ Author URI: http://code.google.com/p/diso/
 //Released under the terms of an MIT-style license
 
 register_activation_hook(__FILE__,'actionstream_plugin_activation');
+register_deactivation_hook(__FILE__,'actionstream_plugin_deactivation');
 add_action( 'actionstream_poll', 'actionstream_poll' );
 
 require_once dirname(__FILE__).'/config.php';
@@ -36,6 +37,13 @@ function actionstream_plugin_activation() {
 			);";
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 	dbDelta($sql);
+}
+
+/**
+ * Deactivate the plugin. Turn off cron
+ */
+function actionstream_plugin_deactivation() {
+	wp_clear_scheduled_hook('actionstream_poll');
 }
 
 
