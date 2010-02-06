@@ -102,9 +102,13 @@ class ActionStreamItem {
 	 * @return array
 	 */
 	function to_array() {
-		$data = $this->data;
-		$data['service'] = $this->service;
-		$data['setup_idx'] = $this->setup_idx;
+		$data = array(
+			'service' => $this->service,
+			'setup_idx' => $this->setup_idx,
+			);
+		foreach($this->data as $k => $v) {
+			$data[$k] = $this->get($k);
+		}
 		return $data;
 	}
 
@@ -122,10 +126,10 @@ class ActionStreamItem {
 		}
 
 		if ( !$this->data[$identifier_field] ) {
-			return $this->data['created_on'] . $this->data['service'];
+			return $this->get('created_on') . $this->service;
 		}
 
-		return $this->data[$identifier_field];
+		return $this->get($identifier_field);
 	}
 
 
@@ -151,8 +155,8 @@ class ActionStreamItem {
 	 * @return boolean true if specified item is a duplicate
 	 */
 	function is_dupe_of($b) {
-		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
-		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
+		if(!$this->get('created_on') && $this->get('modified_on')) $this->set('created_on', $this->get('modified_on'));
+		$created_on = $this->set('created_on', (int)$this->get('created_on') ? (int)$this->get('created_on') : time());
 		if(abs($this->get('created_on') - $b->get('created_on')) > 36000) return false; // If they're too far apart, they aren't duplicates
 		if($this->identifier() == $b->identifier()) return true; // duh
 		if($this->get('url') == $b->get('url')) return true; // This seems reasonable, but may not always work out
@@ -168,8 +172,8 @@ class ActionStreamItem {
 	 */
 	function save() {
 		global $wpdb;
-		if(!$this->data['created_on'] && $this->data['modified_on']) $this->data['created_on'] = $this->data['modified_on'];
-		$created_on = $this->data['created_on'] = (int)$this->data['created_on'] ? (int)$this->data['created_on'] : time();
+		if(!$this->get('created_on') && $this->get('modified_on')) $this->set('created_on', $this->get('modified_on'));
+		$created_on = $this->set('created_on', (int)$this->get('created_on') ? (int)$this->get('created_on') : time());
 		$data = $wpdb->escape(serialize($this->data));
 		$identifier_hash = sha1($this->identifier());
 		$wpdb->query("INSERT INTO " . activity_stream_items_table() . " 
@@ -187,7 +191,7 @@ class ActionStreamItem {
 	 */
 	function toString($hide_user=false) {
 		$string = ActionStreamItem::interpolate(
-				$this->data, 
+				$this->to_array(), 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_params'], 
 				$this->config['action_streams'][$this->service][$this->setup_idx]['html_form'], 
 				$this->config['profile_services'][$this->service], $hide_user
