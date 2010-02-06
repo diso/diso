@@ -197,9 +197,10 @@ class ActionStreamItem {
 				$this->config['profile_services'][$this->service], $hide_user
 			);
 
-		$string .= sprintf(' <abbr class="published" title="%s">@ %s</abbr>',
-			date('c',$this->data['created_on']),
-			date('Y-m-d H:i',$this->data['created_on'])
+		$string .= sprintf(' <abbr class="published" title="%s">@ %s %s</abbr>',
+			date('c',$this->get('created_on')),
+			date(get_option('date_format'),$this->get('created_on')),
+			date(get_option('time_format'),$this->get('created_on'))
 		);
 
 		return $string;
