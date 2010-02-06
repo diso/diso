@@ -869,7 +869,8 @@ twitter:
             - url
             - title
         url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
-        atom: 1
+        atom:
+            description: content/child::text()
     favorites:
         name: Favorites
         description: Public tweets you saved as favorites
@@ -883,6 +884,7 @@ twitter:
             - title
         url: 'http://twitter.com/favorites/{{ident}}.atom'
         atom:
+            tweet_author: author/name/child::text()
             created_on: ''
             modified_on: ''
 twittersearch:
