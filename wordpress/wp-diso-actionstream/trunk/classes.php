@@ -58,18 +58,48 @@ class ActionStreamItem {
 		if ($data) {
 			if ( is_array($data) ) {
 				$this->data = $data;
+			} elseif ( is_object($data) ) {
+				$this->from_post($data);
 			} else {
 				global $wpdb;
-				$data = $wpdb->get_results('SELECT data,service,setup_idx FROM ' . activity_stream_items_table() . " WHERE identifier_hash='$data'", ARRAY_A);
-				$this->data = unserialize($data[0]['data']);
-				$this->service = $data[0]['service'];
-				$this->setup_idx = $data[0]['setup_idx'];
+				if(strlen($data) == 40) { //sha1
+					$data = $wpdb->get_results('SELECT data,service,setup_idx FROM ' . activity_stream_items_table() . " WHERE identifier_hash='".$wpdb->escape($data)."'", ARRAY_A);
+					$this->data = unserialize($data[0]['data']);
+					$this->service = $data[0]['service'];
+					$this->setup_idx = $data[0]['setup_idx'];
+				} else { // wordpress post ID
+					$this->from_post(get_post($data));
+				}
 			}
 		} else {
 			$this->data = array();
 		}
 	}
 
+	protected function from_post($post) {
+		$this->user_id = $post->post_author;
+		$this->post_id = $post->ID;
+		$data = array(
+			'created_on' => strtotime($post->post_date_gmt + ' UTC'),
+			'modified_on' => strtotime($post->post_modified_gmt + ' UTC'),
+			'identifier' => $post->guid
+			);
+		if($post->post_title) $data['title'] = $post->post_title;
+		if($post->post_content) $data['description'] = $post->post_content;
+		if($post->post_excerpt) $data['url'] = $post->post_excerpt;
+		$this->data = array_merge($data, get_post_custom($post->ID));
+		$tags = get_the_tags($post->ID);
+		// Find service
+		foreach($tags as $tag) {
+			if(preg_match('/^service_(.*)$/', $tag->name, $match))
+				$this->service = $match[1];
+		}
+		// Find setup_idx
+		foreach($tags as $tag) {
+			if(preg_match('/^'.preg_quote($this->service, '/').'_(.*)$/', $tag->name, $match))
+				$this->setup_idx = $match[1];
+		}
+	}
 
 	/**
 	 * Record the specified item as a duplicate.
