@@ -228,6 +228,51 @@ class ActionStreamItem {
 		return false;
 	}
 
+	/**
+	 * Save actionstream item as a WordPress post
+	 * WARNING: *does not* save dupes. Do that by creating items with a parent of this item
+	 */
+	function save_as_post() {
+		global $wpdb;
+		// Ensure sane defaults
+		if(!$this->get('created_on') && $this->get('modified_on')) $this->set('created_on', $this->get('modified_on'));
+		$this->set('created_on', (int)$this->get('created_on') ? (int)$this->get('created_on') : time());
+		// Build post object
+		$post = array(
+			'post_modified'     => date('Y-m-d H:i:s', $this->get('modified_on')),
+			'post_modified_gmt' => gmdate('Y-m-d H:i:s', $this->get('modified_on')),
+			'post_status'       => 'publish',
+			'post_type'         => 'actionstream',
+			'tags_input'        => 'service_'.$this->service.','.$this->service.'_'.$this->setup_idx,
+			'post_author'       => $this->user_id,
+			'guid'              => $this->identifier()
+			);
+		// Check for existing post
+		$id = $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE post_type='actionstream' AND guid='".$wpdb->escape($post['guid'])."' LIMIT 1");
+		if($id) {
+			$post['ID'] = $id;
+		} else {
+			$post['post_date']         = date('Y-m-d H:i:s', $this->get('created_on'));
+			$post['post_date_gmt']     = gmdate('Y-m-d H:i:s', $this->get('created_on'));
+		}
+		if($this->get('title')) $post['post_title'] = $this->get('title');
+		if($this->get('description')) $post['post_content'] = $this->get('description');
+		if($this->get('url')) $post['post_excerpt'] = $this->get('url');
+		if($this->get('coment_status')) $post['comment_status'] = $this->get('coment_status');
+			else $post['comment_status'] = 'open';
+		// Handle inserting a dupe
+		if($this->parent) $post['post_parent'] = $this->parent;
+		// Actually insert the post
+		$id = wp_insert_post($post);
+		// Update meta keys for this post
+		foreach($this->data as $k => $v) {
+			if(preg_match('/^title|description|created_on|modified_on|identifier|url|dupes$/', $k)) continue;
+			update_post_meta($id, $k, $this->get($k));
+		}
+		// Return post_ID
+		$this->post_id = $id;
+		return $id;
+	}
 
 	/**
 	 * Save this ActionStreamItem to the database.
