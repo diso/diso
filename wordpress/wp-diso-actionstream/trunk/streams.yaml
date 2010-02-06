@@ -957,7 +957,7 @@ userscripts:
             - title
         url: 'http://userscripts.org/feeds/users/{{ident}}/favorites/updates'
         identifier: guid
-        rss2: 1
+        rss: 1
 viddler:
     videos:
         name: Videos
