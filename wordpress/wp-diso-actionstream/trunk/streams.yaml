@@ -383,13 +383,13 @@ identica:
     statuses:
         name: Notices
         description: Notices you posted
-        html_form: '[_1] <a href="[_2]" rel="bookmark" class="verb">posted</a>, &ldquo;<span class="entry-title entry-content">[_3]</span>&rdquo;'
+        html_form: '[_1] <a href="[_2]" rel="bookmark" class="verb">posted</a>, “<span class="entry-title entry-content">[_3]</span>”'
         html_params:
             - url
-            - title
-        url: 'http://identi.ca/{{ident}}/rss'
+            - description
+        url: 'http://identi.ca/api/statuses/user_timeline/{{ident}}.rss'
         rss:
-            created_on: dc:date
+            description: description/child::text()
         class: Identica
 iminta:
     links:
