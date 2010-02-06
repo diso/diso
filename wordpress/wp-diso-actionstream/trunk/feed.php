@@ -7,7 +7,7 @@ require_once dirname(__FILE__).'/classes.php';
 $user_id = activity_stream_get_user_id( $_REQUEST['user'] );
 $userdata = get_userdata($user_id);
 $stream = new ActionStream($userdata->actionstream, $userdata->ID);
-$stream = $stream->items(10);
+$stream = $stream->items(10*4, true);
 
 header('Content-Type: application/rss+xml');
 header('ETag: '.md5(time())); // Hack to override default wordpress headers that break feed readers
@@ -31,11 +31,17 @@ $c = 0;
 
 foreach($stream as $item) {
 
-	if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$item['service']])) continue;
+	if(is_array($item)) {
+		$as_item  = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+	} else {
+		$as_item = new ActionStreamItem($item);
+	}
 
-	if($item['service'] == $previous_service) {
+	if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$as_item->get('service')])) continue;
 
-		$after_service[] = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+	if($as_item->get('service') == $previous_service) {
+
+		$after_service[] = $as_item;
 
 	} else {
 
@@ -72,11 +78,11 @@ foreach($stream as $item) {
 
 		}//end if during service
 
-		$during_service = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+		$during_service = $as_item;
 
 	}//end if-else service
 
-	if(!isset($_REQUEST['full'])) $previous_service = $item['service'];
+	if(!isset($_REQUEST['full'])) $previous_service = $as_item->get('service');
 
 }//end foreach
 

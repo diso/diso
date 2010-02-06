@@ -522,12 +522,15 @@ class ActionStream {
 	 *
 	 * @param int $num number of items to get
 	 */
-	function items($num=10) {
+	function items($num=10, $from_posts=false) {
 		global $wpdb;
-		$items = $wpdb->get_results("SELECT created_on,service,setup_idx,data,user_id 
-			FROM " . activity_stream_items_table() . " " . ($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
-			. "ORDER BY created_on DESC", ARRAY_A);
-		return $items;
+		if($from_posts) {
+			return get_posts("numberposts=$num&post_type=actionstream&author=$this->user_id&post_parent=0");
+		} else {
+			return $wpdb->get_results("SELECT created_on,service,setup_idx,data,user_id 
+				FROM " . activity_stream_items_table() . " " . ($this->user_id ? 'WHERE user_id='.$this->user_id.' ' : '')
+				. "ORDER BY created_on DESC LIMIT $num", ARRAY_A);
+		}
 	}
 
 
@@ -540,7 +543,7 @@ class ActionStream {
 	 * @param boolean $collapse
 	 */
 	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
-		$items = $this->items($num);
+		$items = $this->items($collapse ? $num*4 : $num, true);
 		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
 		}
@@ -556,6 +559,12 @@ class ActionStream {
 
 		// build sorted_items array
 		foreach ($items as $item) {
+			if(!is_array($item)) {
+				$to_push = new ActionStreamItem($item);
+				$item = $to_push->to_array();
+			} else {
+				$to_push = $item;
+			}
 			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
 			if (!$collapse && ($count++ >= $num)) break;
@@ -571,7 +580,7 @@ class ActionStream {
 				$group = 'as_group-' . $an_id . ++$group_counter;
 			}
 
-			$sorted_items["$current_day"][$group][] = $item;
+			$sorted_items["$current_day"][$group][] = $to_push;
 			$last_service = $item['service'];
 		}
 
@@ -586,9 +595,13 @@ class ActionStream {
 				$first_item = true;
 				foreach ($items as $item) {
 
-					$as_item = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+					if(is_array($item)) {
+						$as_item = new ActionStreamItem(unserialize($item['data']), $item['service'], $item['setup_idx'], $item['user_id']);
+					} else {
+						$as_item = $item;
+					}
 
-					$rtrn .= '<li id="as-'.htmlspecialchars(sha1($as_item->identifier())).'" class="hentry service-icon service-'.$item['service'].' '.$group_id . '">';
+					$rtrn .= '<li id="post-'.htmlspecialchars($as_item->post_id() ? $as_item->post_id() : sha1($as_item->identifier())).'" class="hentry service-icon service-'.$as_item->get('service').' '.$group_id . '">';
 					$rtrn .= "\n\t".$as_item->toString($hide_user);
 
 					if ($first_item) $first_item = false;
