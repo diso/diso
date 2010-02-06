@@ -226,7 +226,7 @@ class ActionStreamItem {
 		if ( $data['ident'] && $service ) {
 			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '')
 				. '><a class="url fn nickname" href="' 
-				. htmlspecialchars(str_replace('%s',$data['ident'],$service['url'])).'">'
+				. htmlspecialchars(str_replace('{{ident}}',$data['ident'],$service['url'])).'">'
 				. htmlspecialchars($data['ident']).'</a></span>';
 		}
 
@@ -289,7 +289,7 @@ class ActionStream {
 			foreach($setup as $setup_idx => $stream) {
 				$url = str_replace('{{ident}}', $id, $stream['url']);
 				if(!$url) {//feed autodetect
-					$raw = get_raw_actionstream(str_replace('%s',$id,$this->config['profile_services'][$service]['url']));
+					$raw = get_raw_actionstream(str_replace('{{ident}}',$id,$this->config['profile_services'][$service]['url']));
 
 					preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
 					$aurl = html_entity_decode($match[1]);
@@ -525,7 +525,7 @@ class ActionStream {
 		$ident = array();
 		foreach($urls as $url) {
 			foreach($actionstream_yaml['profile_services'] as $service => $setup)  {
-				$regex = '/'.str_replace('%s', '(.*)', preg_quote($setup['url'],'/')).'?/';
+				$regex = '/'.str_replace('{{ident}}', '(.*)', preg_quote($setup['url'],'/')).'?/';
 				if(preg_match($regex, $url, $match)) {
 					$match[1] = explode('/', $match[1]);
 					$match[1] = $match[1][0];

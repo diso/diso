@@ -13,12 +13,13 @@ function get_actionstream_config() {
 			require_once dirname(__FILE__).'/lib/spyc.php';
 		}
 
-		$yaml = Spyc::YAMLLoad(dirname(__FILE__).'/config.yaml');//file straight from MT plugin - yay sharing!
+		$add_services = apply_filters('actionstream_services', array('streams' => array(), 'services' => array()));
 
-		$add_services = apply_filters('actionstream_services', array('streams' => array(), 'services' => array()) );
-
-		$yaml['action_streams'] = array_merge($yaml['action_streams'], $add_services['streams']);
-		$yaml['profile_services'] = array_merge($yaml['profile_services'], $add_services['services']);
+		// YAML data from http://github.com/singpolyma/actionstream-data
+		$yaml = array(
+			'action_streams'   => array_merge(Spyc::YAMLLoad(dirname(__FILE__).'/streams.yaml'), $add_services['streams']),
+			'profile_services' => array_merge(Spyc::YAMLLoad(dirname(__FILE__).'/services.yaml'), $add_services['services'])
+		);
 	}
 
 	return $yaml;
