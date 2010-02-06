@@ -240,6 +240,7 @@ class ActionStreamItem {
 				$data[$k] = htmlspecialchars($data[$k]);
 			}
 			$template = str_replace('[_'.($i+1).']', $data[$k], $template);
+			$template = str_replace('[%_'.($i+1).']', rawurlencode($data[$k]), $template);
 		}
 
 		return $template;
