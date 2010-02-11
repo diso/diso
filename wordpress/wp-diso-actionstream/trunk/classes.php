@@ -80,8 +80,8 @@ class ActionStreamItem {
 		$this->user_id = $post->post_author;
 		$this->post_id = $post->ID;
 		$data = array(
-			'created_on' => strtotime($post->post_date_gmt + ' UTC'),
-			'modified_on' => strtotime($post->post_modified_gmt + ' UTC'),
+			'created_on' => strtotime($post->post_date_gmt . ' UTC'),
+			'modified_on' => strtotime($post->post_modified_gmt . ' UTC'),
 			'identifier' => $post->guid
 			);
 		if($post->post_title) $data['title'] = $post->post_title;
@@ -250,9 +250,11 @@ class ActionStreamItem {
 			'guid'              => $this->identifier()
 			);
 		// Check for existing post
-		$id = $wpdb->get_var("SELECT ID FROM $wpdb->posts WHERE post_type='actionstream' AND guid='".$wpdb->escape($post['guid'])."' LIMIT 1");
-		if($id) {
-			$post['ID'] = $id;
+		$id = $wpdb->get_row("SELECT ID,post_date,post_date_gmt FROM $wpdb->posts WHERE post_type='actionstream' AND guid='".$wpdb->escape($post['guid'])."' LIMIT 1");
+		if($id && $id->ID) {
+			$post['ID'] = $id->ID;
+			$post['post_date'] = $id->post_date;
+			$post['post_date_gmt'] = $id->post_date_gmt;
 		} else {
 			$post['post_date']         = date('Y-m-d H:i:s', $this->get('created_on'));
 			$post['post_date_gmt']     = gmdate('Y-m-d H:i:s', $this->get('created_on'));
