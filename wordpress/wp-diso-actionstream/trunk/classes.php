@@ -573,8 +573,8 @@ class ActionStream {
 			} else {
 				$to_push = $item;
 			}
-			if (!array_key_exists($to_push->get('service'), $yaml['profile_services'])) continue;
-			if(function_exists('diso_user_is') && !diso_user_is($permissions[$to_push->get('service')])) continue;
+			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
+			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
 			if (!$collapse && ($count++ >= $num)) break;
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);
