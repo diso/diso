@@ -520,6 +520,13 @@ class ActionStream {
 
 			}//end foreach setup
 		}//end foreach ident
+
+		// PuSH if the plugin is installed
+		if(function_exists('publish_to_hub')) {
+			$feedlink = get_feed_link('action_stream');
+			$feedlink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $this->user_id;
+			publish_to_hub(NULL, array($feedlink, $feedlink.'&full'));
+		}
 	}//end function update
 
 

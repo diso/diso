@@ -27,6 +27,14 @@ echo '<?xml version="1.0" ?>';
 		<atom:link rel="self" href="<?php echo htmlspecialchars($selflink); ?>" />
 <?php
 
+if(function_exists('get_pubsub_endpoints')) {
+	foreach((array)get_pubsub_endpoints() as $hub) {
+	?>
+		<atom:link rel="hub" href="<?php echo htmlspecialchars($hub); ?>" />
+	<?php
+	}
+}
+
 if($userdata->photo) {
 	echo '		<image><title>'.htmlspecialchars($userdata->display_name).'</title><url>'.htmlspecialchars($userdata->photo).'</url><link>'.htmlspecialchars($userdata->user_url).'</link></image>';
 }
