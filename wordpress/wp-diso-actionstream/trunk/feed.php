@@ -9,17 +9,22 @@ $userdata = get_userdata($user_id);
 $stream = new ActionStream($userdata->actionstream, $userdata->ID);
 $stream = $stream->items(10*4, true);
 
+$selflink = get_feed_link('action_stream');
+$selflink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $user_id;
+if(isset($_REQUEST['full'])) $selflink .= (strpos($selflink, '?') ? '&' : '?') . 'full';
+
 header('Content-Type: application/rss+xml');
 header('ETag: '.md5(time())); // Hack to override default wordpress headers that break feed readers
 header('Last-Modified: '.date('r'));
 echo '<?xml version="1.0" ?>';
 
 ?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>ActionStream for <?php echo htmlspecialchars($userdata->display_name); ?></title>
 		<description>ActionStream data</description>
 		<link><?php echo htmlspecialchars($userdata->user_url); ?></link>
+		<atom:link rel="self" href="<?php echo htmlspecialchars($selflink); ?>" />
 <?php
 
 if($userdata->photo) {
