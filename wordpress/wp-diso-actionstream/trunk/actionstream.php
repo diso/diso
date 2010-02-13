@@ -108,7 +108,7 @@ function actionstream_page() {
 
 
 		if ( $_POST['ident'] ) {
-			$actionstream[$_POST['service']] = $_POST['ident'];
+			$actionstream[$_POST['service']] = array_unique(array_merge((array)$actionstream[$_POST['service']], (array)$_POST['ident']));
 			update_usermeta($user->ID, 'actionstream', $actionstream);
 			actionstream_poll();
 		}
@@ -117,8 +117,10 @@ function actionstream_page() {
 			require_once dirname(__FILE__).'/lib/sgapi.php';
 			$sga = new SocialGraphApi(array('edgesout'=>1,'edgesin'=>0,'followme'=>1,'sgn'=>0));
 			$xfn = $sga->get($_POST['sgapi_import']);
-			$actionstream = array_merge($actionstream, ActionStream::from_urls('',array_keys($xfn['nodes'])));
-			unset($actionstream['website']);
+			foreach(ActionStream::from_urls('',array_keys($xfn['nodes'])) as $service => $id) {
+				if($service == 'website') continue;
+				$actionstream[$service] = array_unique(array_merge((array)$actionstream[$service], (array)$id));
+			}
 			update_usermeta($user->ID, 'actionstream', $actionstream);
 		}
 
@@ -159,8 +161,9 @@ function actionstream_page() {
 	ksort($actionstream);
 	foreach($actionstream as $service => $id) {
 		$setup = $actionstream_yaml['profile_services'][$service];
-		$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
-		echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(plugins_url('wp-diso-actionstream/images/delete.gif')).'" /></a> ';
+		foreach((array)$id as $id) {
+			$remove_link = wp_nonce_url('?page='.$_REQUEST['page'].'&remove='.htmlspecialchars($service), 'actionstream-remove-'.htmlspecialchars($service));
+			echo '<li style="padding-left:30px;" class="service-icon service-'.htmlspecialchars($service).'"><a href="'.$remove_link.'"><img alt="Remove Service" src="'.clean_url(plugins_url('wp-diso-actionstream/images/delete.gif')).'" /></a> ';
 			echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service)).' : ';
 			if($setup['url']) echo ' <a href="'.htmlspecialchars(str_replace('{{ident}}', $id, $setup['url'])).'">';
 			echo htmlspecialchars($id);
@@ -169,6 +172,7 @@ function actionstream_page() {
 				echo ' <small><em>(configuration missing)</em></small>';
 			}
 			echo '</li>';
+		}
 	}
 ?>
 		</ul>
