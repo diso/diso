@@ -406,118 +406,123 @@ class ActionStream {
 			if(!is_array($setup)) continue;
 			//TODO: HTML/Microformats
 			foreach($setup as $setup_idx => $stream) {
-				$url = str_replace('{{ident}}', $id, $stream['url']);
-				if(!$url) {//feed autodetect
-					$raw = get_raw_actionstream(str_replace('{{ident}}',$id,$this->config['profile_services'][$service]['url']));
-
-					preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
-					$aurl = html_entity_decode($match[1]);
-
-					preg_match('/<[\s]*link.+\/rss\+xml[^\f]+?href="(.+)"/', $raw, $match);
-					$rurl = html_entity_decode($match[1]);
-
-					if(($stream['atom'] && $aurl) || !$rurl) {
-						$url = $aurl;
-						if(!$stream['atom']) $stream['atom'] = array();
-					} else {
-						$url = $rurl;
-						if(!$stream['rss']) $stream['rss'] = array();
-					}//end if-else atom/rss
-					if(!$url) continue;
-				}//end if ! url
-				$raw = get_raw_actionstream($url);
-				if(!$raw) continue;
-
-				if(isset($stream['atom'])) {
-					if(!is_array($stream['atom'])) $stream['atom'] = array();
-					$stream['xpath'] = array(
-							'foreach' => '//entry',
-							'get' => array_merge(array(
-								'created_on' => 'published/child::text()',
-								'modified_on' => 'updated/child::text()',
-								'title' => 'title/child::text()',
-								'url' => 'link[@rel=\'alternate\']/@href',
-								'identifier' => 'id/child::text()'
-							), $stream['atom'])
-					);
-				}//end if atom
-
-				if(isset($stream['rss'])) {
-					if(!is_array($stream['rss'])) $stream['rss'] = array();
-					$stream['xpath'] = array(
-							'foreach' => '//item',
-							'get' => array_merge(array(
-								'created_on' => 'pubDate/child::text()',
-								'title' => 'title/child::text()',
-								'url' => 'link/child::text()',
-								'identifier' => 'guid/child::text()'
-							), $stream['rss'])
-					);
-				}//end if atom
-
-				if($stream['xpath']) {
-					unset($items);
-					@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw), 'SimpleXMLElement', LIBXML_NOCDATA);
-					if($doc && method_exists($doc, 'registerXPathNamespace')) {
-						$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
-						$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
-						$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
+				foreach((array)$id as $id) {
+					if(is_array($id)) {
+						if($id['push']) continue; // Skip feeds we get over push
+						$id = $id['ident']; 
 					}
-					if($doc && $stream['xpath']['foreach']) {
-						$stream['xpath']['foreach'] = str_replace('%s', $id, $stream['xpath']['foreach']);
-						$items = $doc->xpath($stream['xpath']['foreach']);
-					}
-					if(!$items) $items = array();
+					$url = str_replace('{{ident}}', $id, $stream['url']);
+					if(!$url) {//feed autodetect
+						$raw = get_raw_actionstream(str_replace('{{ident}}',$id,$this->config['profile_services'][$service]['url']));
 
-					if(!is_array($stream['xpath']['get'])) {//DEBUG: this should never happen
-						echo '<p>Invalid definition of '.$service;
-						echo '<pre>';
-						var_dump($stream);
-						echo '</pre>';
-						'</p>';
-						continue;
-					}
-					foreach($items as $item) {
-						$update = new ActionStreamItem(array('ident' => $id), $service, $setup_idx, $this->user_id);
-						foreach($stream['xpath']['get'] as $k => $p) {
-							@$value = $item->xpath($p);//TEMP
-							$value = $value[0].'';
-							if($service == 'twitter') {
-								$value = preg_replace('/^'.$id.'\: /','',$value);
-								if ($k == 'description') {
-									$value = preg_replace('/(http:\/\/[a-z0-9_%\/\.+-]+)/i','<a href="$1">$1</a>', $value);
-								}
-								$value = preg_replace('/@([a-zA-z0-9_]+)/','<span class="reply vcard tag">@<a class="url fn" href="http://twitter.com/$1">$1</a></span>',$value);
-								$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
-							}//end if twitter
-							if($service == 'backtype' && $k == 'description') {
-								$value = preg_replace('/<p><a href="http:\/\/www\.backtype\.com\/.*?">Read more comments by .*?<\/a><\/p>/','',$value);
-								$value = str_replace('<br>','<br />',$value);
-							}
-							if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
-							$update->set($k, $value);
-						}//end get
-						$dupe_of = false;
-						foreach($saved as $i) {
-							if($service != $i->get('service')) {
-								if($update->is_dupe_of($i)) {
-									$dupe_of = $i;
-									break;
-								}
-							}
-						}
-						if($dupe_of) {
-							$dupe_of->add_dupe($service, $update);
-							$dupe_of->save();
-							$update->parent($dupe_of->post_id());
+						preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
+						$aurl = html_entity_decode($match[1]);
+
+						preg_match('/<[\s]*link.+\/rss\+xml[^\f]+?href="(.+)"/', $raw, $match);
+						$rurl = html_entity_decode($match[1]);
+
+						if(($stream['atom'] && $aurl) || !$rurl) {
+							$url = $aurl;
+							if(!$stream['atom']) $stream['atom'] = array();
 						} else {
-							$update->save();
-							$saved[] = $update;
-						}
-						$update->save_as_post();
-					}//end foreach items
-				}//end if xpath
+							$url = $rurl;
+							if(!$stream['rss']) $stream['rss'] = array();
+						}//end if-else atom/rss
+						if(!$url) continue;
+					}//end if ! url
+					$raw = get_raw_actionstream($url);
+					if(!$raw) continue;
 
+					if(isset($stream['atom'])) {
+						if(!is_array($stream['atom'])) $stream['atom'] = array();
+						$stream['xpath'] = array(
+								'foreach' => '//entry',
+								'get' => array_merge(array(
+									'created_on' => 'published/child::text()',
+									'modified_on' => 'updated/child::text()',
+									'title' => 'title/child::text()',
+									'url' => 'link[@rel=\'alternate\']/@href',
+									'identifier' => 'id/child::text()'
+								), $stream['atom'])
+						);
+					}//end if atom
+
+					if(isset($stream['rss'])) {
+						if(!is_array($stream['rss'])) $stream['rss'] = array();
+						$stream['xpath'] = array(
+								'foreach' => '//item',
+								'get' => array_merge(array(
+									'created_on' => 'pubDate/child::text()',
+									'title' => 'title/child::text()',
+									'url' => 'link/child::text()',
+									'identifier' => 'guid/child::text()'
+								), $stream['rss'])
+						);
+					}//end if atom
+
+					if($stream['xpath']) {
+						unset($items);
+						@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw), 'SimpleXMLElement', LIBXML_NOCDATA);
+						if($doc && method_exists($doc, 'registerXPathNamespace')) {
+							$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
+							$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
+							$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
+						}
+						if($doc && $stream['xpath']['foreach']) {
+							$stream['xpath']['foreach'] = str_replace('%s', $id, $stream['xpath']['foreach']);
+							$items = $doc->xpath($stream['xpath']['foreach']);
+						}
+						if(!$items) $items = array();
+
+						if(!is_array($stream['xpath']['get'])) {//DEBUG: this should never happen
+							echo '<p>Invalid definition of '.$service;
+							echo '<pre>';
+							var_dump($stream);
+							echo '</pre>';
+							'</p>';
+							continue;
+						}
+						foreach($items as $item) {
+							$update = new ActionStreamItem(array('ident' => $id), $service, $setup_idx, $this->user_id);
+							foreach($stream['xpath']['get'] as $k => $p) {
+								@$value = $item->xpath($p);//TEMP
+								$value = $value[0].'';
+								if($service == 'twitter') {
+									$value = preg_replace('/^'.$id.'\: /','',$value);
+									if ($k == 'description') {
+										$value = preg_replace('/(http:\/\/[a-z0-9_%\/\.+-]+)/i','<a href="$1">$1</a>', $value);
+									}
+									$value = preg_replace('/@([a-zA-z0-9_]+)/','<span class="reply vcard tag">@<a class="url fn" href="http://twitter.com/$1">$1</a></span>',$value);
+									$value = preg_replace('/#([a-zA-z0-9_]+)/','#<a href="http://hashtags.org/tag/$1" rel="tag">$1</a>',$value);
+								}//end if twitter
+								if($service == 'backtype' && $k == 'description') {
+									$value = preg_replace('/<p><a href="http:\/\/www\.backtype\.com\/.*?">Read more comments by .*?<\/a><\/p>/','',$value);
+									$value = str_replace('<br>','<br />',$value);
+								}
+								if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
+								$update->set($k, $value);
+							}//end get
+							$dupe_of = false;
+							foreach($saved as $i) {
+								if($service != $i->get('service')) {
+									if($update->is_dupe_of($i)) {
+										$dupe_of = $i;
+										break;
+									}
+								}
+							}
+							if($dupe_of) {
+								$dupe_of->add_dupe($service, $update);
+								$dupe_of->save();
+								$update->parent($dupe_of->post_id());
+							} else {
+								$update->save();
+								$saved[] = $update;
+							}
+							$update->save_as_post();
+						}//end foreach items
+					}//end if xpath
+				}//end foreach id
 			}//end foreach setup
 		}//end foreach ident
 
@@ -678,7 +683,7 @@ class ActionStream {
 				if(preg_match($regex, $url, $match)) {
 					$match[1] = explode('/', $match[1]);
 					$match[1] = $match[1][0];
-					$ident[$service] = $match[1];
+					$ident[$service] = array_unique(array_merge((array)$ident[$service], array($match[1])));
 					break;
 				}//end if preg_match
 			}//echo foreach action_streams
