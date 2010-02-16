@@ -387,9 +387,9 @@ identica:
         html_params:
             - url
             - description
-        url: 'http://identi.ca/api/statuses/user_timeline/{{ident}}.rss'
-        rss:
-            description: description/child::text()
+        url: 'http://identi.ca/api/statuses/user_timeline/{{ident}}.atom'
+        atom:
+            description: content/child::text()
         class: Identica
 iminta:
     links:
