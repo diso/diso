@@ -19,7 +19,7 @@ header('Last-Modified: '.date('r'));
 echo '<?xml version="1.0" ?>';
 
 ?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:thr="http://purl.org/syndication/thread/1.0">
 	<channel>
 		<title>ActionStream for <?php echo htmlspecialchars($userdata->display_name); ?></title>
 		<description>ActionStream data</description>
@@ -85,6 +85,7 @@ foreach($stream as $item) {
 
 			echo htmlspecialchars('</ul>')."\n";
 			echo '		</description>'."\n";
+			if(isset($_GET['full']) && $during_service->get('in-reply-to')) echo '		<thr:in-reply-to ref="'.htmlspecialchars($during_service->get('in-reply-to')).'" />'."\n";
 			echo '	</item>'."\n";
 
 			if($c > 20) break;
