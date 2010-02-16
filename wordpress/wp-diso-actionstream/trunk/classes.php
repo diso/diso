@@ -310,6 +310,10 @@ class ActionStreamItem {
 				$this->config['profile_services'][$this->service], $hide_user
 			);
 
+		if($this->get('in-reply-to')) {
+			$string .= ' <a rev="reply" rel="in-reply-to" href="'.htmlspecialchars($this->get('in-reply-to')).'">in reply to</a> ';
+		}
+
 		$string .= sprintf(' <abbr class="published" title="%s">@ %s %s</abbr>',
 			date('c',$this->get('created_on')),
 			date(get_option('date_format'),$this->get('created_on')),
@@ -442,7 +446,8 @@ class ActionStream {
 									'modified_on' => 'updated/child::text()',
 									'title' => 'title/child::text()',
 									'url' => 'link[@rel=\'alternate\']/@href',
-									'identifier' => 'id/child::text()'
+									'identifier' => 'id/child::text()',
+									'in-reply-to' => 'thr:in-reply-to/@ref'
 								), $stream['atom'])
 						);
 					}//end if atom
@@ -467,6 +472,8 @@ class ActionStream {
 							$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 							$doc->registerXPathNamespace('content', 'http://purl.org/rss/1.0/modules/content/');
 							$doc->registerXPathNamespace('media', 'http://search.yahoo.com/mrss/');
+							$doc->registerXPathNamespace('atom', 'http://www.w3.org/2005/Atom');
+							$doc->registerXPathNamespace('thr', 'http://purl.org/syndication/thread/1.0');
 						}
 						if($doc && $stream['xpath']['foreach']) {
 							$stream['xpath']['foreach'] = str_replace('%s', $id, $stream['xpath']['foreach']);
