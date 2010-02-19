@@ -370,7 +370,7 @@ class ActionStreamItem {
 		}
 
 		foreach ($fields as $i => $k) {
-			if ( $data[$k] == html_entity_decode(strip_tags($data[$k])) ) {
+			if ( $data[$k] == html_entity_decode(strip_tags($data[$k]),ENT_QUOTES) ) {
 				$data[$k] = htmlspecialchars($data[$k]);
 			}
 			$template = str_replace('[_'.($i+1).']', $data[$k], $template);
