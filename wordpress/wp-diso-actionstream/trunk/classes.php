@@ -355,11 +355,18 @@ class ActionStreamItem {
 		if ( !is_array($fields) ) return;
 		array_unshift($fields, 'ident');
 
-		if ( $data['ident'] && $service ) {
-			$data['ident'] = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '')
-				. '><a class="url fn nickname" href="' 
-				. htmlspecialchars(str_replace('{{ident}}',$data['ident'],$service['url'])).'">'
-				. htmlspecialchars($data['ident']).'</a></span>';
+		if ( $data['ident'] ) {
+			$pre = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '').'>';
+			$post = '</span>';
+			if($service && $service['url'] && $service['url'] != '{{ident}}') {
+				$pre .= '<a class="url fn nickname" href="'
+				. htmlspecialchars(str_replace('{{ident}}',$data['ident'],$service['url'])).'">';
+				$post = '</a>'.$post;
+			} else {
+				$pre .= '<span class="fn nickname">';
+				$post = '</span>'.$post;
+			}
+			$data['ident'] = $pre.htmlspecialchars($data['ident']).$post;
 		}
 
 		foreach ($fields as $i => $k) {
