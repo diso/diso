@@ -319,8 +319,9 @@ class ActionStreamItem {
 				$this->config['profile_services'][$this->service], $hide_user
 			);
 
-		if($this->get('in-reply-to')) {
-			$string .= ' <a rev="reply" rel="in-reply-to" href="'.htmlspecialchars($this->get('in-reply-to')).'">in reply to</a> ';
+		if($reply = $this->get('in-reply-to')) {
+			foreach((array)$reply as $r)
+				$string .= ' <a rev="reply" rel="in-reply-to" href="'.htmlspecialchars($r).'">in reply to</a> ';
 		}
 
 		$string .= sprintf(' <abbr class="published" title="%s">@ %s %s</abbr>',
