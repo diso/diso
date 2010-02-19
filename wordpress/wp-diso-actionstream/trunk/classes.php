@@ -101,6 +101,8 @@ class ActionStreamItem {
 			if(preg_match('/^'.preg_quote($this->service, '/').'_(.*)$/', $tag->name, $match))
 				$this->setup_idx = $match[1];
 		}
+		if(!$this->service) $this->service = 'website';
+		if(!$this->setup_idx) $this->setup_idx = 'posted';
 	}
 
 	/**
