@@ -85,9 +85,12 @@ class ActionStreamItem {
 			'identifier' => $post->guid
 			);
 		if($post->post_title) $data['title'] = $post->post_title;
-		if($post->post_content) $data['description'] = $post->post_content;
 		if($post->post_type != 'actionstream' && $post->post_excerpt) $data['description'] = $post->post_excerpt;
 		if($post->post_type != 'actionstream') $data['url'] = get_permalink($post);
+		if($post->post_content) {
+			$data['description'] = apply_filters('the_content',$post->post_content);
+			if(!preg_match('/^\s*<p>/',$post->post_content)) $data['description'] = preg_replace('/^\s*<p>|<\/p>\s*$/','',$data['description']);
+		}
 		if($post->post_type == 'actionstream' && $post->post_excerpt) $data['url'] = $post->post_excerpt;
 		$this->data = array_merge($data, get_post_custom($post->ID));
 		$tags = get_the_tags($post->ID);
