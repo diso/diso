@@ -867,7 +867,7 @@ twitter:
         html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]"><span class="value-title" title="posted"> </span>tweeted</a>, “<span class="entry-title entry-content">[_3]</span>”'
         html_params:
             - url
-            - title
+            - description
         url: 'http://twitter.com/statuses/user_timeline/{{ident}}.atom'
         atom:
             description: content/child::text()
