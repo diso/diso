@@ -655,8 +655,7 @@ class ActionStream {
 				}
 				// javascript magic to toggle collapsable items
 				if (sizeof($items) > 1 && $collapse) {
-					$rtrn .= '<script type="text/javascript">
-						jQuery(".'.$group_id.':not(:first)").hide();
+					$js .= 'jQuery(".'.$group_id.':not(:first)").hide();
 						jQuery(".'.$group_id.':first").show(); // Sometimes they all hide
 						jQuery(".'.$group_id.':first")
 							.append("(and ")
@@ -669,14 +668,14 @@ class ActionStream {
 									jQuery(".'.$group_id.':first").show(); // Sometimes they all hide
 									return false;
 								}))
-							.append(")");
-					</script>';
+							.append(")");';
 				}
 			}
 
 			$rtrn .= "</ul>\n";
 		}
 
+		if($js) $rtrn .= '<script type="text/javascript">'.$js.'</script>';
 
 		$feedlink = get_feed_link('action_stream');
 		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
