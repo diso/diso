@@ -586,7 +586,7 @@ class ActionStream {
 	 * @param array $permissions
 	 * @param boolean $collapse
 	 */
-	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true) {
+	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true, $filter=array()) {
 		$items = $this->items($collapse ? $num*4 : $num, true);
 		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
@@ -611,6 +611,8 @@ class ActionStream {
 			}
 			if (!array_key_exists($item['service'], $yaml['profile_services'])) continue;
 			if(function_exists('diso_user_is') && !diso_user_is($permissions[$item['service']])) continue;
+			if($filter['include'] && !in_array($item['service'], (array)$filter['include'])) continue;
+			if($filter['exclude'] && in_array($item['service'], (array)$filter['exclude'])) continue;
 			if (!$collapse && ($count++ >= $num)) break;
 
 			$current_day = date(get_option('date_format'), $item['created_on']+$gmt_offset);

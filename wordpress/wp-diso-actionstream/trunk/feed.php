@@ -51,6 +51,8 @@ foreach($stream as $item) {
 	}
 
 	if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$as_item->get('service')])) continue;
+	if($_REQUEST['include'] && !in_array($as_item->get('service'), (array)$_REQUEST['include'])) continue;
+	if($_REQUEST['exclude'] && in_array($as_item->get('service'), (array)$_REQUEST['exclude'])) continue;
 
 	if($as_item->get('service') == $previous_service) {
 

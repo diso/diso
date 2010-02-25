@@ -298,11 +298,11 @@ add_action('publish_post', 'actionstream_wordpress_post');
  * @param boolean $echo whether to echo the rendered activity stream
  * @return string the rendered activity stream
  */
-function actionstream_render($user_id, $num=10, $hide_user=false, $echo=true) {
+function actionstream_render($user_id, $num=10, $hide_user=false, $filter=array(), $echo=true) {
 	$userdata = get_userdata($user_id);
 
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar);
+	$rtrn = $rtrn->toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar, $filter);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }
