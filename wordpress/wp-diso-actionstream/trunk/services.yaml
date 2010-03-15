@@ -164,6 +164,14 @@ magnolia:
     name: Ma.gnolia
     url: http://ma.gnolia.com/people/{{ident}}
     service_type: links
+microblog:
+    name: Microblog
+    url: '{{ident}}'
+    ident_label: URL
+    ident_example: http://some.mublog/you
+    ident_exact: 1
+    can_many: 1
+    service_type: blog
 mog:
     name: MOG
     url: http://mog.com/{{ident}}
