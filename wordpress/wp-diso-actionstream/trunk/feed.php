@@ -3,40 +3,68 @@
 require_once dirname(__FILE__).'/config.php';
 require_once dirname(__FILE__).'/classes.php';
 
+function h($s, $quote_style = ENT_COMPAT, $charset=NULL, $double_encode=true) {
+	return htmlspecialchars($s, $quote_style, $charset, $double_encode);
+}
 
 $user_id = activity_stream_get_user_id( $_REQUEST['user'] );
 $userdata = get_userdata($user_id);
 $stream = new ActionStream($userdata->actionstream, $userdata->ID);
-$stream = $stream->items(10*4, true);
+$stream = $stream->items(get_option('posts_per_page')*4, true);
 
 $selflink = get_feed_link('action_stream');
 $selflink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $user_id;
 if(isset($_REQUEST['full'])) $selflink .= (strpos($selflink, '?') ? '&' : '?') . 'full';
+if(is_array($_REQUEST['include'])) {
+	sort($_REQUEST['include']);
+	$selflink .= (strpos($selflink, '?') ? '&' : '?') . 'include[]=' . implode('&include[]=', $_REQUEST['include']);
+}
+if(is_array($_REQUEST['exclude'])) {
+	sort($_REQUEST['exclude']);
+	$selflink .= (strpos($selflink, '?') ? '&' : '?') . 'exclude[]=' . implode('&exclude[]=', $_REQUEST['exclude']);
+}
 
 header('Content-Type: application/rss+xml');
 header('ETag: '.md5(time())); // Hack to override default wordpress headers that break feed readers
 header('Last-Modified: '.date('r'));
-echo '<?xml version="1.0" ?>';
+echo '<?xml version="1.0" ?>'."\n";
 
 ?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:thr="http://purl.org/syndication/thread/1.0">
+<rss version="2.0"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+	  xmlns:thr="http://purl.org/syndication/thread/1.0"
+	  xmlns:v="http://www.w3.org/2006/vcard/ns#"
+	  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	  xmlns:activity="http://activitystrea.ms/spec/1.0/"
+	  xmlns:media="http://search.yahoo.com/mrss/">
 	<channel>
-		<title>ActionStream for <?php echo htmlspecialchars($userdata->display_name); ?></title>
+		<title>ActionStream for <?php echo h($userdata->display_name); ?></title>
 		<description>ActionStream data</description>
-		<link><?php echo htmlspecialchars($userdata->user_url); ?></link>
-		<atom:link rel="self" href="<?php echo htmlspecialchars($selflink); ?>" />
+		<link><?php echo h($userdata->user_url); ?></link>
+		<atom:link rel="self" href="<?php echo h($selflink); ?>" />
+		<activity:subject>
+			<activity:object-type>http://activitystrea.ms/schema/1.0/person</activity:object-type>
+			<atom:title><?php echo h($userdata->display_name); ?></atom:title>
+			<atom:id><?php echo h($userdata->user_url); ?></atom:id>
+			<v:vCard>
+				<v:fn><?php echo h($userdata->display_name); ?></v:fn>
+				<v:nickname><?php echo h($userdata->nickname); ?></v:nickname>
+				<v:url rdf:resource="<?php echo h($userdata->user_url); ?>" />
+				<?php if($userdata->photo): ?><v:photo rdf:resource="<?php echo h($userdata->photo); ?>" /><?php endif; ?>
+			</v:vCard>
+		</activity:subject>
 <?php
 
-if(function_exists('get_pubsub_endpoints')) {
+if(function_exists('get_pubsub_endpoints') && !$_REQUEST['include'] && !$_REQUEST['exclude']) {
 	foreach((array)get_pubsub_endpoints() as $hub) {
 	?>
-		<atom:link rel="hub" href="<?php echo htmlspecialchars($hub); ?>" />
+		<atom:link rel="hub" href="<?php echo h($hub); ?>" />
 	<?php
 	}
 }
 
 if($userdata->photo) {
-	echo '		<image><title>'.htmlspecialchars($userdata->display_name).'</title><url>'.htmlspecialchars($userdata->photo).'</url><link>'.htmlspecialchars($userdata->user_url).'</link></image>';
+	echo '		<image><title>'.h($userdata->display_name).'</title><url>'.h($userdata->photo).'</url><link>'.h($userdata->user_url).'</link></image>';
 }
 
 $after_service = array();
@@ -68,29 +96,40 @@ foreach($stream as $item) {
 
 			echo '		<title>';
 			$t = iconv('UTF-8//IGNORE','UTF-8//IGNORE',substr(strip_tags(html_entity_decode($during_service,ENT_QUOTES,'UTF-8')),0,60));
-			echo htmlspecialchars($t);
+			echo h($t);
 			if(strlen(strip_tags(html_entity_decode($during_service,ENT_QUOTES,'UTF-8'))) > 60) echo '...';
 
 			if(count($after_service)) echo ' (and '.count($after_service).' more...)'."\n";
 			echo '</title>'."\n";
 			if($during_service->get('created_on')) echo '<pubDate>'.date('r',$during_service->get('created_on')).'</pubDate>'."\n";
-			if($during_service->get('url')) echo '<link>'.htmlspecialchars($during_service->get('url')).'</link>'."\n";
-			if($during_service->identifier()) echo '<guid isPermaLink="false">'.htmlspecialchars($during_service->identifier()).'</guid>'."\n";
+			if($during_service->get('url')) echo '<link>'.h($during_service->get('url')).'</link>'."\n";
+			if($during_service->identifier()) echo '<guid isPermaLink="false">'.h($during_service->identifier()).'</guid>'."\n";
 				else echo '<guid isPermaLink="false">NO IDENTIFIER</guid>'."\n";
 			echo '		<description>'."\n";
-			echo htmlspecialchars("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
-			echo htmlspecialchars('<li class="hentry service-icon service-'.$previous_service.'">'.$during_service, ENT_NOQUOTES, 'UTF-8');
+			echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
+			echo h('<li class="hentry service-icon service-'.$previous_service.'">'.$during_service, ENT_NOQUOTES, 'UTF-8');
 
 			foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-				echo htmlspecialchars('<li class="hentry service-icon service-'.$previous_service.' actionstream-hidden">'.$cnt.'</li>', ENT_NOQUOTES, 'UTF-8');
+				echo h('<li class="hentry service-icon service-'.$previous_service.' actionstream-hidden">'.$cnt.'</li>', ENT_NOQUOTES, 'UTF-8');
 			$after_service = array();
 
-			echo htmlspecialchars('</ul>')."\n";
+			echo h('</ul>')."\n";
 			echo '		</description>'."\n";
-			if(isset($_GET['full']) && $during_service->get('in-reply-to')) echo '		<thr:in-reply-to ref="'.htmlspecialchars($during_service->get('in-reply-to')).'" />'."\n";
+			if(isset($_GET['full']) && $during_service->get('in-reply-to')) {
+				foreach((array)$during_service->get('in-reply-to') as $r) {
+					if(preg_match('/^https?:/', $r)) $href = $r;
+					if(!$href && preg_match('/https?:\/\/[^\s]+/', $r, $m)) $href = $m[0];
+					echo '		<thr:in-reply-to ref="'.h($r).'"';
+					if($href) echo ' href="'.h($href).'"';
+					echo ' />'."\n";
+				}
+			}
+			if(isset($_GET['full']) && $during_service->get('thumbnail')) {
+				echo '<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>';
+			}
 			echo '	</item>'."\n";
 
-			if($c > 20) break;
+			if($c > get_option('posts_per_page')) break;
 
 		}//end if during service
 
