@@ -584,6 +584,14 @@ magnolia:
         atom:
             tags: "category[@scheme='http://ma.gnolia.com/tags']/@term"
             note: content
+microblog:
+    statuses:
+        name: Posts
+        description: Microblog posts
+        html_form: '[_1] <a rel="bookmark" class="verb" href="[_2]">posted</a> <span class="entry-title">[_3]</span>'
+        html_params:
+            - url
+            - description
 netflix:
     queue:
         name: Queue
