@@ -320,8 +320,10 @@ class ActionStreamItem {
 			);
 
 		if($reply = $this->get('in-reply-to')) {
-			foreach((array)$reply as $r)
+			foreach((array)$reply as $r) {
+				if(preg_match('/https?:\/\/[^\s]+/', $r, $m)) $r = $m[0];
 				$string .= ' <a rev="reply" rel="in-reply-to" href="'.htmlspecialchars($r).'">in reply to</a> ';
+			}
 		}
 
 		$string .= sprintf(' <abbr class="published" title="%s">@ %s %s</abbr>',
