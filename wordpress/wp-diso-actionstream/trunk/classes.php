@@ -185,7 +185,6 @@ class ActionStreamItem {
 		return $data;
 	}
 
-
 	/**
 	 * Get identifier for this item
 	 *
