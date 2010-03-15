@@ -424,6 +424,8 @@ class ActionStream {
 	 */
 	function update() {
 		$saved = array();
+		foreach($this->items(40,true) as $item)
+			$saved[] = new ActionStreamItem($item);
 		foreach($this->ident as $service => $id) {
 			$setup = $this->config['action_streams'][$service];
 			if(!is_array($setup)) continue;
