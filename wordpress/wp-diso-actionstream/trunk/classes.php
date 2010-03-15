@@ -445,21 +445,26 @@ class ActionStream {
 					}
 					$url = str_replace('{{ident}}', $id, $stream['url']);
 					if(!$url) {//feed autodetect
-						$raw = get_raw_actionstream(str_replace('{{ident}}',$id,$this->config['profile_services'][$service]['url']));
-
-						preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
-						$aurl = html_entity_decode($match[1]);
-
-						preg_match('/<[\s]*link.+\/rss\+xml[^\f]+?href="(.+)"/', $raw, $match);
-						$rurl = html_entity_decode($match[1]);
-
-						if(($stream['atom'] && $aurl) || !$rurl) {
-							$url = $aurl;
-							if(!$stream['atom']) $stream['atom'] = array();
+						$profile_url = str_replace('{{ident}}',$id,$this->config['profile_services'][$service]['url']);
+						if($stream['scraper']) {
+							$url = $profile_url;
 						} else {
-							$url = $rurl;
-							if(!$stream['rss']) $stream['rss'] = array();
-						}//end if-else atom/rss
+							$raw = get_raw_actionstream($profile_url);
+
+							preg_match('/<[\s]*link.+\/atom\+xml[^\f]+?href="(.+)"/', $raw, $match);
+							$aurl = html_entity_decode($match[1]);
+
+							preg_match('/<[\s]*link.+\/rss\+xml[^\f]+?href="(.+)"/', $raw, $match);
+							$rurl = html_entity_decode($match[1]);
+
+							if(($stream['atom'] && $aurl) || !$rurl) {
+								$url = $aurl;
+								if(!$stream['atom']) $stream['atom'] = array();
+							} else {
+								$url = $rurl;
+								if(!$stream['rss']) $stream['rss'] = array();
+							}//end if-else atom/rss
+						}
 						if(!$url) continue;
 					}//end if ! url
 					$raw = get_raw_actionstream($url);
