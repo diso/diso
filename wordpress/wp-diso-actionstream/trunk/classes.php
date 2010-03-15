@@ -204,36 +204,30 @@ class ActionStreamItem {
 		return $this->get($identifier_field);
 	}
 
-
-	/**
-	 * Determine if strings are similar enough to be considered duplicates
-	 *
-	 * @param string $a first string to compare
-	 * @param string $b second string to compare
-	 * @return boolean true if strings are similar
-	 */
-	function similar_enough($a, $b) {
-		$a = substr(strip_tags($a), 0, 255);
-		$b = substr(strip_tags($b), 0, 255);
-		$avg_length = strlen($a) + strlen($b);
-		return levenshtein($a, $b) <= $avg_length / 4;
-	}
-
-
 	/**
 	 * Determine if specified item is duplicate
 	 *
 	 * @param ActionStreamItem $b item to compare
-	 * @return boolean true if specified item is a duplicate
+	 * @return boolean false if specified item is not a duplicate, or the item it is a duplicate of
 	 */
 	function is_dupe_of($b) {
+		if(is_array($b)) {
+			$dupe = false;
+			foreach($b as $b) {
+				if($dupe = $this->is_dupe_of($b)) {
+					break;
+				}
+			}
+			return $dupe;
+		}
+		if($this->get('service') == $b->get('service')) return false; // From same service are not dupes
 		if(!$this->get('created_on') && $this->get('modified_on')) $this->set('created_on', $this->get('modified_on'));
 		$created_on = $this->set('created_on', (int)$this->get('created_on') ? (int)$this->get('created_on') : time());
 		if(abs($this->get('created_on') - $b->get('created_on')) > 36000) return false; // If they're too far apart, they aren't duplicates
-		if($this->identifier() == $b->identifier()) return true; // duh
-		if($this->get('url') == $b->get('url')) return true; // This seems reasonable, but may not always work out
-		if($this->similar_enough($this->get('title'), $b->get('title'))) {
-			return $this->similar_enough($this->get('description'), $b->get('description'));
+		if($this->identifier() == $b->identifier()) return $b; // duh
+		if($this->get('url') == $b->get('url')) return $b; // This seems reasonable, but may not always work out
+		if(ActionStreamItem::similar_enough($this->get('title'), $b->get('title'))) {
+			return ActionStreamItem::similar_enough($this->get('description'), $b->get('description')) ? $b : false;
 		}
 		return false;
 	}
@@ -379,6 +373,20 @@ class ActionStreamItem {
 		}
 
 		return $template;
+	}
+
+	/**
+	 * Determine if strings are similar enough to be considered duplicates
+	 *
+	 * @param string $a first string to compare
+	 * @param string $b second string to compare
+	 * @return boolean true if strings are similar
+	 */
+	protected static function similar_enough($a, $b) {
+		$a = substr(strip_tags($a), 0, 255);
+		$b = substr(strip_tags($b), 0, 255);
+		$avg_length = strlen($a) + strlen($b);
+		return levenshtein($a, $b) <= $avg_length / 4;
 	}
 
 }//end class ActionStreamItem
