@@ -200,7 +200,7 @@ function actionstream_page() {
 						foreach($actionstream_yaml['action_streams'] as $service => $setup) {
 							if($setup['scraper']) continue;//FIXME: we don't support scraper yet
 							$setup = $actionstream_yaml['profile_services'][$service];
-							echo '<option class="service-icon service-'.htmlspecialchars($service).'" value="'.htmlspecialchars($service).'" title="'.htmlspecialchars($setup['url']).'|'.htmlspecialchars($setup['ident_example']).'|'.htmlspecialchars($setup['ident_label']).'">';
+							echo '<option style="padding-left: 20px;" class="service-icon service-'.htmlspecialchars($service).'" value="'.htmlspecialchars($service).'" title="'.htmlspecialchars($setup['url']).'|'.htmlspecialchars($setup['ident_example']).'|'.htmlspecialchars($setup['ident_label']).'">';
 							echo htmlspecialchars($setup['name'] ? $setup['name'] : ucwords($service));
 							echo '</option>';
 						}
