@@ -718,6 +718,34 @@ picasaweb:
         url: 'http://picasaweb.google.com/data/feed/api/user/{{ident}}?kind=photo&max-results=15'
         atom:
             thumbnail: media:group/media:thumbnail[position()=2]/@url
+plancast:
+    plans:
+        name: Plans
+        description: Plans you shared
+        html_form: '[_1] <span class="verb">posted</span> the <span class="object-type">event</span> <span class="vevent object"><a rel="bookmark" class="entry-title summary url" href="[_2]">[_3]</a></span>'
+        html_params:
+            - url
+            - title
+        url: 'http://plancast.com/{{ident}}/stream'
+        identifier: url
+        scraper:
+            foreach: .vevent
+            get:
+                title:
+                    - .summary
+                    - TEXT
+                url:
+                    - .url
+                    - @href
+                dtstart:
+                    - .dtstart
+                    - @title
+                location:
+                    - .location
+                    - TEXT
+                created_on:
+                    - .listing_li_ago
+                    - TEXT
 p0pulist:
     stuff:
         name: List
