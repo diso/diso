@@ -561,14 +561,16 @@ class ActionStream {
 		if(function_exists('publish_to_hub')) {
 			$feedlink = get_feed_link('action_stream');
 			$feedlink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $this->user_id;
-			publish_to_hub(NULL, array($feedlink, $feedlink.'&full'));
-			$services = sort(array_keys($this->ident));
+			$services = array_keys($this->ident);
+			sort($services);
+			$feeds = array($feedlink, $feedlink.'&full');
+			/* This is a cool idea, but I have 16383 subsets of my services... not practical at all
 			foreach(ActionStream::subsets($services) as $subset) {
 				$include = 'include[]='.implode('include[]=', $subset);
-				publish_to_hub(NULL, array($feedlink.$include, $feedlink.'&full'.$include));
 				$exclude = 'exclude[]='.implode('exclude[]=', $subset);
-				publish_to_hub(NULL, array($feedlink.$exclude, $feedlink.'&full'.$exclude));
-			}
+				$feeds = array_merge($feeds, array($feedlink.$include, $feedlink.'&full'.$include, $feedlink.$exclude, $feedlink.'&full'.$exclude));
+			}*/
+			publish_to_hub(NULL, $feeds);
 		}
 	}//end function update
 
@@ -739,7 +741,7 @@ class ActionStream {
 
 	protected static function choose($a, $len) {
 		if($len == 0) return array(array());
-		if(count($a) == 0) return array();
+		if(!is_array($a) || count($a) == 0) return array();
 		$new_element = array_pop($a);
 		return array_merge(ActionStream::choose($a, $len), ActionStream::append_all(ActionStream::choose($a, $len-1), $new_element));
 	}
