@@ -226,6 +226,10 @@ picasaweb:
     name: Picasa Web Albums
     url: http://picasaweb.google.com/{{ident}}
     service_type: photos
+plancast:
+    name: Plancast
+    url: http://plancast.com/{{ident}}
+    service_type: events
 p0pulist:
     name: p0pulist
     url: http://p0pulist.com/list/hot_list/{{ident}}
