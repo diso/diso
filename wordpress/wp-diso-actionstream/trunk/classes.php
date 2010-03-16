@@ -542,7 +542,6 @@ class ActionStream {
 								if(($k == 'created_on' || $k == 'modified_on' || $k == 'dtstart') && !is_numeric($value)) $value = strtotime($value);
 								$update->set($k, $value);
 							}//end get
-							$dupe_of = $update->is_dupe_of($saved);
 							if($dupe_of = $update->is_dupe_of($saved)) {
 								$dupe_of->add_dupe($service, $update);
 								$dupe_of->save();
