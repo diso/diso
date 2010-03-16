@@ -562,6 +562,13 @@ class ActionStream {
 			$feedlink = get_feed_link('action_stream');
 			$feedlink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $this->user_id;
 			publish_to_hub(NULL, array($feedlink, $feedlink.'&full'));
+			$services = sort(array_keys($this->ident));
+			foreach(ActionStream::subsets($services) as $subset) {
+				$include = 'include[]='.implode('include[]=', $subset);
+				publish_to_hub(NULL, array($feedlink.$include, $feedlink.'&full'.$include));
+				$exclude = 'exclude[]='.implode('exclude[]=', $subset);
+				publish_to_hub(NULL, array($feedlink.$exclude, $feedlink.'&full'.$exclude));
+			}
 		}
 	}//end function update
 
@@ -722,6 +729,28 @@ class ActionStream {
 		}//end foreach urls
 		return $ident;
 	}//end function from_urls
+
+	protected static function append_all($lists, $element) {
+		for($i=0; $i<count($lists); $i++) {
+			array_push($lists[$i], $element);
+		}
+		return $lists;
+	}
+
+	protected static function choose($a, $len) {
+		if($len == 0) return array(array());
+		if(count($a) == 0) return array();
+		$new_element = array_pop($a);
+		return array_merge(ActionStream::choose($a, $len), ActionStream::append_all(ActionStream::choose($a, $len-1), $new_element));
+	}
+
+	protected static function subsets($a) {
+		$r = array();
+		for($i=1; $i<=count($a); $i++) {
+			$r = array_merge($r, ActionStream::choose($a, $i));
+		}
+		return $r;
+	}
 
 }//end class ActionStream
 
