@@ -498,8 +498,8 @@ class ActionStream {
 						);
 					}//end if atom
 
+					unset($items);
 					if($stream['xpath']) {
-						unset($items);
 						@$doc = simplexml_load_string(str_replace('xmlns=','a=',$raw), 'SimpleXMLElement', LIBXML_NOCDATA);
 						if($doc && method_exists($doc, 'registerXPathNamespace')) {
 							$doc->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
@@ -553,6 +553,49 @@ class ActionStream {
 							$update->save_as_post();
 						}//end foreach items
 					}//end if xpath
+
+					if($stream['scraper']) {
+						require_once dirname(__FILE__).'/lib/simple_html_dom.php';
+						$doc = str_get_html($raw);
+						if($doc && $stream['scraper']['foreach']) {
+							$stream['scraper']['foreach'] = str_replace('%s', $id, $stream['scraper']['foreach']);
+							$items = $doc->find($stream['scraper']['foreach']);
+						}
+						if(!$items) $items = array();
+						if(!is_array($stream['scraper']['get'])) {//DEBUG: this should never happen
+							echo '<p>Invalid definition of '.$service;
+							echo '<pre>';
+							var_dump($stream);
+							echo '</pre>';
+							'</p>';
+							continue;
+						}
+						foreach($items as $item) {
+							$update = new ActionStreamItem(array('ident' => $id), $service, $setup_idx, $this->user_id);
+							foreach($stream['scraper']['get'] as $k => $p) {
+								$value = $item->find($p[0]);//TEMP
+								$value = $value[0];
+								if($p[1]{0} == '@') {
+									$value = $value->getAttribute(substr($p[1], 1, strlen($p[1])-1));
+								} else if($p[1] == 'TEXT') {
+									$value = $value->text();
+								} else {
+									$value = $value.'';
+								}
+								if(($k == 'created_on' || $k == 'modified_on' || $k == 'dtstart') && !is_numeric($value)) $value = strtotime(preg_replace('/posted|shared/i','',$value));
+								$update->set($k, $value);
+							}
+							if($dupe_of = $update->is_dupe_of($saved)) {
+								$dupe_of->add_dupe($service, $update);
+								$dupe_of->save();
+								$update->parent($dupe_of->post_id());
+							} else {
+								$update->save();
+								$saved[] = $update;
+							}
+							$update->save_as_post();
+						}
+					}// end if scraper
 				}//end foreach id
 			}//end foreach setup
 		}//end foreach ident
