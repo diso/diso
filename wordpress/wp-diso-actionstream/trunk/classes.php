@@ -539,7 +539,7 @@ class ActionStream {
 									$value = preg_replace('/<p><a href="http:\/\/www\.backtype\.com\/.*?">Read more comments by .*?<\/a><\/p>/','',$value);
 									$value = str_replace('<br>','<br />',$value);
 								}
-								if(($k == 'created_on' || $k == 'modified_on') && !is_numeric($value)) $value = strtotime($value);
+								if(($k == 'created_on' || $k == 'modified_on' || $k == 'dtstart') && !is_numeric($value)) $value = strtotime($value);
 								$update->set($k, $value);
 							}//end get
 							$dupe_of = $update->is_dupe_of($saved);
