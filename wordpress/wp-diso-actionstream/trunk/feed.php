@@ -36,7 +36,8 @@ echo '<?xml version="1.0" ?>'."\n";
 	  xmlns:v="http://www.w3.org/2006/vcard/ns#"
 	  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	  xmlns:activity="http://activitystrea.ms/spec/1.0/"
-	  xmlns:media="http://search.yahoo.com/mrss/">
+	  xmlns:media="http://search.yahoo.com/mrss/"
+	  xmlns:xCal="urn:ietf:params:xml:ns:xcal">
 	<channel>
 		<title>ActionStream for <?php echo h($userdata->display_name); ?></title>
 		<description>ActionStream data</description>
@@ -124,8 +125,20 @@ foreach($stream as $item) {
 					echo ' />'."\n";
 				}
 			}
+			/* Other namespaces */
+			/* xCalendar (iCal profile) */
+			if(isset($_GET['full']) && $during_service->get('dtstart')) {
+				echo '		<xCal:dtstart>'.h(date('c', $during_service->get('dtstart'))).'</xCal:dtstart>'."\n";
+			}
+			if(isset($_GET['full']) && $during_service->get('dtend')) {
+				echo '		<xCal:dtend>'.h(date('c', $during_service->get('dtend'))).'</xCal:dtend>'."\n";
+			}
+			if(isset($_GET['full']) && $during_service->get('location')) {
+				echo '		<xCal:location>'.h($during_service->get('location')).'</xCal:location>'."\n";
+			}
+			/* MediaRSS */
 			if(isset($_GET['full']) && $during_service->get('thumbnail')) {
-				echo '<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>';
+				echo '		<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>'."\n";
 			}
 			echo '	</item>'."\n";
 
