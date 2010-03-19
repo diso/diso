@@ -326,14 +326,16 @@ function actionstream_services($user_id, $urls_only=false) {
 		if(function_exists('diso_user_is') && !diso_user_is($userdata->profile_permissions[$service])) continue;
 	   $setup = $actionstream_yaml['profile_services'][$service];
 	   if (empty($setup)) { continue; }
-	   $url = str_replace('{{ident}}', $username, $setup['url']);
-		if(!$urls_only) {
-			if($userdata->urls && count($userdata->urls) && in_array($url, $userdata->urls))
-			   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n");
-			else
-			   $rtrn[] = '<li class="service-icon service-'.$service.'"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n";
-		} else {
-			$rtrn[] = $url;
+		foreach((array)$username as $username) {
+		   $url = str_replace('{{ident}}', $username, $setup['url']);
+			if(!$urls_only) {
+				if($userdata->urls && count($userdata->urls) && in_array($url, $userdata->urls))
+				   array_unshift($rtrn, '<li class="service-icon service-'.$service.' profile"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n");
+				else
+			   	$rtrn[] = '<li class="service-icon service-'.$service.'"><a href="'.$url.'" class="url" rel="me">'.$setup['name'].'</a></li>' . "\n";
+			} else {
+				$rtrn[] = $url;
+			}
 		}
    }
    if(!$urls_only) $rtrn = '<ul class="actionstream_services">' . "\n" . implode("\n",$rtrn) . '</ul>' . "\n";
