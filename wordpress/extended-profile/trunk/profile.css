@@ -12,11 +12,15 @@
 	margin-top: 2em;
 }
 .hcard-profile dl.contact dt {
+	clear: left;
 	float: left;
-	width: 10em;
+	max-width: 25%;
+	overflow: hidden;
 }
 .hcard-profile dl.contact dd {
-	margin-left: 10em;
+	margin-left: 25%;
+	width: 75%;
+	overflow: hidden;
 }
 .hcard-profile dl.contact ul,
 .hcard-profile dl.contact ul li {
