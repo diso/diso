@@ -105,7 +105,7 @@ register_uninstall_hook('extended-profile/extended-profile.php', 'ext_profile_un
  * @access private
  */
 function ext_profile_style() {
-	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'));
+	wp_enqueue_style('ext-profile', plugins_url('extended-profile/profile.css'), array(), false, 'all');
 }
 add_action('init', 'ext_profile_style');
 
@@ -663,7 +663,7 @@ function extended_profile_contact($userid, $actionstream_aware) {
 
 	// Telephone
 	if (@$userdata->tel && diso_user_is(@$userdata->profile_permissions['tel'])) {
-		$tel = '<dt>Telephone:</dt> <dd class="tel">' . $userdata->tel . '</dd>';
+		$tel = '<dt>Telephone:</dt> <dd><a class="tel" href="tel:'.preg_replace('/[^A-Za-z0-9\+]+/','.',$userdata->tel).'">' . $userdata->tel . '</a></dd>';
 		$tel = apply_filters('extended_profile_tel', $tel, $userdata->ID);
 		if ($tel) $contact .= $tel . "\n";
 	}
