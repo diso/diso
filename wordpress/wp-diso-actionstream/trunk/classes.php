@@ -89,11 +89,11 @@ class ActionStreamItem {
 			$data['description'] = apply_filters('the_content',$post->post_content);
 			if(!preg_match('/^\s*<p>/',$post->post_content)) $data['description'] = preg_replace('/^\s*<p>|<\/p>\s*$/','',$data['description']);
 		}
-		if($post->post_type != 'actionstream') {
+		if(!$data['ident']) {
 			$data['ident'] = get_userdata($post->post_author);
-			$data['ident'] = $data['ident']->display_name;
-			if($post->post_excerpt) $data['description'] = $post->post_excerpt;
+			$data['ident'] = array('fn' => $data['ident']->display_name, 'url' => $data['ident']->user_url);
 		}
+		if($post->post_type != 'actionstream' && $post->post_excerpt) $data['description'] = $post->post_excerpt;
 		if($post->post_type == 'actionstream' && $post->post_excerpt) $data['url'] = $post->post_excerpt;
 		if(!$data['url']) $data['url'] = get_permalink($post);
 		$this->data = array_merge(get_post_custom($post->ID), $data);
@@ -351,17 +351,20 @@ class ActionStreamItem {
 		array_unshift($fields, 'ident');
 
 		if ( $data['ident'] ) {
+			if(!is_array($data['ident'])) $data['ident'] = array('fn' => $data['ident']);
+			if(!$data['ident']['url'] && $service && $service['url'] && $service['url'] != '{{ident}}') {
+				$data['ident']['url'] = str_replace('{{ident}}',$data['ident']['fn'],$service['url']);
+			}
 			$pre = '<span class="author vcard" '.($hide_user ? 'style="display:none;"' : '').'>';
 			$post = '</span>';
-			if($service && $service['url'] && $service['url'] != '{{ident}}') {
-				$pre .= '<a class="url fn nickname" href="'
-				. htmlspecialchars(str_replace('{{ident}}',$data['ident'],$service['url'])).'">';
+			if($data['ident']['url']) {
+				$pre .= '<a class="url fn" href="'.htmlspecialchars($data['ident']['url']).'">';
 				$post = '</a>'.$post;
 			} else {
-				$pre .= '<span class="fn nickname">';
+				$pre .= '<span class="fn">';
 				$post = '</span>'.$post;
 			}
-			$data['ident'] = $pre.htmlspecialchars($data['ident']).$post;
+			$data['ident'] = $pre.htmlspecialchars($data['ident']['fn']).$post;
 		}
 
 		foreach ($fields as $i => $k) {
