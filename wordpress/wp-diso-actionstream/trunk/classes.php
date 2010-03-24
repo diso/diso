@@ -440,7 +440,6 @@ class ActionStream {
 		foreach($this->ident as $service => $id) {
 			$setup = $this->config['action_streams'][$service];
 			if(!is_array($setup)) continue;
-			//TODO: HTML/Microformats
 			foreach($setup as $setup_idx => $stream) {
 				foreach((array)$id as $id) {
 					if(is_array($id)) {
