@@ -92,6 +92,7 @@ foreach($stream as $item) {
 		if($during_service) {
 
 			$c++;
+			$service = $during_service->get('service');
 
 			echo '	<item>'."\n";
 
@@ -108,10 +109,10 @@ foreach($stream as $item) {
 				else echo '<guid isPermaLink="false">NO IDENTIFIER</guid>'."\n";
 			echo '		<description>'."\n";
 			echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
-			echo h('<li class="hentry service-icon service-'.$previous_service.'">'.$during_service, ENT_NOQUOTES, 'UTF-8');
+			echo h('<li class="hentry service-icon service-'.$service.'">'.$during_service.'</li>', ENT_NOQUOTES, 'UTF-8');
 
 			foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-				echo h('<li class="hentry service-icon service-'.$previous_service.' actionstream-hidden">'.$cnt.'</li>', ENT_NOQUOTES, 'UTF-8');
+				echo h('<li class="hentry service-icon service-'.$service.' actionstream-hidden">'.$cnt.'</li>', ENT_NOQUOTES, 'UTF-8');
 			$after_service = array();
 
 			echo h('</ul>')."\n";
