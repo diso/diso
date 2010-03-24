@@ -373,6 +373,7 @@ class ActionStreamItem {
 			}
 			$template = str_replace('[_'.($i+1).']', $data[$k], $template);
 			$template = str_replace('[%_'.($i+1).']', rawurlencode($data[$k]), $template);
+			if(is_numeric($data[$k])) $template = str_replace('[d_'.($i+1).']', '<abbr class="'.htmlspecialchars($k).'" title="'.gmdate('c',$data[$k]).'">'.date(get_option('date_format').' '.get_option('time_format'), $data[$k]).'</abbr>', $template);
 		}
 
 		return $template;
