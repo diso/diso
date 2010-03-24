@@ -27,6 +27,8 @@ if(is_array($_REQUEST['exclude'])) {
 header('Content-Type: application/rss+xml');
 header('ETag: '.md5(time())); // Hack to override default wordpress headers that break feed readers
 header('Last-Modified: '.date('r'));
+header('Expires: '.date('r', time()+120));
+
 echo '<?xml version="1.0" ?>'."\n";
 
 ?>
