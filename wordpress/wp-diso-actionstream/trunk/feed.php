@@ -97,27 +97,27 @@ foreach($stream as $item) {
 			echo '	<item>'."\n";
 
 			echo '		<title>';
-			$t = iconv('UTF-8//IGNORE','UTF-8//IGNORE',substr(strip_tags(html_entity_decode($during_service,ENT_QUOTES,'UTF-8')),0,60));
-			echo h($t);
-			if(strlen(strip_tags(html_entity_decode($during_service,ENT_QUOTES,'UTF-8'))) > 60) echo '...';
-
-			if(count($after_service)) echo ' (and '.count($after_service).' more...)'."\n";
+			if(count($after_service)) echo h(count($after_service).' items from '.$service."\n");
+				else echo h($during_service->get('title') ? $during_service->get('title') : strip_tags($during_service.''));
 			echo '</title>'."\n";
 			if($during_service->get('created_on')) echo '<pubDate>'.date('r',$during_service->get('created_on')).'</pubDate>'."\n";
 			if($during_service->get('url')) echo '<link>'.h($during_service->get('url')).'</link>'."\n";
 			if($during_service->identifier()) echo '<guid isPermaLink="false">'.h($during_service->identifier()).'</guid>'."\n";
 				else echo '<guid isPermaLink="false">NO IDENTIFIER</guid>'."\n";
+
 			echo '		<description>'."\n";
-			echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
-			echo h('<li class="hentry service-icon service-'.$service.'">'.$during_service.'</li>', ENT_NOQUOTES, 'UTF-8');
+			$item_wrapper = 'article';
+			if(count($after_service)) {
+				$item_wrapper = 'li';
+				echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
+			}
+			echo h('<'.$item_wrapper.' class="hentry service-icon service-'.$service.'">'.$during_service.'</'.$item_wrapper.'>'."\n", ENT_NOQUOTES, 'UTF-8');
+			foreach($after_service as $cnt)
+				echo h('<li class="hentry service-icon service-'.$service.' actionstream-hidden">'.$cnt.'</li>'."\n", ENT_NOQUOTES, 'UTF-8');
+			if(count($after_service)) echo h('</ul>')."\n";
 
-			foreach($after_service as $cnt)//not sure if I'm a fan of hiding the user on hidden entries... suggestion came from jangro.com
-				echo h('<li class="hentry service-icon service-'.$service.' actionstream-hidden">'.$cnt.'</li>', ENT_NOQUOTES, 'UTF-8');
-			$after_service = array();
-
-			echo h('</ul>')."\n";
 			echo '		</description>'."\n";
-			if(isset($_GET['full']) && $during_service->get('in-reply-to')) {
+			if(!count($after_service) && $during_service->get('in-reply-to')) {
 				foreach((array)$during_service->get('in-reply-to') as $r) {
 					if(preg_match('/^https?:/', $r)) $href = $r;
 					if(!$href && preg_match('/https?:\/\/[^\s]+/', $r, $m)) $href = $m[0];
@@ -128,21 +128,22 @@ foreach($stream as $item) {
 			}
 			/* Other namespaces */
 			/* xCalendar (iCal profile) */
-			if(isset($_GET['full']) && $during_service->get('dtstart')) {
+			if(!count($after_service) && $during_service->get('dtstart')) {
 				echo '		<xCal:dtstart>'.h(date('c', $during_service->get('dtstart'))).'</xCal:dtstart>'."\n";
 			}
-			if(isset($_GET['full']) && $during_service->get('dtend')) {
+			if(!count($after_service) && $during_service->get('dtend')) {
 				echo '		<xCal:dtend>'.h(date('c', $during_service->get('dtend'))).'</xCal:dtend>'."\n";
 			}
-			if(isset($_GET['full']) && $during_service->get('location')) {
+			if(!count($after_service) && $during_service->get('location')) {
 				echo '		<xCal:location>'.h($during_service->get('location')).'</xCal:location>'."\n";
 			}
 			/* MediaRSS */
-			if(isset($_GET['full']) && $during_service->get('thumbnail')) {
+			if(!count($after_service) && $during_service->get('thumbnail')) {
 				echo '		<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>'."\n";
 			}
 			echo '	</item>'."\n";
 
+			$after_service = array();
 			if($c > get_option('posts_per_page')) break;
 
 		}//end if during service
