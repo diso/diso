@@ -31,13 +31,14 @@ echo '<?xml version="1.0" ?>'."\n";
 
 ?>
 <rss version="2.0"
+     xmlns:activity="http://activitystrea.ms/spec/1.0/"
      xmlns:atom="http://www.w3.org/2005/Atom"
-	  xmlns:thr="http://purl.org/syndication/thread/1.0"
-	  xmlns:v="http://www.w3.org/2006/vcard/ns#"
-	  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	  xmlns:activity="http://activitystrea.ms/spec/1.0/"
-	  xmlns:media="http://search.yahoo.com/mrss/"
-	  xmlns:xCal="urn:ietf:params:xml:ns:xcal">
+     xmlns:geo="http://www.georss.org/georss"
+     xmlns:media="http://search.yahoo.com/mrss/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:thr="http://purl.org/syndication/thread/1.0"
+     xmlns:v="http://www.w3.org/2006/vcard/ns#"
+     xmlns:xCal="urn:ietf:params:xml:ns:xcal">
 	<channel>
 		<title>ActionStream for <?php echo h($userdata->display_name); ?></title>
 		<description>ActionStream data</description>
@@ -127,20 +128,27 @@ foreach($stream as $item) {
 				}
 			}
 			/* Other namespaces */
-			/* xCalendar (iCal profile) */
-			if(!count($after_service) && $during_service->get('dtstart')) {
-				echo '		<xCal:dtstart>'.h(date('c', $during_service->get('dtstart'))).'</xCal:dtstart>'."\n";
+			if(!count($after_service)) {
+				/* GeoRSS */
+				if($during_service->get('lat') && $during_service->get('long')) {
+					echo '		<geo:point>'.h($during_service->get('lat').' '.$during_service->get('long')).'</geo:point>'."\n";
+				}
+				/* MediaRSS */
+				if($during_service->get('thumbnail')) {
+					echo '		<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>'."\n";
+				}
+				/* xCalendar (iCal profile) */
+				if($during_service->get('dtstart')) {
+					echo '		<xCal:dtstart>'.h(date('c', $during_service->get('dtstart'))).'</xCal:dtstart>'."\n";
+				}
+				if($during_service->get('dtend')) {
+					echo '		<xCal:dtend>'.h(date('c', $during_service->get('dtend'))).'</xCal:dtend>'."\n";
+				}
+				if($during_service->get('location')) {
+					echo '		<xCal:location>'.h($during_service->get('location')).'</xCal:location>'."\n";
+				}
 			}
-			if(!count($after_service) && $during_service->get('dtend')) {
-				echo '		<xCal:dtend>'.h(date('c', $during_service->get('dtend'))).'</xCal:dtend>'."\n";
-			}
-			if(!count($after_service) && $during_service->get('location')) {
-				echo '		<xCal:location>'.h($during_service->get('location')).'</xCal:location>'."\n";
-			}
-			/* MediaRSS */
-			if(!count($after_service) && $during_service->get('thumbnail')) {
-				echo '		<media:content><media:thumbnail url="'.h($during_service->get('thumbnail')).'" /></media:content>'."\n";
-			}
+
 			echo '	</item>'."\n";
 
 			$after_service = array();
