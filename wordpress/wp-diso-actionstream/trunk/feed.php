@@ -106,7 +106,7 @@ foreach($stream as $item) {
 				else echo '<guid isPermaLink="false">NO IDENTIFIER</guid>'."\n";
 
 			echo '		<description>'."\n";
-			$item_wrapper = 'article';
+			$item_wrapper = 'div';
 			if(count($after_service)) {
 				$item_wrapper = 'li';
 				echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
