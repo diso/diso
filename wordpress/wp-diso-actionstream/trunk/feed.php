@@ -35,6 +35,7 @@ echo '<?xml version="1.0" ?>'."\n";
 <rss version="2.0"
      xmlns:activity="http://activitystrea.ms/spec/1.0/"
      xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
      xmlns:geo="http://www.georss.org/georss"
      xmlns:media="http://search.yahoo.com/mrss/"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -100,26 +101,35 @@ foreach($stream as $item) {
 			echo '	<item>'."\n";
 
 			echo '		<title>';
-			if(count($after_service)) echo h(count($after_service).' items from '.$service."\n");
+			if(count($after_service)) echo h(count($after_service).' items from '.$service);
 				else echo h($during_service->get('title') ? $during_service->get('title') : strip_tags($during_service.''));
 			echo '</title>'."\n";
+
 			if($during_service->get('created_on')) echo '<pubDate>'.date('r',$during_service->get('created_on')).'</pubDate>'."\n";
-			if($during_service->get('url')) echo '<link>'.h($during_service->get('url')).'</link>'."\n";
-			if($during_service->identifier()) echo '<guid isPermaLink="false">'.h($during_service->identifier()).'</guid>'."\n";
-				else echo '<guid isPermaLink="false">NO IDENTIFIER</guid>'."\n";
 
-			echo '		<description>'."\n";
-			$item_wrapper = 'div';
+			if(!count($after_service) && $during_service->get('url')) echo '<link>'.h($during_service->get('url')).'</link>'."\n";
+
+			echo '<guid isPermaLink="false">'.h($during_service->identifier());
+			foreach($after_service as $cnt) echo h(','.$cnt->identifier());
+			echo '</guid>'."\n";
+
+			if(!count($after_service) && $during_service->get('description')) echo '		<description>'.h($during_service->get('description')).'</description>'."\n";
+
+			/* Full microformatted content */
+			$cnt_tag = 'content:encoded';
+			$item_tag = 'div';
 			if(count($after_service)) {
-				$item_wrapper = 'li';
-				echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8');
+				$cnt_tag = 'description';
+				$item_tag = 'li';
 			}
-			echo h('<'.$item_wrapper.' class="hentry service-icon service-'.$service.'">'.$during_service.'</'.$item_wrapper.'>'."\n", ENT_NOQUOTES, 'UTF-8');
+			echo '		<'.$cnt_tag.'>'."\n";
+			if(count($after_service)) echo h("\t\t\t<ul class=\"hfeed action-stream-list\">",ENT_NOQUOTES,'UTF-8')."\n";
+			echo h("\t\t\t\t<".$item_tag.' class="hentry service-icon service-'.$service.'">'.$during_service.'</'.$item_tag.'>'."\n", ENT_NOQUOTES, 'UTF-8');
 			foreach($after_service as $cnt)
-				echo h('<li class="hentry service-icon service-'.$service.' actionstream-hidden">'.$cnt.'</li>'."\n", ENT_NOQUOTES, 'UTF-8');
-			if(count($after_service)) echo h('</ul>')."\n";
+				echo h("\t\t\t\t<li class=\"hentry service-icon service-".$service.' actionstream-hidden">'.$cnt.'</li>'."\n", ENT_NOQUOTES, 'UTF-8');
+			if(count($after_service)) echo h("\t\t\t</ul>\n");
+			echo '		</'.$cnt_tag.'>'."\n";
 
-			echo '		</description>'."\n";
 			if(!count($after_service) && $during_service->get('in-reply-to')) {
 				foreach((array)$during_service->get('in-reply-to') as $r) {
 					if(preg_match('/^https?:/', $r)) $href = $r;
@@ -129,6 +139,7 @@ foreach($stream as $item) {
 					echo ' />'."\n";
 				}
 			}
+
 			/* Other namespaces */
 			if(!count($after_service)) {
 				/* GeoRSS */
