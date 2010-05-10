@@ -400,7 +400,7 @@ function ext_profile_update($userid) {
  * @uses apply_filters() Calls 'post_extended_profile' after building the entire profile, but before returning it.
  * @access private
  */
-function get_extended_profile( $userid, $args ) {
+function get_extended_profile( $userid, $args=NULL ) {
 
 	$defaults = array(
 		'before' => '<div class="vcard hcard-profile">',
