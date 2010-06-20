@@ -283,7 +283,7 @@ function ext_profile_fields() {
 		echo '	<tr><th><label for="photo">Photo URL</label></th><td>'; 
 	if($userdata->photo)
 		echo'<a href="' . clean_url($userdata->photo) . '"><img src="' . clean_url($userdata->photo) . '" alt="Avatar" class="photo" style="float: right; max-height: 200px" /></a>';
-	echo '<input type="text" id="photo" name="hcard[photo]" value="' . attribute_escape($userdata->photo) . '" onchange="preview_hcard();" />';
+	echo '<input type="text" id="photo" name="hcard[photo]" value="' . attribute_escape($userdata->photo) . '" onchange="preview_hcard();" class="regular-text" />';
 	echo '</td></tr></table>';
 
 	//ORGANIZATION AND ADDRESS
@@ -291,6 +291,7 @@ function ext_profile_fields() {
 			'Miscellaneous' => array(
 				'additional_name' => 'Middle Name(s)',
 				'org' => 'Organization',
+				'title' => 'Title',
 			),
 			'Address' => array(
 				'street_address' => 'Street Address',
@@ -313,7 +314,7 @@ function ext_profile_fields() {
 			echo '</textarea></td></tr>';
 		}//end if Miscellaneous
 		foreach($fields as $key => $label)
-			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.@$userdata->$key.'" /></td></tr>';
+			echo '	<tr><th><label for="'.$key.'">'.$label.'</label></th> <td><input type="text" id="'.$key.'" name="hcard['.$key.']" value="'.@$userdata->$key.'" class="regular-text" /></td></tr>';
 		echo '</table>';
 	}//end foreach fieldset
 ?>
