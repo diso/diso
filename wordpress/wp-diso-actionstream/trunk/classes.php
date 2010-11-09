@@ -145,6 +145,7 @@ class ActionStreamItem {
 	function get($k) {
 		$v = $this->data[$k];
 		if(!$v && $k == 'service') return $this->service ? $this->service : 'website';
+		if(!$v && $k == 'setup_idx') return $this->setup_idx ? $this->setup_idx : 'posted';
 		if(is_array($v) && count($v) < 2) return $v[0];
 		return $v;
 	}
