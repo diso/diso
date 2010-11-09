@@ -7,6 +7,8 @@ function h($s, $quote_style = ENT_COMPAT, $charset=NULL, $double_encode=true) {
 	return htmlspecialchars($s, $quote_style, $charset, $double_encode);
 }
 
+$config = get_actionstream_config();
+
 $user_id = activity_stream_get_user_id( $_REQUEST['user'] );
 $userdata = get_userdata($user_id);
 $stream = new ActionStream($userdata->actionstream, $userdata->ID);
@@ -101,15 +103,21 @@ foreach($stream as $item) {
 			echo '	<item>'."\n";
 
 			echo '		<title>';
-			if(count($after_service)) echo h(count($after_service).' items from '.$service);
+			if(count($after_service)) echo h((count($after_service)+1).' items from '.$service);
 				else echo h($during_service->get('title') ? $during_service->get('title') : strip_tags($during_service.''));
 			echo '</title>'."\n";
 
-			if($during_service->get('created_on')) echo '<pubDate>'.date('r',$during_service->get('created_on')).'</pubDate>'."\n";
+			if($during_service->get('created_on')) echo "\t\t<pubDate>".date('r',$during_service->get('created_on')).'</pubDate>'."\n";
 
-			if(!count($after_service) && $during_service->get('url')) echo '<link>'.h($during_service->get('url')).'</link>'."\n";
+			if(!count($after_service) && $during_service->get('url')) echo "\t\t<link>".h($during_service->get('url')).'</link>'."\n";
 
-			echo '<guid isPermaLink="false">'.h($during_service->identifier());
+			if(!count($after_service) && is_string($ident = $during_service->get('ident'))) {
+				$service_url = $config['action_streams'][$during_service->get('service')][$during_service->get('setup_idx')]['url'];
+				$service_url = str_replace('{{ident}}',$ident,$service_url);
+				echo "\t\t<source url=\"".h($service_url).'">'.h($during_service->get('service')).' - '.$ident.'</source>'."\n";
+			}
+
+			echo "\t\t<guid isPermaLink=\"false\">".h($during_service->identifier());
 			foreach($after_service as $cnt) echo h(','.$cnt->identifier());
 			echo '</guid>'."\n";
 
