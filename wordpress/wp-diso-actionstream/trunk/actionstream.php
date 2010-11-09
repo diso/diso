@@ -46,6 +46,16 @@ function actionstream_plugin_deactivation() {
 	wp_clear_scheduled_hook('actionstream_poll');
 }
 
+function actionstream_init() {
+	register_post_type('actionstream', array(
+		'exclude_from_search' => true,
+		'publicly_queryable' => true,
+		'show_ui' => false,
+		'label' => 'Actionstream',
+		'taxonomies' => array('post_tag', 'category')
+	));
+}
+add_action('init', 'actionstream_init');
 
 /**
  * Update activity stream for each user of the blog.
