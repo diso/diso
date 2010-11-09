@@ -11,7 +11,7 @@ aim:
     service_type: contact
 backtype:
     name: backtype
-    url: http://www.backtype.com/{{ident}}
+    url: http://www.backtype.com/url/{{ident}}
     service_type: comments
 bebo:
     name: Bebo
