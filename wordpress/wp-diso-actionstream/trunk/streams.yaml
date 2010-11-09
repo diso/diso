@@ -14,7 +14,7 @@ backtype:
             - url
             - title
             - description
-        url: 'http://feeds.backtype.com/{{ident}}'
+        url: 'http://feeds.backtype.com/url/{{ident}}'
         rss: 1
         identifier: url
 colourlovers:
