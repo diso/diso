@@ -734,10 +734,10 @@ plancast:
             foreach: .vevent
             get:
                 title:
-                    - .summary
+                    - .listing_li_what a
                     - TEXT
                 url:
-                    - .url
+                    - .listing_li_what a
                     - @href
                 dtstart:
                     - .dtstart
