@@ -1,5 +1,13 @@
 <?php
 
+if(!function_exists('json_decode')) {
+	function json_decode($json, $assoc=false) {
+		if(!$assoc) throw 'This is just a wrapper around JSON.php';
+		require_once 'JSON.php';
+		$json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+		return $json->decode($json);
+	}
+}
 
 /**
  * Socaial Graph API.
@@ -10,9 +18,6 @@ class SocialGraphApi {
 
 	/** API URL */
 	var $api_url = 'http://socialgraph.apis.google.com/lookup';
-
-	/** JSON parser */
-	var $json;
 
 	/** boolean - Return edges out from returned nodes. */
 	var $edges_out;
@@ -33,8 +38,6 @@ class SocialGraphApi {
 	 * @param Array optional parameters.
 	 */
 	function SocialGraphApi($params) {
-		require_once 'JSON.php';
-		$this->json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		$this->edges_out = isset($params['edgesout']) ? $params['edgesout'] : '0';
 		$this->edges_in = isset($params['edgesin']) ? $params['edgesin'] : '0';
 		$this->follow_me = isset($params['followme']) ? $params['followme'] : '0';
@@ -62,15 +65,21 @@ class SocialGraphApi {
 			   '&fme=' . $this->follow_me .
 			   '&sgn=' . $this->sgn;
 		
-		$ch = curl_init($this->api_url."?$qs");
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		$result = curl_exec($ch);
-		curl_close($ch);
+		$get = $this->api_url."?$qs";
+
+		if(function_exists('curl_init')) {
+			$ch = curl_init($get);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			$result = curl_exec($ch);
+			curl_close($ch);
+		} else {
+			$result = file_get_contents($get);
+		}
 		
 		if (empty($result)) return null;
 		
 		//TODO: handle errors
-		$this->data = $this->json->decode($result);
+		$this->data = json_decode($result, true);
 		return $this->data;
 	}
 
