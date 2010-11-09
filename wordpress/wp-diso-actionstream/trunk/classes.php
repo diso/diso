@@ -497,7 +497,9 @@ class ActionStream {
 									'created_on' => 'pubDate/child::text()',
 									'title' => 'title/child::text()',
 									'url' => 'link/child::text()',
-									'identifier' => 'guid/child::text()'
+									'description' => 'description/child::text()',
+									'identifier' => 'guid/child::text()',
+									'in-reply-to' => 'thr:in-reply-to/@ref'
 								), $stream['rss'])
 						);
 					}//end if atom
