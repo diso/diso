@@ -89,14 +89,14 @@ class ActionStreamItem {
 			$data['description'] = apply_filters('the_content',$post->post_content);
 			if(!preg_match('/^\s*<p>/',$post->post_content)) $data['description'] = preg_replace('/^\s*<p>|<\/p>\s*$/','',$data['description']);
 		}
-		if(!$data['ident']) {
-			$data['ident'] = get_userdata($post->post_author);
-			$data['ident'] = array('fn' => $data['ident']->display_name, 'url' => $data['ident']->user_url);
-		}
 		if($post->post_type != 'actionstream' && $post->post_excerpt) $data['description'] = $post->post_excerpt;
 		if($post->post_type == 'actionstream' && $post->post_excerpt) $data['url'] = $post->post_excerpt;
 		if(!$data['url']) $data['url'] = get_permalink($post);
 		$this->data = array_merge(get_post_custom($post->ID), $data);
+		if(!$this->data['ident']) {
+			$this->data['ident'] = get_userdata($post->post_author);
+			$this->data['ident'] = array('fn' => $this->data['ident']->display_name, 'url' => $this->data['ident']->user_url);
+		}
 		$tags = get_the_tags($post->ID);
 		// Find service
 		foreach((array)$tags as $tag) {
