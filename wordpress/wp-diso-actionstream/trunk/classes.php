@@ -583,6 +583,10 @@ class ActionStream {
 								$value = $value[0];
 								if($p[1]{0} == '@') {
 									$value = $value->getAttribute(substr($p[1], 1, strlen($p[1])-1));
+									if($p[1] == '@href' && $value{0} == '/') {
+										$domain = explode('/', $url);
+										$value = 'http://'.$domain[2].$value;
+									}
 								} else if($p[1] == 'TEXT') {
 									$value = $value->text();
 								} else {
