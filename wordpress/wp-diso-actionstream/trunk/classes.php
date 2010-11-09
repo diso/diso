@@ -614,10 +614,10 @@ class ActionStream {
 		if(function_exists('publish_to_hub')) {
 			$feedlink = get_feed_link('action_stream');
 			$feedlink .= (strpos($selflink, '?') ? '&' : '?') . 'user=' . $this->user_id;
-			$services = array_keys($this->ident);
-			sort($services);
 			$feeds = array($feedlink, $feedlink.'&full');
 			/* This is a cool idea, but I have 16383 subsets of my services... not practical at all
+			$services = array_keys($this->ident);
+			sort($services);
 			foreach(ActionStream::subsets($services) as $subset) {
 				$include = 'include[]='.implode('include[]=', $subset);
 				$exclude = 'exclude[]='.implode('exclude[]=', $subset);
