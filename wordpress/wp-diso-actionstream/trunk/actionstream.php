@@ -56,7 +56,7 @@ function actionstream_poll() {
 	foreach($users as $user) {
 		$actionstream = get_usermeta($user->ID, 'actionstream');
 		if (!is_array($actionstream) || empty($actionstream)) { continue; }
-		$actionstream = new ActionStream($actionstream, $user->user_id);
+		$actionstream = new ActionStream($actionstream, $user->ID);
 		$actionstream->update();
 	}
 
