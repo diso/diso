@@ -733,7 +733,7 @@ class ActionStream {
 							.append(jQuery(document.createElement("a"))
 								.addClass("expand")
 								.attr("href","#")
-								.text("'.sizeof($items).' more")
+								.text("'.(sizeof($items)-1).' more")
 								.click(function() {
 									jQuery(".'.$group_id.':not(:first)").toggle();
 									jQuery(".'.$group_id.':first").show(); // Sometimes they all hide
