@@ -750,6 +750,9 @@ class ActionStream {
 
 		$feedlink = get_feed_link('action_stream');
 		$feedlink .= (strpos($feedlink, '?') ? '&' : '?') . 'user=' . $this->user_id;
+		if(!$collapse) $feedlink .= '&full';
+		if($filter['include']) $feedlink .= '&include[]=' . implode('&include[]=', (array)$filter['include']);
+		if($filter['exclude']) $feedlink .= '&exclude[]=' . implode('&exclude[]=', (array)$filter['exclude']);
 		$rtrn .= '<div style="text-align:right;">
         <a id="actionstream_feed" href="'.clean_url($feedlink).'" rel="alternate" type="application/rss+xml" title="ActionStream Feed">
                 <img src="'.clean_url(plugins_url('wp-diso-actionstream/images/feed.png')).'" alt="ActionStream Feed" />
