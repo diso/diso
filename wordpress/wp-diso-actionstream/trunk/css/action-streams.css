@@ -12,9 +12,6 @@
     margin: 0 0 .5em;
 }
 
-.action-stream-list .hentry abbr.published {display:none;}
-.service-lastfm .album { display: none; }
-
 .service-icon {
     display: block;
     overflow: hidden;
