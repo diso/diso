@@ -305,14 +305,16 @@ add_action('publish_post', 'actionstream_wordpress_post');
  * @param int $user_id ID of user to display activity stream for
  * @param int $num maximum number of activities to display
  * @param boolean $hide_user
+ * @param boolean $header_level level to start numbering headers
+ * @param boolean $filter include/exclude services filter
  * @param boolean $echo whether to echo the rendered activity stream
  * @return string the rendered activity stream
  */
-function actionstream_render($user_id, $num=10, $hide_user=false, $filter=array(), $echo=true) {
+function actionstream_render($user_id, $num=10, $hide_user=false, $header_level=3, $filter=array(), $echo=true) {
 	$userdata = get_userdata($user_id);
 
 	$rtrn = new ActionStream($userdata->actionstream, $userdata->ID);
-	$rtrn = $rtrn->toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar, $filter);
+	$rtrn = $rtrn->toString($num, $hide_user, $userdata->profile_permissions, $userdata->actionstream_collapse_similar, $filter, $header_level);
 	if($echo) echo $rtrn;
 	return $rtrn;
 }
