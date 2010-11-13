@@ -17,13 +17,13 @@ class Activity_Stream_Widget extends WP_Widget {
 		if ( $title )
 			echo $before_title . $title . $after_title;
 
-		actionstream_render($instance['user_id'], $instance['num'], $instance['hide_user']);
+		actionstream_render($instance['user_id'], $instance['num'], $instance['hide_user'], $instance['header_level']);
 
 		echo $after_widget;
 	}
 
 	function form( $instance ) {
-		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0 ) );
+		$instance = wp_parse_args( (array) $instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0, 'header_level' => 3 ) );
 ?>
         <p>
 			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
@@ -53,17 +53,23 @@ class Activity_Stream_Widget extends WP_Widget {
 				echo $this->get_field_id('hide_user'); ?>" name="<?php echo $this->get_field_name('hide_user'); ?>" />   
         	<label for="<?php echo $this->get_field_id('hide_user'); ?>"><?php _e('Hide Usernames'); ?></label>
 		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('header_level'); ?>"><?php _e('Header Level:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('header_level'); ?>" name="<?php 
+				echo $this->get_field_name('header_level'); ?>" type="text" value="<?php esc_attr_e($instance['header_level']); ?>" />
+		</p>
 <?php
     }    
 
     function update( $new_instance, $old_instance ) {
         $instance = $old_instance;
-        $new_instance = wp_parse_args((array) $new_instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0));
+        $new_instance = wp_parse_args((array) $new_instance, array( 'title' => '', 'user_id' => 0, 'num' => 10, 'hide_user' => 0, 'header_level' => 3));
 
         $instance['title'] = strip_tags($new_instance['title']);
         $instance['user_id'] = $new_instance['user_id'];
         $instance['num'] = $new_instance['num'];
         $instance['hide_user'] = $new_instance['hide_user'] ? 1 : 0;
+        $instance['header_level'] = $new_instance['header_level'];
 
         return $instance;
     }    

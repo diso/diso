@@ -655,7 +655,7 @@ class ActionStream {
 	 * @param array $permissions
 	 * @param boolean $collapse
 	 */
-	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true, $filter=array()) {
+	function toString($num=10, $hide_user=false, $permissions=array(), $collapse=true, $filter=array(), $header_level=3) {
 		$items = $this->items($collapse ? $num*4 : $num, true);
 		if(!$items || !count($items)) {
 			return 'No items to display in actionstream.';
@@ -703,7 +703,9 @@ class ActionStream {
 		foreach ($sorted_items as $day => $group) {
 			if (empty($group)) continue;
 
-			$rtrn .= '<h3 class="action-stream-header">On '.$day.'</h3>';
+			if($header_level)
+				$rtrn .= '<h'.$header_level.' class="action-stream-header">On '.$day.'</h'.$header_level.'>';
+
 			$rtrn .= '<ul class="hfeed action-stream-list">';
 
 			foreach ($group as $group_id => $items) {
